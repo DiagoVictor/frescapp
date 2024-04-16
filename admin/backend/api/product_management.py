@@ -48,8 +48,8 @@ def create_product():
     return jsonify({'message': 'User created successfully'}), 201
 
 # Ruta para actualizar un usuario existente
-@product_api.route('/products/<string:user_id>', methods=['PUT'])
-def update_prodcut(product_id):
+@product_api.route('/products/<string:product_id>', methods=['PUT'])
+def update_product(product_id):
     data = request.get_json()
     name = data.get('name')
     unit = data.get('unit')
