@@ -19,15 +19,13 @@ class ConfigService {
   }
 
   Future<List<String>> getPaymentMethods() async {
-    final Map<String, dynamic> configData = await getConfigData();
+    final Map<String, dynamic> configData = getConfigData() as Map<String, dynamic>;
     final List<String> paymentMethodData = configData['payment_method'];
     return paymentMethodData.cast<String>();
   }
 
-  Future<Map<String, List<String>>> getDeliverySlots() async {
-    final Map<String, dynamic> configData = await getConfigData();
-    final List<String> slotData = configData['slot'];
-    //return slotData.cast<String>();
-    return {"slot":["a","b"]};
+  getDeliverySlots() async {
+    List<String> configData = getConfigData() as List<String>;
+    return configData[0];
   }
 }

@@ -73,4 +73,6 @@ class Product {
       quantity: map['quantity']
     );
   }
+
+  toJson() {}
 }

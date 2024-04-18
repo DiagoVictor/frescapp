@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:frescapp_web/screens/home_screen.dart';
+import 'package:frescapp_web/screens/orders_screen.dart';
+import 'package:frescapp_web/screens/profile_screen.dart';
 import 'package:frescapp_web/services/product_service.dart';
 import 'package:frescapp_web/screens/detailCart_screen.dart';
 class CartScreen extends StatefulWidget {
   final List<Product> productsInCart;
 
-  const CartScreen({Key? key, required this.productsInCart}) : super(key: key);
+  const CartScreen({super.key, required this.productsInCart});
   
   get total => null;
 
@@ -103,6 +106,47 @@ class _CartScreenState extends State<CartScreen> {
           ],
         ),
       ),
+     bottomNavigationBar: SafeArea(
+      child: BottomNavigationBar(
+        currentIndex: 0,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Pedidos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+        ],
+        onTap: (int index) {
+          switch (index) {
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OrdersScreen()),   
+              );           
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),   
+              );           
+              break;
+          }
+        },
+      ),
+      )
     );
   }
 }
