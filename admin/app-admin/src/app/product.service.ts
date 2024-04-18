@@ -17,6 +17,6 @@ export class ProductService {
     return this.httpClient.put<any[]>(this.baseUrl + 'api/product/products/'+product_id,product_data);
   }
   createProduct(product_data:any): Observable<any[]> {
-    return this.httpClient.post<any[]>(this.baseUrl + 'api/product/product/',product_data);
+    return this.httpClient.post<any[]>(this.baseUrl + 'api/product/product',product_data);
   }
 }

@@ -5,6 +5,7 @@ import os
 from api.order_management import order_api
 from api.product_management import product_api
 from api.customer_management import customer_api
+from api.config_order import configOrder_api
 if __name__ == '__main__':
     app = Flask(__name__)
     # Configura la aplicación utilizando el archivo config.py
@@ -14,9 +15,10 @@ if __name__ == '__main__':
     app.register_blueprint(order_api, url_prefix='/api/order')
     app.register_blueprint(product_api, url_prefix='/api/product')
     app.register_blueprint(customer_api, url_prefix='/api/customer')
+    app.register_blueprint(configOrder_api, url_prefix='/api/config')
     @app.route('/shared/<path:filename>')
     def serve_static(filename):
         root_dir = os.path.dirname(os.getcwd())
-        return send_from_directory(os.path.join(root_dir, 'backend', 'shared','products'), filename)
+        return send_from_directory(os.path.join(root_dir, 'frescapp' , 'admin', 'backend', 'shared','products'), filename)
     CORS(app, resources={"/*": {"origins": "*"}})
     app.run(debug=True)

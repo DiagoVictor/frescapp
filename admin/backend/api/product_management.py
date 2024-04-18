@@ -6,7 +6,7 @@ from datetime import datetime
 
 product_api = Blueprint('product', __name__)
 
-# Ruta para crear un nuevo usuario
+# Ruta para crear un nuevo product
 @product_api.route('/product', methods=['POST'])
 def create_product():
     data = request.get_json()

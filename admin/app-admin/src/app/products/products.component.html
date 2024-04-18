@@ -6,7 +6,7 @@
     </div>
     <div class="col-auto">
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal"
-        data-bs-dismiss="modal" (click)="openEditModal('')">Nuevo Producto</button>
+        data-bs-dismiss="modal" (click)="openEditModal({},'new')">Nuevo Producto</button>
     </div>
   </div>
   <br>
@@ -37,7 +37,7 @@
         <td>{{ product.status }}</td>
         <td>
           <button type="submit" data-bs-toggle="modal" data-bs-target="#editProductModal" data-bs-dismiss="modal"
-            (click)="openEditModal(product)">Editar</button>
+            (click)="openEditModal(product,'update')">Editar</button>
         </td>
       </tr>
     </tbody>
@@ -62,7 +62,8 @@
             <div class="col-2">
               <div class="form-group">
                 <label for="unit">Unidad:</label>
-                <select class="form-control" id="unit" name="unit" [(ngModel)]="this.product.unit">
+                <select class="form-control" id="unit" name="unit" [(ngModel)]="product.unit">
+                  <option value="" disabled selected>Selecciona una unidad</option>
                   <option value="KG">Kg</option>
                   <option value="UNIT">Unidad</option>
                 </select>
@@ -135,6 +136,8 @@
             <textarea class="form-control" id="description" name="description"
               [(ngModel)]="this.product.description"></textarea>
           </div>
+          <div class="row">
+            <div class="col-6">
           <div class="form-group">
             <label for="image">Imagen:</label>
             <input type="text" class="form-control" id="image" name="image" [(ngModel)]="this.product.image">
@@ -147,13 +150,19 @@
             </select>
           </div>
         </div>
+        <div class="col-6">
+          <div class="col-8">
+            <img  [src]="'http://localhost:5000/shared/' + this.product.image + '.png'" alt="Imagen del producto" class="img-fluid">
+          </div>
+
+        </div>
+      </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" *ngIf="product" (click)="updated_product()">Guardar
-          Cambios</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" *ngIf="!product" (click)="created_product()">Nuevo
-          Producto</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" [disabled]="!camposCompletos()" *ngIf="actionTipo === 'update'" (click)="updated_product()">Guardar Cambios</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" [disabled]="!camposCompletos()" *ngIf="actionTipo === 'new'" (click)="created_product()">Nuevo Producto</button>
       </div>
     </div>
   </div>
