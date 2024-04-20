@@ -2,15 +2,18 @@ from datetime import datetime
 from pymongo import MongoClient
 from bson import ObjectId
 
-client = MongoClient('mongodb://3.23.102.32:27017/') 
-db = client['frescapp'] 
-customers_collection = db['customer']  
+client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
+db = client['frescapp']
+customers_collection = db['customers']  
 
 class Customer:
     def __init__(self, 
                  phone, 
                  name, 
+                 document,
+                 document_type,
                  address, 
+                 restaurant_name,
                  email, 
                  status, 
                  created_at, 
@@ -19,7 +22,10 @@ class Customer:
                  category):
         self.phone = phone
         self.name = name
+        self.document = document
+        self.document_type = document_type
         self.address = address
+        self.restaurant_name = restaurant_name
         self.email = email
         self.status = status
         self.created_at = created_at
@@ -31,7 +37,10 @@ class Customer:
         customer_data = {
             "phone": self.phone,
             "name": self.name,
+            "document": self.document,
+            "document_type": self.document_type,
             "address": self.address,
+            "restaurant_name": self.restaurant_name,
             "email": self.email,
             "status": self.status,
             "created_at": self.created_at,
@@ -48,7 +57,10 @@ class Customer:
             {"$set": { 
                         "phone": self.phone,
                         "name": self.name,
+                        "document": self.document,
+                        "document_type": self.document_type,
                         "address": self.address,
+                        "restaurant_name" : self.restaurant_name,
                         "email": self.email,
                         "status": self.status,
                         "created_at": self.created_at,

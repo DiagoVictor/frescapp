@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:frescapp_web/api_routes.dart';
 
 class ProductService {
 
   Future<List<Product>> getProducts() async {
     // Hacer la solicitud HTTP para obtener los datos de los productos desde el endpoint
-    final response = await http.get(Uri.parse('http://127.0.0.1:5000/api/product/products'));
+    final response = await http.get(Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.products}/products'));
 
     // Verificar si la solicitud fue exitosa (código de estado 200)
     if (response.statusCode == 200) {
@@ -28,11 +29,14 @@ class Product {
   final String unit;
   final String sku;
   final String category;
+  // ignore: non_constant_identifier_names
   final int price_sale;
+  // ignore: non_constant_identifier_names
   final int price_purchase;
   final double discount;
   final double margen;
   final bool iva;
+  // ignore: non_constant_identifier_names
   final double iva_value;
   final String description;
   final String image;
@@ -43,11 +47,14 @@ class Product {
     required this.unit,
     required this.sku,
     required this.category,
+    // ignore: non_constant_identifier_names
     required this.price_sale,
+    // ignore: non_constant_identifier_names
     required this.price_purchase,
     required this.discount,
     required this.margen,
     required this.iva,
+    // ignore: non_constant_identifier_names
     required this.iva_value,
     required this.description,
     required this.image,

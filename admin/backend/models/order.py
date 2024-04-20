@@ -2,38 +2,58 @@ from datetime import datetime
 from pymongo import MongoClient
 from bson import ObjectId
 
-client = MongoClient('mongodb://3.23.102.32:27017/') 
-db = client['frescapp'] 
-orders_collection = db['order']  
+client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
+db = client['frescapp']
+orders_collection = db['orders']  
 
 class Order:
     def __init__(self, 
                  order_number,
                  customer_email, 
+                 customer_phone,
+                 customer_documentNumber,
+                 customer_documentType,
+                 customer_name,
                  delivery_date, 
                  status, 
                  created_at, 
                  updated_at, 
-                 products
+                 products,
+                 total,
+                 deliverySlot,
+                 paymentMethod
                  ):
         self.order_number = order_number
         self.customer_email = customer_email
+        self.customer_phone = customer_phone
+        self.customer_documentNumber = customer_documentNumber
+        self.customer_documentType = customer_documentType
+        self.customer_name = customer_name
         self.delivery_date = delivery_date
         self.status = status
         self.created_at = created_at
         self.updated_at = updated_at
         self.products = products
+        self.total = total
+        self.deliverySlot = deliverySlot
+        self.paymentMethod = paymentMethod
 
     def save(self):
         order_data = {
             "order_number" : self.order_number,
             "customer_email": self.customer_email,
+            "customer_phone": self.customer_phone,
+            "customer_documentNumber": self.customer_documentNumber,
+            "customer_documentType": self.customer_documentType,
+            "customer_name": self.customer_name,
             "delivery_date": self.delivery_date,
             "status": self.status,
             "created_at": self.created_at,
-            "created_at": self.created_at,
             "updated_at" : self.updated_at,
-            "products" : self.products
+            "products" : self.products,
+            "total" : self.total,
+            "deliverySlot" : self.deliverySlot,
+            "paymentMethod" : self.paymentMethod
         }
         result = orders_collection.insert_one(order_data)
         return result.inserted_id
@@ -44,12 +64,18 @@ class Order:
             {"$set": { 
                         "order_number" :self.order_number,
                         "customer_email": self.customer_email,
+                        "customer_phone": self.customer_phone,
+                        "customer_documentNumber": self.customer_documentNumber,
+                        "customer_documentType": self.customer_documentType,
+                        "customer_name": self.customer_name,
                         "delivery_date": self.delivery_date,
-                        "status": self.status,
                         "status": self.status,
                         "created_at": self.created_at,
                         "updated_at" : self.updated_at,
-                        "products" : self.products
+                        "products" : self.products,
+                        "total" : self.total,
+                        "deliverySlot" : self.deliverySlot,
+                        "paymentMethod" : self.paymentMethod
                     }
             }
         )
@@ -68,3 +94,6 @@ class Order:
     @staticmethod
     def find_by_order_number(order_number):
         return orders_collection.find_one({"order_number": order_number})
+    @staticmethod
+    def find_by_customer(customer_email):
+        return orders_collection.find({"customer_email": customer_email})

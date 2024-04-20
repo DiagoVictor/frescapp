@@ -4,9 +4,8 @@ from datetime import datetime
 from pymongo import MongoClient
 from bson.json_util import dumps
 
-client = MongoClient('mongodb://3.23.102.32:27017/') 
-db = client['frescapp'] 
-config_collection = db['orderConfig']  
+client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
+config_collection = client['orderConfig']  
 
 configOrder_api = Blueprint('config_order', __name__)
 

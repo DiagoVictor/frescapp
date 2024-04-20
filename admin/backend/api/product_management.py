@@ -45,7 +45,7 @@ def create_product():
         status = status
     )
     product.save()
-    return jsonify({'message': 'User created successfully'}), 201
+    return jsonify({'message': 'Product created successfully'}), 201
 
 # Ruta para actualizar un usuario existente
 @product_api.route('/products/<string:product_id>', methods=['PUT'])

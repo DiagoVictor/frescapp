@@ -1,6 +1,87 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frescapp_web/api_routes.dart';
+import 'package:frescapp_web/screens/newOrder/home_screen.dart';
+
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  LoginScreen({super.key});
+
+  // Controladores de texto para los campos de entrada de correo electrónico y contraseña
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  Future<void> _saveUserInfo(dynamic user) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('user_id', user['user_data']['_id']);
+    prefs.setString('user_phone', user['user_data']['phone']);
+    prefs.setString('user_name', user['user_data']['name']);
+    prefs.setString('user_document', user['user_data']['document']);
+    prefs.setString('user_document_type', user['user_data']['document_type']);
+    prefs.setString('user_address', user['user_data']['address']);
+    prefs.setString('user_restaurant_name', user['user_data']['restaurant_name']);
+    prefs.setString('user_email', user['user_data']['email']);
+    prefs.setString('user_status', user['user_data']['status']);
+    prefs.setString('user_created_at', user['user_data']['created_at']);
+    prefs.setString('user_updated_at', user['user_data']['updated_at']);
+    prefs.setString('user_category', user['user_data']['category']);
+    prefs.setString('token', user['token']);
+  }
+
+
+  Future<void> _login(BuildContext context, String email, String password) async {
+    if (email.isEmpty || password.isEmpty) {
+      // Mostrar mensaje de error si falta correo electrónico o contraseña
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, ingrese correo electrónico y contraseña'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/login'), // Endpoint del login
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'user': email,
+          'password': password,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // Guardar el correo electrónico y la contraseña en las preferencias compartidas
+        _saveUserInfo(responseData);
+          Navigator.push(
+          // ignore: use_build_context_synchronously
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+
+      } else {
+        // Mostrar mensaje de error si el inicio de sesión falla
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al iniciar sesión, correo electrónico o contraseña incorrectos'),
+          ),
+        );
+      }
+    } catch (e) {
+      // Mostrar mensaje de error si hay un error de red u otro error
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,43 +98,37 @@ class LoginScreen extends StatelessWidget {
                 height: 200, // Alto de la imagen
               ),
               const SizedBox(height: 20),
-              const TextField(
-                decoration: InputDecoration(
-                  hintText: 'Nombre de usuario',
+              TextField(
+                controller: emailController, // Asignar el controlador de texto para el correo electrónico
+                decoration: const InputDecoration(
+                  hintText: 'Correo o Teléfono',
                   prefixIcon: Icon(Icons.person),
                 ),
               ),
               const SizedBox(height: 10),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: passwordController, // Asignar el controlador de texto para la contraseña
+                obscureText: true, // Ocultar texto
+                decoration: const InputDecoration(
                   hintText: 'Contraseña',
                   prefixIcon: Icon(Icons.lock),
                 ),
-                obscureText: true, // Ocultar texto
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
                   // Acción cuando se presiona el botón de inicio de sesión
-                  Navigator.pushNamed(context, '/home');
+                  _login(context, emailController.text, passwordController.text);
                 },
                 child: const Text('Iniciar sesión'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
                   // Navegar a la pantalla de registro
-                  Navigator.pushNamed(context, '/register');
+                  Navigator.of(context).pushNamed('/register');
                 },
                 child: const Text('¿No tienes una cuenta? Regístrate aquí'),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: () {
-                  // Acción cuando se presiona el botón de inicio de sesión con Google
-                },
-                icon: const Icon(Icons.login),
-                label: const Text('Iniciar sesión con Google'),
               ),
             ],
           ),

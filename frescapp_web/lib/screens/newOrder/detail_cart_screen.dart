@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:frescapp_web/screens/home_screen.dart';
-import 'package:frescapp_web/screens/orders_screen.dart';
-import 'package:frescapp_web/screens/profile_screen.dart';
+import 'package:frescapp_web/screens/newOrder/home_screen.dart';
+import 'package:frescapp_web/screens/newOrder/order_confirmation_screen.dart';
+import 'package:frescapp_web/screens/orders/orders_screen.dart';
+import 'package:frescapp_web/screens/profile/profile_screen.dart';
 import 'package:frescapp_web/services/product_service.dart';
-//import 'package:frescapp_web/services/config_service.dart';
-import 'package:frescapp_web/screens/order_confirmation_screen.dart';
 import 'package:intl/intl.dart'; 
 
 class OrderDetailScreen extends StatefulWidget {
   final List<Product> productsInCart;
 
-  const OrderDetailScreen({super.key, required this.productsInCart});
+  const OrderDetailScreen({super.key,  required this.productsInCart});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -23,21 +22,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   String? selectedPaymentMethod;
   late List<String> paymentMethods = ["Nequi", "Daviplata", "Transf. Bancaria", "Efectivo en la entrega"];
   late List<String> deliverySlots = ["06:00 AM - 09:00 AM", "09:00 AM - 12:00 PM", "12:00 PM - 03:00 PM", "03:00 PM - 03:59 PM"];
-  //final ConfigService configService = ConfigService();
 
   @override
   void initState() {
     super.initState();
-    selectedDate = DateTime.now().add(const Duration(days: 1)); // Día siguiente al actual
+    selectedDate = DateTime.now().add(const Duration(days: 1));
     selectedDeliverySlot = 'Slot de entrega';
     selectedPaymentMethod = 'Método de pago';
-    fetchConfigData();
-  }
-
-  Future<void> fetchConfigData() async {
-    //paymentMethods = await configService.getPaymentMethods();
-    //deliverySlots = configService.getDeliverySlots() as List<String>;
-    setState(() {}); // Actualiza el estado para reflejar los datos obtenidos
   }
 
   @override
@@ -65,9 +56,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              // Selector de fecha (DatePicker)
               SizedBox(
-                width: 200, // Ancho del DatePicker
+                width: 200,
                 child: ElevatedButton(
                   onPressed: () {
                     _selectDate(context);
@@ -120,7 +110,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  // Lógica para confirmar el pedido y pasar a la pantalla de confirmación
                   _confirmOrder(context);
                 },
                 child: const Text('Confirmar Pedido'),
@@ -129,47 +118,47 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ),
       ),
-       bottomNavigationBar: SafeArea(
-      child: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Pedidos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
-        onTap: (int index) {
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
-              break;
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const OrdersScreen()),   
-              );           
-              break;
-            case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),   
-              );           
-              break;
-          }
-        },
+      bottomNavigationBar: SafeArea(
+        child: BottomNavigationBar(
+          currentIndex: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Inicio',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart),
+              label: 'Pedidos',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Perfil',
+            ),
+          ],
+          onTap: (int index) {
+            switch (index) {
+              case 0:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                );
+                break;
+              case 1:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrdersScreen()),   
+                );           
+                break;
+              case 2:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),   
+                );           
+                break;
+            }
+          },
+        ),
       ),
-      )
     );
   }
 
@@ -177,7 +166,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: DateTime.now().add(const Duration(days: 1)), // Día siguiente al actual
+      firstDate: DateTime.now().add(const Duration(days: 1)),
       lastDate: DateTime(2101),
     );
     if (picked != null && picked != selectedDate) {
@@ -188,16 +177,25 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   void _confirmOrder(BuildContext context) {
-    // Crear un mapa con los detalles del pedido
-Map<String, dynamic> orderDetails = {
-  'products': widget.productsInCart.map((product) => product.toJson()).toList(),
-  'total': widget.productsInCart.fold(0, (sum, product) => sum + (product.price_sale * product.quantity!)),
-  'deliverySlot': selectedDeliverySlot,
-  'paymentMethod': selectedPaymentMethod,
-  'deliveryDate': DateFormat('yyyy-MM-dd').format(selectedDate),
-};
+    List<Map<String, dynamic>> productList = widget.productsInCart.map((product) {
+      return {
+        'sku': product.sku,
+        'name': product.name,
+        'price_sale': product.price_sale,
+        'quantity': product.quantity,
+        'iva' : product.iva,
+        'iva_value': product.iva_value
+      };
+    }).toList();
 
-    // Navegar a la pantalla de confirmación y pasar los detalles del pedido como argumento
+    Map<String, dynamic> orderDetails = {
+      'products': productList,
+      'total': widget.productsInCart.fold(0, (sum, product) => sum + (product.price_sale * product.quantity!)),
+      'deliverySlot': selectedDeliverySlot,
+      'paymentMethod': selectedPaymentMethod,
+      'deliveryDate': DateFormat('yyyy-MM-dd').format(selectedDate),
+    };
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => OrderConfirmationScreen(orderDetails: orderDetails)),

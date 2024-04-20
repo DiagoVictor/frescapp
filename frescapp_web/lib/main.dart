@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frescapp_web/screens/login_screen.dart';
+import 'package:frescapp_web/screens/newOrder/home_screen.dart'; // Importa la pantalla de inicio
 import 'package:frescapp_web/routes.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frescapp_web/api_routes.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -18,8 +21,44 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0x0097d700)),
         useMaterial3: true,
       ),
-      home: const LoginScreen(), // Cambia MyHomePage por LoginScreen
-      onGenerateRoute: Routes.generateRoute
+      // Utiliza una función asincrónica para determinar qué pantalla mostrar
+      home: FutureBuilder<bool>(
+        future: _checkTokenValidity(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            // Muestra una pantalla de carga mientras se verifica el token
+            return const CircularProgressIndicator();
+          } else {
+            // Si hay un error al verificar el token, muestra la pantalla de inicio de sesión
+            if (snapshot.hasError || !snapshot.data!) {
+              return LoginScreen();
+            } else {
+              // Si el token es válido, muestra la pantalla de inicio
+              return const HomeScreen();
+            }
+          }
+        },
+      ),
+      onGenerateRoute: Routes.generateRoute,
     );
+  }
+
+  // Función para verificar la validez del token almacenado en las preferencias compartidas
+  Future<bool> _checkTokenValidity() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    // Verifica si hay un token y devuelve true si es válido, de lo contrario, devuelve false
+    if (token != null) {
+      final response = await http.post(
+        Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/check_token'), // Endpoint para verificar el token
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return response.statusCode == 200;
+    } else {
+      return false;
+    }
   }
 }

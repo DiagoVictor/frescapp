@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:frescapp_web/screens/home_screen.dart';
-import 'package:frescapp_web/screens/orders_screen.dart';
-import 'package:frescapp_web/screens/profile_screen.dart';
+import 'package:frescapp_web/screens/newOrder/home_screen.dart';
+import 'package:frescapp_web/screens/orders/orders_screen.dart';
+import 'package:frescapp_web/screens/profile/profile_screen.dart';
 import 'package:frescapp_web/services/product_service.dart';
-import 'package:frescapp_web/screens/detailCart_screen.dart';
+import 'package:frescapp_web/screens/newOrder/detail_cart_screen.dart';
 class CartScreen extends StatefulWidget {
   final List<Product> productsInCart;
 
-  const CartScreen({super.key, required this.productsInCart});
+  const CartScreen({super.key, required this.productsInCart, required void Function(int value) updateCounter});
   
   get total => null;
 
@@ -54,6 +54,30 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                   ),
                   subtitle: Text(product.category),
+                    onTap: () {
+                        showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Image.network(
+                                  product.image,
+                                  height: 200,
+                                  width: 200,
+                                ),
+                                const SizedBox(height: 20),
+                                Text('Nombre: ${product.name}'),
+                                Text('Precio: \$${product.price_sale}'),
+                                Text('Categoría: ${product.category}'),
+                                // Agregar más atributos aquí según sea necesario
+                              ],
+                            ),
+                          );
+                        }
+                        );
+                    },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

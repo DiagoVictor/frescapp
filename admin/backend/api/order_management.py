@@ -10,52 +10,80 @@ order_api = Blueprint('order', __name__)
 def create_order():
     data = request.get_json()
     order_number = data.get('order_number')
-    customer_email = data.get('customer_email')
-    delivery_date = data.get('delivery_date')
-    status = data.get('status')
+    customer_email = data.get('email')
+    customer_phone = data.get('phoneNumber')
+    customer_documentNumber = data.get('documentNumber')
+    customer_documentType = data.get('documentType')
+    customer_name = data.get('customerName')
+    delivery_date = data.get('deliveryDate')
+    status = 'created'
     created_at = data.get('created_at')  
     updated_at = data.get('updated_at')  
     products = data.get('products')
+    total = data.get('total')
+    deliverySlot = data.get('deliverySlot')
+    paymentMethod = data.get('paymentMethod')
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
 
     if Order.find_by_order_number(order_number=order_number):
-        return jsonify({'message': 'Customer already exists'}), 400
+        return jsonify({'message': 'Order already exists'}), 400
 
     order = Order(        
         order_number = order_number,
         customer_email = customer_email,
+        customer_phone = customer_phone,
+        customer_documentNumber = customer_documentNumber,
+        customer_documentType = customer_documentType,
+        customer_name = customer_name,
         delivery_date = delivery_date,
         status = status,
         created_at = created_at,
         updated_at = updated_at,
-        products = products
+        products = products,
+        total = total,
+        deliverySlot = deliverySlot,
+        paymentMethod = paymentMethod
     )
     order.save()
     return jsonify({'message': 'Order created successfully'}), 201
 
 # Ruta para actualizar un usuario existente
-@order_api.route('/customers/<string:customer_id>', methods=['PUT'])
+@order_api.route('/customers/<string:order_id>', methods=['PUT'])
 def update_order(order_id):
     data = request.get_json()
     order_number = data.get('order_number')
     customer_email = data.get('customer_email')
+    customer_phone = data.get('customer_phone')
+    customer_documentNumber = data.get('customer_documentNumber')
+    customer_documentType = data.get('customer_documentType')
+    customer_name = data.get('customer_documencustomer_nametType')
     delivery_date = data.get('delivery_date')
     status = data.get('status')  
     created_at = data.get('created_at')
     updated_at = data.get('updated_at')
     products = data.get('products')
+    total = data.get('total')
+    deliverySlot = data.get('deliverySlot')
+    paymentMethod = data.get('paymentMethod')
     order = Order.object(order_id)
     if not order:
         return jsonify({'message': 'Order not found'}), 404
     order.id = order_id
     order.order_number = order_number or order.order_number
     order.customer_email = customer_email or order.customer_email
+    order.customer_phone = customer_phone or order.customer_phone
+    order.customer_documentNumber = customer_documentNumber or order.customer_documentNumber
+    order.customer_documentType = customer_documentType or order.customer_documentType
+    order.customer_name = customer_name or order.customer_name
     order.delivery_date = delivery_date or order.delivery_date
     order.status =status or order.status
     order.created_at = created_at or order.created_at
     order.updated_at = updated_at or order.updated_at
     order.products = products or order.products
+    order.total = total or order.total
+    order.deliverySlot = deliverySlot or order.deliverySlot
+    order.paymentMethod = paymentMethod or order.paymentMethod
     order.updated()
     return jsonify({'message': 'Order updated successfully'}), 200
 
@@ -67,11 +95,43 @@ def list_orders():
          "id": str(order["_id"]), 
          "order_number": order["order_number"], 
          "customer_email": order["customer_email"], 
+         "customer_phone": order["customer_phone"], 
+         "customer_documentNumber": order["customer_documentNumber"], 
+         "customer_documentType": order["customer_documentType"], 
+         "customer_name": order["customer_name"], 
          "delivery_date": order["delivery_date"], 
          "status": order["status"], 
          "created_at": order["created_at"], 
          "updated_at": order["updated_at"], 
-         "products": order["products"], 
+         "products": order["products"],
+         "total": order["total"], 
+         "deliverySlot": order["deliverySlot"], 
+         "paymentMethod": order["paymentMethod"], 
+         }
+        for order in orders_cursor
+    ]
+    orders_json = json.dumps(order_data)
+    return orders_json, 200
+@order_api.route('/orders_customer/<string:email>', methods=['GET'])
+def list_orders_customer(email):
+    orders_cursor = Order.find_by_customer(email)
+    order_data = [
+        {
+         "id": str(order["_id"]), 
+         "order_number": order["order_number"], 
+         "customer_email": order["customer_email"], 
+         "customer_phone": order["customer_phone"], 
+         "customer_documentNumber": order["customer_documentNumber"], 
+         "customer_documentType": order["customer_documentType"], 
+         "customer_name": order["customer_name"], 
+         "delivery_date": order["delivery_date"], 
+         "status": order["status"], 
+         "created_at": order["created_at"], 
+         "updated_at": order["updated_at"], 
+         "products": order["products"],
+         "total": order["total"], 
+         "deliverySlot": order["deliverySlot"], 
+         "paymentMethod": order["paymentMethod"], 
          }
         for order in orders_cursor
     ]
