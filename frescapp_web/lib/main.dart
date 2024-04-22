@@ -57,9 +57,10 @@ class MyApp extends StatelessWidget {
     if (token != null) {
       final response = await http.post(
         Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/check_token'), // Endpoint para verificar el token
+        
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token'
         },
       );
       return response.statusCode == 200;

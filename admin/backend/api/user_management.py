@@ -1,10 +1,11 @@
-from flask import Blueprint, jsonify, request
+from flask import Flask, send_file, make_response, request, Response, send_from_directory,Blueprint,jsonify
 from flask_bcrypt import Bcrypt
 from datetime import datetime, timedelta
 from pymongo import MongoClient
 from jose import JWTError, jwt
 import json
 from bson import ObjectId
+from functools import wraps
 
 user_api = Blueprint('user', __name__)
 client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
@@ -47,7 +48,6 @@ def login():
 @user_api.route('/check_token', methods=['POST'])
 def check_token():
     token = request.headers.get('Authorization', '').split('Bearer ')[-1]
-    
     if not token:
         return jsonify({'message': 'Token is missing'}), 401
 

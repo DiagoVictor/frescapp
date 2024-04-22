@@ -45,7 +45,7 @@ class LoginScreen extends StatelessWidget {
       final response = await http.post(
         Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/login'), // Endpoint del login
         headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
+          'Content-Type': 'application/json; charset=UTF-8'
         },
         body: jsonEncode(<String, String>{
           'user': email,
@@ -99,7 +99,7 @@ class LoginScreen extends StatelessWidget {
                   width: 300, // Ancho de la imagen
                   height: 300, // Alto de la imagen
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 40),
 
                 TextField(
                   controller: emailController, // Asignar el controlador de texto para el correo electrónico
