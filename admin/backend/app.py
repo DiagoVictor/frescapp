@@ -24,8 +24,7 @@ if __name__ == '__main__':
     @app.route('/api/shared/<path:filename>')
     def serve_static(filename):
         root_dir = os.path.dirname(os.getcwd())
-        print(root_dir)
-        return send_from_directory(os.path.join(root_dir, 'frescapp' , 'admin', 'backend', 'shared','products'), filename)
+        return send_from_directory(os.path.join(root_dir,  'backend', 'shared','products'), filename)
 
 
     # Configurar CORS para permitir solicitudes desde cualquier origen
