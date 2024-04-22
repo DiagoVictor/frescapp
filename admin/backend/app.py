@@ -30,4 +30,4 @@ if __name__ == '__main__':
     # Configurar CORS para permitir solicitudes desde cualquier origen
     CORS(app, resources={"/*": {"origins": "*"}})
 
-    app.run(debug=False)
+    app.run(host='0.0.0.0', port=5000)
