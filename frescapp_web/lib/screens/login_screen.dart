@@ -57,7 +57,7 @@ class LoginScreen extends StatelessWidget {
 
         // Guardar el correo electrónico y la contraseña en las preferencias compartidas
         _saveUserInfo(responseData);
-          Navigator.push(
+        Navigator.push(
           // ignore: use_build_context_synchronously
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -86,51 +86,69 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'images/start_icon.png', // Ruta de la imagen
-                width: 200, // Ancho de la imagen
-                height: 200, // Alto de la imagen
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: emailController, // Asignar el controlador de texto para el correo electrónico
-                decoration: const InputDecoration(
-                  hintText: 'Correo o Teléfono',
-                  prefixIcon: Icon(Icons.person),
+      body: Container(
+        color: Colors.grey[900], // Fondo gris oscuro
+        child: Center(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'images/start_icon.png', // Ruta de la imagen
+                  width: 300, // Ancho de la imagen
+                  height: 300, // Alto de la imagen
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: passwordController, // Asignar el controlador de texto para la contraseña
-                obscureText: true, // Ocultar texto
-                decoration: const InputDecoration(
-                  hintText: 'Contraseña',
-                  prefixIcon: Icon(Icons.lock),
+                const SizedBox(height: 10),
+
+                TextField(
+                  controller: emailController, // Asignar el controlador de texto para el correo electrónico
+                  decoration: const InputDecoration(
+                    hintText: 'Correo o Teléfono',
+                    prefixIcon: Icon(Icons.person),
+                    hintStyle: TextStyle(color: Colors.white), // Color blanco para el texto de sugerencia
+                  ),
+                  style: const TextStyle(color: Colors.white), // Color blanco para el texto de entrada
                 ),
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: () {
-                  // Acción cuando se presiona el botón de inicio de sesión
-                  _login(context, emailController.text, passwordController.text);
-                },
-                child: const Text('Iniciar sesión'),
-              ),
-              const SizedBox(height: 20),
-              TextButton(
-                onPressed: () {
-                  // Navegar a la pantalla de registro
-                  Navigator.of(context).pushNamed('/register');
-                },
-                child: const Text('¿No tienes una cuenta? Regístrate aquí'),
-              ),
-            ],
+                const SizedBox(height: 10),
+                TextField(
+                  controller: passwordController, // Asignar el controlador de texto para la contraseña
+                  obscureText: true, // Ocultar texto
+                  decoration: const InputDecoration(
+                    hintText: 'Contraseña',
+                    prefixIcon: Icon(Icons.lock),
+                    hintStyle: TextStyle(color: Colors.white), // Color blanco para el texto de sugerencia
+                  ),
+                  style: const TextStyle(color: Colors.white), // Color blanco para el texto de entrada
+                ),
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: () {
+                    // Acción cuando se presiona el botón de inicio de sesión
+                    _login(context, emailController.text, passwordController.text);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green, // Fondo verde 
+                  ),
+                  child: const Text(
+                    'Iniciar sesión',
+                    style: TextStyle(color: Colors.white), // Texto blanco
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    // Navegar a la pantalla de registro
+                    Navigator.of(context).pushNamed('/register');
+                  },
+                  child: const Text(
+                    '¿No tienes una cuenta? Regístrate aquí',
+                    style: TextStyle(color: Colors.white), // Texto blanco
+                  ),
+                ),
+
+              ],
+            ),
           ),
         ),
       ),

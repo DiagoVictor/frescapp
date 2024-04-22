@@ -4,6 +4,11 @@ import 'package:frescapp_web/screens/orders/orders_screen.dart';
 import 'package:frescapp_web/screens/profile/profile_screen.dart';
 import 'package:frescapp_web/services/product_service.dart';
 import 'package:frescapp_web/screens/newOrder/detail_cart_screen.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+
 class CartScreen extends StatefulWidget {
   final List<Product> productsInCart;
 
@@ -17,6 +22,27 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+    
+  void _openWhatsApp() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String phoneNumber =  prefs.getString('contact_phone') ?? '';
+  // Construir la URL para abrir WhatsApp
+  String url = 'https://wa.me/$phoneNumber';
+  // Abrir la URL en una ventana externa (aplicación de WhatsApp)
+  // ignore: deprecated_member_use
+  if (await canLaunch(url)) {
+    // ignore: deprecated_member_use
+    await launch(url);
+  } else {
+    // Manejar el caso en el que WhatsApp no esté instalado
+    // ignore: use_build_context_synchronously
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('No se pudo abrir WhatsApp.'),
+      ),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     // Filtra los productos con una cantidad mayor a cero
@@ -49,34 +75,65 @@ class _CartScreenState extends State<CartScreen> {
                     text: TextSpan(
                       children: [
                         TextSpan(text: '${product.name} - ', style: const TextStyle(fontWeight: FontWeight.normal)),
-                        TextSpan(text: '\n \$ ${product.price_sale.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: '\n \$ ${NumberFormat('#,###').format(product.price_sale)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
                   subtitle: Text(product.category),
                     onTap: () {
-                        showDialog(
+                      showDialog(
                         context: context,
                         builder: (context) {
-                          return AlertDialog(
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Image.network(
-                                  product.image,
-                                  height: 200,
-                                  width: 200,
+                          return StatefulBuilder(
+                            builder:
+                                (BuildContext context, StateSetter setState) {
+                              return AlertDialog(
+                                title: Text(product.name,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
+                                    textAlign: TextAlign.center),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Image.network(
+                                      product.image,
+                                      height: 200,
+                                      width: 200,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Text(product.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                        textAlign: TextAlign.center),
+                                    Text(
+                                      ' \$  ${NumberFormat('#,###').format(product.price_sale)}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    Text(product.category,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                        textAlign: TextAlign.center),
+
+
+                                    // Agregar más atributos aquí según sea necesario
+                                  ],
                                 ),
-                                const SizedBox(height: 20),
-                                Text('Nombre: ${product.name}'),
-                                Text('Precio: \$${product.price_sale}'),
-                                Text('Categoría: ${product.category}'),
-                                // Agregar más atributos aquí según sea necesario
-                              ],
-                            ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('Cerrar'),
+                                  ),
+                                ],
+                              );
+                            },
                           );
-                        }
-                        );
+                        },
+                      );
                     },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -109,7 +166,7 @@ class _CartScreenState extends State<CartScreen> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                'Total: \$ $total',
+                'Total: \$ ${NumberFormat('#,###').format(total)}',
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
@@ -130,47 +187,57 @@ class _CartScreenState extends State<CartScreen> {
           ],
         ),
       ),
-     bottomNavigationBar: SafeArea(
-      child: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Pedidos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
-        onTap: (int index) {
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
-              break;
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const OrdersScreen()),   
-              );           
-              break;
-            case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),   
-              );           
-              break;
-          }
-        },
+           bottomNavigationBar: SafeArea(
+  child: BottomNavigationBar(
+    currentIndex: 0,
+    selectedItemColor: Colors.lightGreen.shade900,// Color de los iconos seleccionados
+    unselectedItemColor: Colors.grey, // Color de los iconos no seleccionados
+    items: const [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: 'Inicio',
       ),
-      )
-    );
+      BottomNavigationBarItem(
+        icon: Icon(Icons.shopping_cart),
+        label: 'Pedidos',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: 'Perfil',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.chat), // Icono de WhatsApp
+        label: 'WhatsApp', // Etiqueta para el botón
+      ),
+    ],
+    onTap: (int index) {
+      switch (index) {
+        case 0:
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+          break;
+        case 1:
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OrdersScreen()),
+          );
+          break;
+        case 2:
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+          break;
+        case 3:
+          _openWhatsApp(); // Función para abrir WhatsApp
+          break;
+      }
+    },
+  ),
+),
+);
   }
+  
 }

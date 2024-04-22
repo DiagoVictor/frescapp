@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from models.order import Order
-import json, dump
+import json
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 
@@ -16,18 +16,21 @@ def create_order():
     customer_documentType = data.get('documentType')
     customer_name = data.get('customerName')
     delivery_date = data.get('deliveryDate')
-    status = 'created'
+    status = 'Creada'
     created_at = data.get('created_at')  
     updated_at = data.get('updated_at')  
     products = data.get('products')
     total = data.get('total')
     deliverySlot = data.get('deliverySlot')
     paymentMethod = data.get('paymentMethod')
+    deliveryAddress = data.get('deliveryAddress') # Nuevo campo: Dirección de entrega
+    deliveryAddressDetails = data.get('deliveryAddressDetails') # Nuevo campo: Detalle dirección
+
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
 
     if Order.find_by_order_number(order_number=order_number):
-        return jsonify({'message': 'Order already exists'}), 400
+        return jsonify({'message': 'Customer already exists'}), 400
 
     order = Order(        
         order_number = order_number,
@@ -43,7 +46,9 @@ def create_order():
         products = products,
         total = total,
         deliverySlot = deliverySlot,
-        paymentMethod = paymentMethod
+        paymentMethod = paymentMethod,
+        deliveryAddress = deliveryAddress,
+        deliveryAddressDetails = deliveryAddressDetails 
     )
     order.save()
     return jsonify({'message': 'Order created successfully'}), 201
@@ -66,6 +71,9 @@ def update_order(order_id):
     total = data.get('total')
     deliverySlot = data.get('deliverySlot')
     paymentMethod = data.get('paymentMethod')
+    deliveryAddress = data.get('deliveryAddress') 
+    deliveryAddressDetails = data.get('deliveryAddressDetails') 
+    
     order = Order.object(order_id)
     if not order:
         return jsonify({'message': 'Order not found'}), 404
@@ -84,6 +92,8 @@ def update_order(order_id):
     order.total = total or order.total
     order.deliverySlot = deliverySlot or order.deliverySlot
     order.paymentMethod = paymentMethod or order.paymentMethod
+    order.deliveryAddress = deliveryAddress or order.deliveryAddress 
+    order.deliveryAddressDetails = deliveryAddressDetails or order.deliveryAddressDetails 
     order.updated()
     return jsonify({'message': 'Order updated successfully'}), 200
 
@@ -107,11 +117,14 @@ def list_orders():
          "total": order["total"], 
          "deliverySlot": order["deliverySlot"], 
          "paymentMethod": order["paymentMethod"], 
+         "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
+         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
          }
         for order in orders_cursor
     ]
     orders_json = json.dumps(order_data)
     return orders_json, 200
+
 @order_api.route('/orders_customer/<string:email>', methods=['GET'])
 def list_orders_customer(email):
     orders_cursor = Order.find_by_customer(email)
@@ -132,8 +145,12 @@ def list_orders_customer(email):
          "total": order["total"], 
          "deliverySlot": order["deliverySlot"], 
          "paymentMethod": order["paymentMethod"], 
+         "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
+         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
          }
         for order in orders_cursor
     ]
+    order_data.sort(key=lambda x: x['created_at'], reverse=True)
+
     orders_json = json.dumps(order_data)
     return orders_json, 200

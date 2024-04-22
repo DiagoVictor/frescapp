@@ -1,15 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frescapp_web/screens/newOrder/home_screen.dart';
 import 'package:frescapp_web/screens/newOrder/order_confirmation_screen.dart';
 import 'package:frescapp_web/screens/orders/orders_screen.dart';
 import 'package:frescapp_web/screens/profile/profile_screen.dart';
 import 'package:frescapp_web/services/product_service.dart';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final List<Product> productsInCart;
 
-  const OrderDetailScreen({super.key,  required this.productsInCart});
+  const OrderDetailScreen({super.key, required this.productsInCart});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -20,22 +23,57 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   late DateTime selectedDate;
   String? selectedDeliverySlot;
   String? selectedPaymentMethod;
-  late List<String> paymentMethods = ["Nequi", "Daviplata", "Transf. Bancaria", "Efectivo en la entrega"];
-  late List<String> deliverySlots = ["06:00 AM - 09:00 AM", "09:00 AM - 12:00 PM", "12:00 PM - 03:00 PM", "03:00 PM - 03:59 PM"];
+  late List<String> paymentMethods = [];
+  late List<String> deliverySlots = [];
 
   @override
   void initState() {
     super.initState();
     selectedDate = DateTime.now().add(const Duration(days: 1));
-    selectedDeliverySlot = 'Slot de entrega';
+    selectedDeliverySlot = 'Horario de entrega';
     selectedPaymentMethod = 'Método de pago';
+    getOrderDetailsFromSharedPreferences();
+
+  }
+void getOrderDetailsFromSharedPreferences() async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Actualiza las listas después de obtener las preferencias compartidas
+      deliverySlots = prefs.getStringList('delivery_slots') ?? [];
+      paymentMethods = prefs.getStringList('payments_method') ?? [];
+    });
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error al obtener preferencias compartidas: $e');
+    }
+  }
+}
+  void _openWhatsApp() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String phoneNumber =  prefs.getString('contact_phone') ?? '';
+    // Construir la URL para abrir WhatsApp
+    String url = 'https://wa.me/$phoneNumber';
+    // Abrir la URL en una ventana externa (aplicación de WhatsApp)
+    // ignore: deprecated_member_use
+    if (await canLaunch(url)) {
+      // ignore: deprecated_member_use
+      await launch(url);
+    } else {
+      // Manejar el caso en el que WhatsApp no esté instalado
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo abrir WhatsApp.'),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     double total = widget.productsInCart.fold(
         0, (sum, product) => sum + (product.price_sale * product.quantity!));
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalle del Pedido'),
@@ -47,8 +85,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'Total: \$ $total',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                'Total: \$ ${NumberFormat('#,###').format(total)}',
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -69,7 +108,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Slot de Entrega:',
+                'Horario de Entrega:',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -121,6 +160,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       bottomNavigationBar: SafeArea(
         child: BottomNavigationBar(
           currentIndex: 0,
+          selectedItemColor:
+              Colors.lightGreen.shade900, // Color de los iconos seleccionados
+          unselectedItemColor:
+              Colors.grey, // Color de los iconos no seleccionados
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -134,6 +177,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               icon: Icon(Icons.person),
               label: 'Perfil',
             ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat), // Icono de WhatsApp
+              label: 'WhatsApp', // Etiqueta para el botón
+            ),
           ],
           onTap: (int index) {
             switch (index) {
@@ -146,14 +193,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               case 1:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const OrdersScreen()),   
-                );           
+                  MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                );
                 break;
               case 2:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ProfileScreen()),   
-                );           
+                  MaterialPageRoute(
+                      builder: (context) => const ProfileScreen()),
+                );
+                break;
+              case 3:
+                _openWhatsApp(); // Función para abrir WhatsApp
                 break;
             }
           },
@@ -163,12 +214,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    DateTime now = DateTime.now();
+    late DateTime primer;
+    final DateTime lastDate = DateTime(now.year, now.month, now.day + 7);
+
+    if (now.weekday == DateTime.friday && now.hour >= 18) {
+      // Es viernes después de las 6 p.m.
+      primer = DateTime(now.year, now.month,
+          now.day + 3); // Primer día disponible es el lunes
+    } else {
+      // Otro día de la semana o viernes antes de las 6 p.m.
+      primer = DateTime(now.year, now.month,
+          now.day + 1); // El primer día disponible es el siguiente
+    }
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime.now().add(const Duration(days: 1)),
-      lastDate: DateTime(2101),
+      firstDate: primer,
+      lastDate: lastDate,
+      selectableDayPredicate: _isSelectableDate,
     );
+
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
@@ -176,21 +242,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  bool _isSelectableDate(DateTime day) {
+    // Evitar seleccionar domingos
+    if (day.weekday == DateTime.sunday) {
+      return false;
+    }
+
+    return true;
+  }
+
   void _confirmOrder(BuildContext context) {
-    List<Map<String, dynamic>> productList = widget.productsInCart.map((product) {
+    List<Map<String, dynamic>> productList =
+        widget.productsInCart.map((product) {
       return {
         'sku': product.sku,
         'name': product.name,
         'price_sale': product.price_sale,
         'quantity': product.quantity,
-        'iva' : product.iva,
+        'iva': product.iva,
         'iva_value': product.iva_value
       };
     }).toList();
 
     Map<String, dynamic> orderDetails = {
       'products': productList,
-      'total': widget.productsInCart.fold(0, (sum, product) => sum + (product.price_sale * product.quantity!)),
+      'total': widget.productsInCart.fold(
+          0, (sum, product) => sum + (product.price_sale * product.quantity!)),
       'deliverySlot': selectedDeliverySlot,
       'paymentMethod': selectedPaymentMethod,
       'deliveryDate': DateFormat('yyyy-MM-dd').format(selectedDate),
@@ -198,7 +275,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => OrderConfirmationScreen(orderDetails: orderDetails)),
+      MaterialPageRoute(
+          builder: (context) =>
+              OrderConfirmationScreen(orderDetails: orderDetails)),
     );
   }
 }

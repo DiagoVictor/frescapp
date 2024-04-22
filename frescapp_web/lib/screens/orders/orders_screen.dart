@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:frescapp_web/screens/newOrder/home_screen.dart';
 import 'package:frescapp_web/screens/profile/profile_screen.dart';
 import 'package:frescapp_web/services/order_service.dart';
-import 'package:frescapp_web/services/product_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -16,22 +17,59 @@ class OrdersScreen extends StatefulWidget {
 
 class _OrdersScreenState extends State<OrdersScreen> {
   List<Order> orders = [];
-
   @override
   void initState() {
     super.initState();
     _fetchOrders();
   }
 
+  void _openWhatsApp() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String phoneNumber = prefs.getString('contact_phone') ?? '';
+    // Construir la URL para abrir WhatsApp
+    String url = 'https://wa.me/$phoneNumber';
+    // Abrir la URL en una ventana externa (aplicación de WhatsApp)
+    // ignore: deprecated_member_use
+    if (await canLaunch(url)) {
+      // ignore: deprecated_member_use
+      await launch(url);
+    } else {
+      // Manejar el caso en el que WhatsApp no esté instalado
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo abrir WhatsApp.'),
+        ),
+      );
+    }
+  }
+
   Future<void> _fetchOrders() async {
     OrderService orderService = OrderService();
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      late String userEmail = prefs.getString('user_email') ?? '';
-      List<Order> fetchedOrders = await orderService.getOrders(userEmail);
-      setState(() {
-        orders = fetchedOrders;
-      });
+      String userEmail = prefs.getString('user_email') ?? '';
+      List<Order>? fetchedOrders = await orderService.getOrders(userEmail);
+      if (fetchedOrders.isNotEmpty) {
+        fetchedOrders.sort((a, b) => b.deliveryDate.compareTo(a.deliveryDate));
+        setState(() {
+          orders = fetchedOrders;
+        });
+      } else {
+        // Si el servicio retorna null, mostrar mensaje y un ícono
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.warning),
+                SizedBox(width: 8),
+                Text('No se ha realizado ningún pedido.'),
+              ],
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error fetching orders: $e');
@@ -47,7 +85,23 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ),
       body: orders.isEmpty
           ? const Center(
-              child: CircularProgressIndicator(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 48,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "No se ha realizado ningún pedido.",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             )
           : ListView.builder(
               itemCount: orders.length,
@@ -55,33 +109,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 final order = orders[index];
                 return Container(
                   margin: const EdgeInsets.symmetric(
-                      vertical: 8.0,
-                      horizontal: 16.0), // Margen entre cada elemento
-
-                  padding:
-                      const EdgeInsets.all(16.0), // Espaciado interno del contenedor
+                      vertical: 8.0, horizontal: 16.0),
+                  padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
                     color: Colors.green.shade50,
-                    borderRadius:
-                        BorderRadius.circular(8.0), // Bordes redondeados
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-
                   child: ListTile(
-                    title: Text.rich(                          TextSpan(
-                            style: const TextStyle(color: Colors.black87),
-                            children: [
-                              const TextSpan(
-                                text:'Número de Orden:',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              TextSpan(text: order.orderNumber),
-                            ],
-                    )
+                    title: Text.rich(
+                      TextSpan(
+                        style: const TextStyle(color: Colors.black87),
+                        children: [
+                          const TextSpan(
+                            text: '# Orden:   ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          TextSpan(text: order.orderNumber),
+                        ],
+                      ),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         Text.rich(
                           TextSpan(
                             style: const TextStyle(color: Colors.black87),
@@ -99,7 +148,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             style: const TextStyle(color: Colors.black87),
                             children: [
                               const TextSpan(
-                                text: 'Slot de Entrega: ',
+                                text: 'Horario de Entrega: ',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               TextSpan(text: order.deliverySlot),
@@ -135,6 +184,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             style: const TextStyle(color: Colors.black87),
                             children: [
                               const TextSpan(
+                                text: 'Estado: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: order.status),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            style: const TextStyle(color: Colors.black87),
+                            children: [
+                              const TextSpan(
                                 text: 'Total: \$',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
@@ -145,63 +206,71 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       ],
                     ),
                     onTap: () {
-                      // Mostrar detalles de la orden en una modal
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: const Text('Detalle de la Orden'),
                             content: SizedBox(
-                              height: 300, // Altura fija de la modal
-                              width: double.maxFinite, // Ancho máximo
-                              child: ListView(
-                                children: [
-                                  // Mostrar los detalles de la orden aquí
-                                  Text('Order Number: ${order.orderNumber}'),
-                                  Text(
-                                      'Método de Pago: ${order.paymentMethod}'),
-                                  Text(
-                                      'Slot de Entrega: ${order.deliverySlot}'),
-                                  Text(
-                                      'Fecha de Entrega: ${order.deliveryDate}'),
-                                  Text('Total: \$${order.total}'),
-                                  // También puedes mostrar la lista de productos
-                                  ListView.builder(
+                              height: 300,
+                              width: double.maxFinite,
+                              child: ListView(children: [
+                                Text('# Orden: ${order.orderNumber}'),
+                                Text('Método de Pago: ${order.paymentMethod}'),
+                                Text('Horario de Entrega: ${order.deliverySlot}'),
+                                Text('Fecha de Entrega: ${order.deliveryDate}'),
+                                Text(
+                                    'Total: \$ ${NumberFormat('#,###').format(order.total)}'),
+                                ListView.builder(
                                     shrinkWrap: true,
                                     itemCount: order.products.length,
                                     itemBuilder: (context, index) {
-                                      final Product product =
-                                          order.products[index] as Product;
-                                      return Container(
-                                        margin: const EdgeInsets.symmetric(
-                                            vertical:
-                                                8.0), // Margen entre cada elemento
-                                        padding: const EdgeInsets.all(
-                                            8.0), // Espaciado interno del contenedor
-                                        decoration: BoxDecoration(
-                                          color: Colors.lightGreen[
-                                              100], // Fondo verde claro
-                                          borderRadius: BorderRadius.circular(
-                                              8.0), // Bordes redondeados
-                                        ),
-                                        child: ListTile(
-                                          title:
-                                              Text('Producto: ${product.name}'),
-                                          subtitle: Text(
-                                              'Precio: \$${product.price_sale}'),
-                                          leading: Image.network(product.image),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
+                                      final List<Map> product =
+                                          order.products.cast<Map>();
+                                      return ListTile(
+                                          title: RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text:
+                                                      '${product[index]["name"]}',
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                                const TextSpan(
+                                                  text: '\nPrecio: ',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                TextSpan(
+                                                  text:
+                                                      '\$ ${NumberFormat('#,###').format(product[index]["price_sale"])}',
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          subtitle: RichText(
+                                              text: TextSpan(children: [
+                                            const TextSpan(
+                                              text: 'Cantidad: ',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            TextSpan(
+                                                text: product[index]["quantity"].toString()),
+                                          ])));
+                                    }),
+                              ]),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () {
-                                  Navigator.of(context)
-                                      .pop(); // Cerrar la modal
+                                  Navigator.of(context).pop();
                                 },
                                 child: const Text('Cerrar'),
                               ),
@@ -217,6 +286,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
       bottomNavigationBar: SafeArea(
         child: BottomNavigationBar(
           currentIndex: 1,
+          selectedItemColor:
+              Colors.lightGreen.shade900, // Color de los iconos seleccionados
+          unselectedItemColor:
+              Colors.grey, // Color de los iconos no seleccionados
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -229,6 +302,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Perfil',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat), // Icono de WhatsApp
+              label: 'WhatsApp', // Etiqueta para el botón
             ),
           ],
           onTap: (int index) {
@@ -251,6 +328,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   MaterialPageRoute(
                       builder: (context) => const ProfileScreen()),
                 );
+                break;
+              case 3:
+                _openWhatsApp(); // Función para abrir WhatsApp
                 break;
             }
           },

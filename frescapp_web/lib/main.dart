@@ -5,8 +5,14 @@ import 'package:frescapp_web/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frescapp_web/api_routes.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+    SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   runApp(const MyApp());
 }
 

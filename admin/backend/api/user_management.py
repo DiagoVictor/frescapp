@@ -9,7 +9,6 @@ from bson import ObjectId
 user_api = Blueprint('user', __name__)
 client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
 db = client['frescapp']
-
 customers_collection = db['customers']  
 
 # Ruta para iniciar sesión
@@ -31,7 +30,7 @@ def login():
         hashed_password = user_data.get('password')
         if bcrypt.check_password_hash(hashed_password, password):
             # Generar token JWT con una validez de 1 día
-            token_payload = {'user_id': str(user_data['_id']), 'exp': datetime.utcnow() + timedelta(days=15)}
+            token_payload = {'user_id': str(user_data['_id']), 'exp': datetime.utcnow() + timedelta(days=90)}
             token = jwt.encode(token_payload, 'Caremonda', algorithm='HS256')
             # Devolver el token junto con los datos del usuario
             user_data['_id'] = str(user_data['_id'])

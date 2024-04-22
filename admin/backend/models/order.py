@@ -21,7 +21,9 @@ class Order:
                  products,
                  total,
                  deliverySlot,
-                 paymentMethod
+                 paymentMethod,
+                 deliveryAddress,
+                 deliveryAddressDetails 
                  ):
         self.order_number = order_number
         self.customer_email = customer_email
@@ -37,6 +39,8 @@ class Order:
         self.total = total
         self.deliverySlot = deliverySlot
         self.paymentMethod = paymentMethod
+        self.deliveryAddress = deliveryAddress
+        self.deliveryAddressDetails = deliveryAddressDetails 
 
     def save(self):
         order_data = {
@@ -53,7 +57,9 @@ class Order:
             "products" : self.products,
             "total" : self.total,
             "deliverySlot" : self.deliverySlot,
-            "paymentMethod" : self.paymentMethod
+            "paymentMethod" : self.paymentMethod,
+            "deliveryAddress" : self.deliveryAddress,
+            "deliveryAddressDetails" : self.deliveryAddressDetails 
         }
         result = orders_collection.insert_one(order_data)
         return result.inserted_id
@@ -75,7 +81,9 @@ class Order:
                         "products" : self.products,
                         "total" : self.total,
                         "deliverySlot" : self.deliverySlot,
-                        "paymentMethod" : self.paymentMethod
+                        "paymentMethod" : self.paymentMethod,
+                        "deliveryAddress" : self.deliveryAddress,
+                        "deliveryAddressDetails" : self.deliveryAddressDetails 
                     }
             }
         )

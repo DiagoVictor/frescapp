@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frescapp_web/api_routes.dart';
 import 'package:frescapp_web/screens/newOrder/home_screen.dart';
 import 'package:frescapp_web/screens/orders/orders_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -28,6 +29,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _fetchUserData();
+  }
+
+  void _openWhatsApp() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String phoneNumber =  prefs.getString('contact_phone') ?? '';
+    // Construir la URL para abrir WhatsApp
+    String url = 'https://wa.me/$phoneNumber';
+    // Abrir la URL en una ventana externa (aplicación de WhatsApp)
+    // ignore: deprecated_member_use
+    if (await canLaunch(url)) {
+      // ignore: deprecated_member_use
+      await launch(url);
+    } else {
+      // Manejar el caso en el que WhatsApp no esté instalado
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo abrir WhatsApp.'),
+        ),
+      );
+    }
   }
 
   Future<void> _fetchUserData() async {
@@ -98,7 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                     child: const Text('Cambiar contraseña'),
                   )),
-                  const SizedBox(height: 10),
+              const SizedBox(height: 10),
               SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -116,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                     child: const Text('Guardar cambios'),
                   )),
-                  const SizedBox(height: 10),
+              const SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -124,9 +146,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // Cerrar sesión
                     _logout(context);
                   },
-                    style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade200
-                    ),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade200),
                   child: const Text('Cerrar sesión'),
                 ),
               )
@@ -137,6 +158,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       bottomNavigationBar: SafeArea(
         child: BottomNavigationBar(
           currentIndex: 2,
+          selectedItemColor:
+              Colors.lightGreen.shade900, // Color de los iconos seleccionados
+          unselectedItemColor:
+              Colors.grey, // Color de los iconos no seleccionados
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -149,6 +174,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Perfil',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat), // Icono de WhatsApp
+              label: 'WhatsApp', // Etiqueta para el botón
             ),
           ],
           onTap: (int index) {
@@ -171,6 +200,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   MaterialPageRoute(
                       builder: (context) => const ProfileScreen()),
                 );
+                break;
+              case 3:
+                _openWhatsApp(); // Función para abrir WhatsApp
                 break;
             }
           },
