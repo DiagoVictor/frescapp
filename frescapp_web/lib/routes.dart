@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frescapp_web/screens/login_screen.dart';
-import 'package:frescapp_web/screens/signup_screen.dart';
-import 'package:frescapp_web/screens/newOrder/home_screen.dart';
+import 'package:frescapp/screens/login_screen.dart';
+import 'package:frescapp/screens/signup_screen.dart';
+import 'package:frescapp/screens/newOrder/home_screen.dart';
 
 class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {

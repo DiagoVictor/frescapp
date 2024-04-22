@@ -1,12 +1,10 @@
 import 'dart:convert';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:js';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:frescapp_web/screens/newOrder/home_screen.dart';
-import 'package:frescapp_web/screens/orders/orders_screen.dart';
-import 'package:frescapp_web/screens/profile/profile_screen.dart';
+import 'package:frescapp/screens/newOrder/home_screen.dart';
+import 'package:frescapp/screens/orders/orders_screen.dart';
+import 'package:frescapp/screens/profile/profile_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -26,22 +24,17 @@ class OrderConfirmationScreen extends StatelessWidget {
     return now.toIso8601String();
   }
 
-  void _openWhatsApp() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String phoneNumber = prefs.getString('contact_phone') ?? '';
-    String url = 'https://wa.me/$phoneNumber';
+void _openWhatsApp() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String phoneNumber = prefs.getString('contact_phone') ?? '';
+  String url = 'https://wa.me/$phoneNumber';
+  // ignore: deprecated_member_use
+  if (await canLaunch(url)) {
     // ignore: deprecated_member_use
-    if (await canLaunch(url)) {
-      // ignore: deprecated_member_use
-      await launch(url);
-    } else {
-      ScaffoldMessenger.of(context as BuildContext).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo abrir WhatsApp.'),
-        ),
-      );
-    }
-  }
+    await launch(url);
+  } 
+}
+
 
   Future<void> sendOrderDetailsToService(
       Map<String, dynamic> orderDetails) async {

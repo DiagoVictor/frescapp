@@ -1,4 +1,4 @@
-package com.example.frescapp_web
+package com.app.frescapp
 
 import io.flutter.embedding.android.FlutterActivity
 

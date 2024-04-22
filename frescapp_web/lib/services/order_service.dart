@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:frescapp_web/api_routes.dart';
+import 'package:frescapp/api_routes.dart';
 
 class OrderService {
   Future<List<Order>> getOrders(email) async {

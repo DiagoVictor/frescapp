@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="frescapp_web"
+        android:label="Frescapp"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@drawable/icon_app">
         <activity
             android:name=".MainActivity"
             android:exported="true"

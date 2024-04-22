@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:frescapp_web/screens/login_screen.dart';
-import 'package:frescapp_web/api_routes.dart';
+import 'package:frescapp/screens/login_screen.dart';
+import 'package:frescapp/api_routes.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

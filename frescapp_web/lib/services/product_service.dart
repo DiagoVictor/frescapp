@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:frescapp_web/api_routes.dart';
+import 'package:frescapp/api_routes.dart';
 
 class ProductService {
 
@@ -30,9 +30,9 @@ class Product {
   final String sku;
   final String category;
   // ignore: non_constant_identifier_names
-  final int price_sale;
+  final double price_sale;
   // ignore: non_constant_identifier_names
-  final int price_purchase;
+  final double price_purchase;
   final double discount;
   final double margen;
   final bool iva;

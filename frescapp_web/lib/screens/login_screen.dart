@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:frescapp_web/api_routes.dart';
-import 'package:frescapp_web/screens/newOrder/home_screen.dart';
+import 'package:frescapp/api_routes.dart';
+import 'package:frescapp/screens/newOrder/home_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
@@ -95,7 +95,7 @@ class LoginScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'images/start_icon.png', // Ruta de la imagen
+                  'web/assets/images/start_icon.png', // Ruta de la imagen
                   width: 300, // Ancho de la imagen
                   height: 300, // Alto de la imagen
                 ),

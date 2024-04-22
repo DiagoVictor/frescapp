@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frescapp_web/screens/newOrder/home_screen.dart';
-import 'package:frescapp_web/screens/orders/orders_screen.dart';
-import 'package:frescapp_web/screens/profile/profile_screen.dart';
-import 'package:frescapp_web/services/product_service.dart';
-import 'package:frescapp_web/screens/newOrder/detail_cart_screen.dart';
+import 'package:frescapp/screens/newOrder/home_screen.dart';
+import 'package:frescapp/screens/orders/orders_screen.dart';
+import 'package:frescapp/screens/profile/profile_screen.dart';
+import 'package:frescapp/services/product_service.dart';
+import 'package:frescapp/screens/newOrder/detail_cart_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';

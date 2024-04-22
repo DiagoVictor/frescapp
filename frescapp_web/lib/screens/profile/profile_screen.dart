@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:frescapp_web/api_routes.dart';
-import 'package:frescapp_web/screens/newOrder/home_screen.dart';
-import 'package:frescapp_web/screens/orders/orders_screen.dart';
+import 'package:frescapp/api_routes.dart';
+import 'package:frescapp/screens/newOrder/home_screen.dart';
+import 'package:frescapp/screens/orders/orders_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frescapp_web/screens/login_screen.dart';
-import 'package:frescapp_web/screens/newOrder/home_screen.dart'; // Importa la pantalla de inicio
-import 'package:frescapp_web/routes.dart';
+import 'package:frescapp/screens/login_screen.dart';
+import 'package:frescapp/screens/newOrder/home_screen.dart'; // Importa la pantalla de inicio
+import 'package:frescapp/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:frescapp_web/api_routes.dart';
+import 'package:frescapp/api_routes.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 
@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0x0097d700)),
         useMaterial3: true,
       ),
+
       // Utiliza una función asincrónica para determinar qué pantalla mostrar
       home: FutureBuilder<bool>(
         future: _checkTokenValidity(),

@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:frescapp_web/screens/newOrder/home_screen.dart';
-import 'package:frescapp_web/screens/newOrder/order_confirmation_screen.dart';
-import 'package:frescapp_web/screens/orders/orders_screen.dart';
-import 'package:frescapp_web/screens/profile/profile_screen.dart';
-import 'package:frescapp_web/services/product_service.dart';
+import 'package:frescapp/screens/newOrder/home_screen.dart';
+import 'package:frescapp/screens/newOrder/order_confirmation_screen.dart';
+import 'package:frescapp/screens/orders/orders_screen.dart';
+import 'package:frescapp/screens/profile/profile_screen.dart';
+import 'package:frescapp/services/product_service.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -267,7 +267,7 @@ void getOrderDetailsFromSharedPreferences() async {
     Map<String, dynamic> orderDetails = {
       'products': productList,
       'total': widget.productsInCart.fold(
-          0, (sum, product) => sum + (product.price_sale * product.quantity!)),
+          0.0 , (sum, product) => sum + (product.price_sale * product.quantity!)),
       'deliverySlot': selectedDeliverySlot,
       'paymentMethod': selectedPaymentMethod,
       'deliveryDate': DateFormat('yyyy-MM-dd').format(selectedDate),
