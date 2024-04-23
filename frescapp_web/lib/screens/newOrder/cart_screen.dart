@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frescapp/screens/newOrder/home_screen.dart';
 import 'package:frescapp/screens/orders/orders_screen.dart';
@@ -5,8 +6,8 @@ import 'package:frescapp/screens/profile/profile_screen.dart';
 import 'package:frescapp/services/product_service.dart';
 import 'package:frescapp/screens/newOrder/detail_cart_screen.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 
 class CartScreen extends StatefulWidget {
@@ -23,26 +24,38 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
     
-  void _openWhatsApp() async {
+
+void _openWhatsApp(BuildContext context) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  String phoneNumber =  prefs.getString('contact_phone') ?? '';
-  // Construir la URL para abrir WhatsApp
-  String url = 'https://wa.me/$phoneNumber';
-  // Abrir la URL en una ventana externa (aplicación de WhatsApp)
-  // ignore: deprecated_member_use
-  if (await canLaunch(url)) {
-    // ignore: deprecated_member_use
-    await launch(url);
-  } else {
-    // Manejar el caso en el que WhatsApp no esté instalado
+  try {
+    String name = prefs.getString('user_name') ?? '';
+    String email = prefs.getString('user_email') ?? '';
+    String phone = prefs.getString('user_phone') ?? '';
+    String contactPhone = prefs.getString('contact_phone') ?? '';
+
+    String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
+
+    // Codificar el mensaje para que se pueda enviar correctamente en la URL
+    String encodedMessage = Uri.encodeComponent(message);
+
+    // Construir la URL para abrir WhatsApp con el mensaje predefinido
+    String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
+
+    // Lanzar la URL para abrir WhatsApp
+    await launchUrlString(url);
+  } catch (error) {
+    if (kDebugMode) {
+      print('Error opening WhatsApp: $error');
+    }
     // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('No se pudo abrir WhatsApp.'),
+        content: Text('Error al abrir WhatsApp.'),
       ),
     );
   }
 }
+
   @override
   Widget build(BuildContext context) {
     // Filtra los productos con una cantidad mayor a cero
@@ -231,7 +244,7 @@ class _CartScreenState extends State<CartScreen> {
           );
           break;
         case 3:
-          _openWhatsApp(); // Función para abrir WhatsApp
+          _openWhatsApp(context); // Función para abrir WhatsApp
           break;
       }
     },

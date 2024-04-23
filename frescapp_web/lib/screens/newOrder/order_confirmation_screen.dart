@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:frescapp/screens/newOrder/home_screen.dart';
@@ -7,7 +8,7 @@ import 'package:frescapp/screens/orders/orders_screen.dart';
 import 'package:frescapp/screens/profile/profile_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class OrderConfirmationScreen extends StatelessWidget {
   final Map<String, dynamic> orderDetails;
@@ -24,25 +25,46 @@ class OrderConfirmationScreen extends StatelessWidget {
     return now.toIso8601String();
   }
 
-void _openWhatsApp() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  String phoneNumber = prefs.getString('contact_phone') ?? '';
-  String url = 'https://wa.me/$phoneNumber';
-  // ignore: deprecated_member_use
-  if (await canLaunch(url)) {
-    // ignore: deprecated_member_use
-    await launch(url);
-  } 
-}
 
+void _openWhatsApp(BuildContext context) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  try {
+    String name = prefs.getString('user_name') ?? '';
+    String email = prefs.getString('user_email') ?? '';
+    String phone = prefs.getString('user_phone') ?? '';
+    String contactPhone = prefs.getString('contact_phone') ?? '';
+
+    String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
+
+    // Codificar el mensaje para que se pueda enviar correctamente en la URL
+    String encodedMessage = Uri.encodeComponent(message);
+
+    // Construir la URL para abrir WhatsApp con el mensaje predefinido
+    String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
+
+    // Lanzar la URL para abrir WhatsApp
+    await launchUrlString(url);
+  } catch (error) {
+    if (kDebugMode) {
+      print('Error opening WhatsApp: $error');
+    }
+    // ignore: use_build_context_synchronously
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Error al abrir WhatsApp.'),
+      ),
+    );
+  }
+}
 
   Future<void> sendOrderDetailsToService(
       Map<String, dynamic> orderDetails) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     orderDetails['order_number'] = generateOrderNumber();
     orderDetails['created_at'] = getCurrentDateTimeString();
     orderDetails['updated_at'] = getCurrentDateTimeString();
-
-    const url = 'http://127.0.0.1:5000/api/order/order';
+    final String baseUrl = prefs.getString('server_ip') ?? '';
+    final String url = '$baseUrl/api/order/order';
     await http.post(
       Uri.parse(url),
       headers: <String, String>{
@@ -174,7 +196,7 @@ void _openWhatsApp() async {
                 );
                 break;
               case 3:
-                _openWhatsApp();
+                _openWhatsApp(context);
                 break;
             }
           },

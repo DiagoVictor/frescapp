@@ -6,9 +6,9 @@ import 'package:frescapp/screens/orders/orders_screen.dart';
 import 'package:frescapp/screens/profile/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:frescapp/services/config_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher_string.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,6 +47,7 @@ Future<void> getUserInfo() async {
     prefs.setStringList('payments_method', List<String>.from(configData['payments_method'] ?? []));
     prefs.setStringList('document_type', List<String>.from(configData['document_type'] ?? []));
     prefs.setString('contact_phone', configData['contact_phone'] ?? '');
+    prefs.setString('server_ip', configData['server_ip'] ?? '');
     setState(() {
       userAddress = prefs.getString('user_address') ?? '';
     });
@@ -114,26 +115,37 @@ Future<void> getUserInfo() async {
     });
   }
 
-  void _openWhatsApp() async {
-    // Número de teléfono al que se enviará el mensaje
-    String phoneNumber = '+573115455042';
-    // Construir la URL para abrir WhatsApp
-    String url = 'https://wa.me/$phoneNumber';
-    // Abrir la URL en una ventana externa (aplicación de WhatsApp)
-    // ignore: deprecated_member_use
-    if (await canLaunch(url)) {
-      // ignore: deprecated_member_use
-      await launch(url);
-    } else {
-      // Manejar el caso en el que WhatsApp no esté instalado
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo abrir WhatsApp.'),
-        ),
-      );
+void _openWhatsApp(BuildContext context) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  try {
+    String name = prefs.getString('user_name') ?? '';
+    String email = prefs.getString('user_email') ?? '';
+    String phone = prefs.getString('user_phone') ?? '';
+    String contactPhone = prefs.getString('contact_phone') ?? '';
+
+    String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
+
+    // Codificar el mensaje para que se pueda enviar correctamente en la URL
+    String encodedMessage = Uri.encodeComponent(message);
+
+    // Construir la URL para abrir WhatsApp con el mensaje predefinido
+    String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
+
+    // Lanzar la URL para abrir WhatsApp
+    await launchUrlString(url);
+  } catch (error) {
+    if (kDebugMode) {
+      print('Error opening WhatsApp: $error');
     }
+    // ignore: use_build_context_synchronously
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Error al abrir WhatsApp.'),
+      ),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -185,14 +197,19 @@ Future<void> getUserInfo() async {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                              text: '${product.name} - ',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.normal)),
+                            text: '${product.name} - ',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                              color: Colors.black, // Cambia el color del texto a negro
+                            ),
+                          ),
                           TextSpan(
-                              text:
-                                  '\n \$ ${NumberFormat('#,###').format(product.price_sale)}',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
+                            text: '\n \$ ${NumberFormat('#,###').format(product.price_sale)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black, // Cambia el color del texto a negro
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -350,7 +367,7 @@ Future<void> getUserInfo() async {
                 );
                 break;
               case 3:
-                _openWhatsApp(); // Función para abrir WhatsApp
+                _openWhatsApp(context); // Función para abrir WhatsApp
                 break;
             }
           },

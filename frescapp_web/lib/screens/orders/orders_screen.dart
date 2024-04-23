@@ -4,7 +4,7 @@ import 'package:frescapp/screens/newOrder/home_screen.dart';
 import 'package:frescapp/screens/profile/profile_screen.dart';
 import 'package:frescapp/services/order_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:intl/intl.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -23,26 +23,38 @@ class _OrdersScreenState extends State<OrdersScreen> {
     _fetchOrders();
   }
 
-  void _openWhatsApp() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String phoneNumber = prefs.getString('contact_phone') ?? '';
-    // Construir la URL para abrir WhatsApp
-    String url = 'https://wa.me/$phoneNumber';
-    // Abrir la URL en una ventana externa (aplicación de WhatsApp)
-    // ignore: deprecated_member_use
-    if (await canLaunch(url)) {
-      // ignore: deprecated_member_use
-      await launch(url);
-    } else {
-      // Manejar el caso en el que WhatsApp no esté instalado
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo abrir WhatsApp.'),
-        ),
-      );
+
+void _openWhatsApp(BuildContext context) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  try {
+    String name = prefs.getString('user_name') ?? '';
+    String email = prefs.getString('user_email') ?? '';
+    String phone = prefs.getString('user_phone') ?? '';
+    String contactPhone = prefs.getString('contact_phone') ?? '';
+
+    String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
+
+    // Codificar el mensaje para que se pueda enviar correctamente en la URL
+    String encodedMessage = Uri.encodeComponent(message);
+
+    // Construir la URL para abrir WhatsApp con el mensaje predefinido
+    String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
+
+    // Lanzar la URL para abrir WhatsApp
+    await launchUrlString(url);
+  } catch (error) {
+    if (kDebugMode) {
+      print('Error opening WhatsApp: $error');
     }
+    // ignore: use_build_context_synchronously
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Error al abrir WhatsApp.'),
+      ),
+    );
   }
+}
+
 
   Future<void> _fetchOrders() async {
     OrderService orderService = OrderService();
@@ -196,10 +208,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             style: const TextStyle(color: Colors.black87),
                             children: [
                               const TextSpan(
-                                text: 'Total: \$',
+                                text: 'Total: ',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              TextSpan(text: '${order.total}'),
+                              TextSpan(
+                                  text:
+                                      '\$ ${NumberFormat('#,###').format(order.total)}'),
                             ],
                           ),
                         ),
@@ -217,7 +231,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               child: ListView(children: [
                                 Text('# Orden: ${order.orderNumber}'),
                                 Text('Método de Pago: ${order.paymentMethod}'),
-                                Text('Horario de Entrega: ${order.deliverySlot}'),
+                                Text(
+                                    'Horario de Entrega: ${order.deliverySlot}'),
                                 Text('Fecha de Entrega: ${order.deliveryDate}'),
                                 Text(
                                     'Total: \$ ${NumberFormat('#,###').format(order.total)}'),
@@ -228,42 +243,61 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       final List<Map> product =
                                           order.products.cast<Map>();
                                       return ListTile(
-                                          title: RichText(
-                                            text: TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text:
-                                                      '${product[index]["name"]}',
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.normal),
+                                        title: RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text:
+                                                    '${product[index]["name"]}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.normal,
+                                                  color: Colors
+                                                      .black, // Cambia el color del texto a negro
                                                 ),
-                                                const TextSpan(
-                                                  text: '\nPrecio: ',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                              ),
+                                              const TextSpan(
+                                                text: '\nPrecio: ',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors
+                                                      .black, // Cambia el color del texto a negro
                                                 ),
-                                                TextSpan(
-                                                  text:
-                                                      '\$ ${NumberFormat('#,###').format(product[index]["price_sale"])}',
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.normal),
+                                              ),
+                                              TextSpan(
+                                                text:
+                                                    '\$ ${NumberFormat('#,###').format(product[index]["price_sale"])}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.normal,
+                                                  color: Colors
+                                                      .black, // Cambia el color del texto a negro
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                            ],
                                           ),
-                                          subtitle: RichText(
-                                              text: TextSpan(children: [
-                                            const TextSpan(
-                                              text: 'Cantidad: ',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            TextSpan(
-                                                text: product[index]["quantity"].toString()),
-                                          ])));
+                                        ),
+                                        subtitle: RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Cantidad: ',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors
+                                                      .black, // Cambia el color del texto a negro
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: product[index]["quantity"]
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                  color: Colors
+                                                      .black, // Cambia el color del texto a negro
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
                                     }),
                               ]),
                             ),
@@ -330,7 +364,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 );
                 break;
               case 3:
-                _openWhatsApp(); // Función para abrir WhatsApp
+                _openWhatsApp(context); // Función para abrir WhatsApp
                 break;
             }
           },
