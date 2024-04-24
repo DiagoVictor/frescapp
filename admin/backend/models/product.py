@@ -88,4 +88,4 @@ class Product:
             return None
     @staticmethod
     def find_by_sku(sku):
-        return products_collection.find_one({"sku": sku})
+        return Product(**products_collection.find_one({"sku": sku}))
