@@ -125,7 +125,8 @@ def update_product_prices():
     for sku_price in sku_price_list:
         sku = sku_price.get('sku')
         price_sale = float(sku_price.get('price_sale'))
-
+        print(sku)
+        print(price_sale)
         if not sku:
             return jsonify({'message': 'SKU is missing in SKU price list'}), 400
 
