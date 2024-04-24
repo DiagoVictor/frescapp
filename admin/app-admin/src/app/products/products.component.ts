@@ -98,7 +98,7 @@ export class ProductsComponent implements OnInit {
   updatePrice(): void {
     // Obtener la lista de SKU y precios de venta actualizados
     const skuPriceList:any = this.filteredProducts?.map(product => {
-      return { sku: product.sku, price_sale: product.price_sale };
+      return { sku: product.sku, price_sale: product.price_sale, id: product.id };
     });
 
     // Llamar al servicio para actualizar los precios de los productos

@@ -132,5 +132,6 @@ def update_product_prices():
         if not product:
             return jsonify({'message': f'Product with SKU {sku} not found'}), 404
         product.price_sale = float(price_sale)
-        product.save()
+        product.id = sku_price.get('id')
+        product.updated()
     return jsonify({'message': 'Prices updated successfully'}), 200
