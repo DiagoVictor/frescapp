@@ -19,4 +19,7 @@ export class ProductService {
   createProduct(product_data:any): Observable<any[]> {
     return this.httpClient.post<any[]>(this.baseUrl + 'api/product/product',product_data);
   }
+  updatePrices(skuPriceList: any[]): Observable<any[]> {
+    return this.httpClient.put<any[]>(`${this.baseUrl}api/product/products/update_prices`, { sku_price_list: skuPriceList });
+  }
 }

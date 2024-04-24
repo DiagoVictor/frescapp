@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./products.component.css']
 })
 export class ProductsComponent implements OnInit {
-  products: any[] | undefined;
+  products: any[] | [] | undefined;
   filteredProducts: any[] | undefined;
   searchText: string = '';
   product: any = {};
@@ -96,9 +96,20 @@ export class ProductsComponent implements OnInit {
   }
 
   updatePrice(): void {
-    // Lógica para actualizar precios de productos
-  }
+    // Obtener la lista de SKU y precios de venta actualizados
+    const skuPriceList:any = this.filteredProducts?.map(product => {
+      return { sku: product.sku, price_sale: product.price_sale };
+    });
 
+    // Llamar al servicio para actualizar los precios de los productos
+    this.productService.updatePrices(skuPriceList).subscribe((data: any) => {
+      // Lógica después de actualizar los precios, si es necesario
+      console.log(data); // Puedes mostrar un mensaje de éxito o realizar otras acciones
+    });
+
+    // Actualizar la lista de productos después de actualizar los precios
+    this.getProducts();
+  }
   camposCompletos(): boolean {
     const { name, unit, category, sku, price_sale, price_purchase, discount, margen, iva, iva_value, description, image, status } = this.product;
     return !!name && !!unit && !!category && !!sku && !!price_sale && !!image && !!status;

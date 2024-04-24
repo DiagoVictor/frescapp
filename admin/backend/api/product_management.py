@@ -113,3 +113,28 @@ def list_product():
     ]
     products_json = json.dumps(product_data)
     return products_json, 200
+
+@product_api.route('/products/update_prices', methods=['PUT'])
+def update_product_prices():
+    data = request.get_json()
+    sku_price_list = data.get('sku_price_list')
+
+    if not sku_price_list:
+        return jsonify({'message': 'No SKU price list provided'}), 400
+
+    for sku_price in sku_price_list:
+        sku = sku_price.get('sku')
+        price_sale = float(sku_price.get('price_sale'))
+
+        if not sku:
+            return jsonify({'message': 'SKU is missing in SKU price list'}), 400
+
+        product = Product.find_by_sku(sku=sku)
+
+        if not product:
+            return jsonify({'message': f'Product with SKU {sku} not found'}), 404
+
+        product.price_sale = price_sale
+        product.save()
+
+    return jsonify({'message': 'Prices updated successfully'}), 200
