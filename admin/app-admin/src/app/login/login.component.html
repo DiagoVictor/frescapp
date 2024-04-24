@@ -1,0 +1,21 @@
+<div class="container mt-5 d-flex justify-content-center align-items-center">
+  <div class="row">
+    <div class="col-12 text-center">
+      <img src="assets\icon_app.png" alt="Logo" class="img-fluid mb-4" width="300" height="300">
+      <!-- Agrega la imagen aquí -->
+    </div>
+    <div class="col-12">
+      <div class="container-fluid">
+          <div class="form-group">
+            <input type="text" class="form-control" id="username" placeholder="Usuario" [(ngModel)]="this.username">
+          </div>
+          <br>
+          <div class="form-group">
+            <input type="password" class="form-control" id="password" placeholder="Contraseña" [(ngModel)]="this.password">
+          </div>
+          <br>
+          <button type="button" class="btn btn-primary btn-block" (click)="login()">Iniciar Sesión</button>
+      </div>
+    </div>
+  </div>
+</div>

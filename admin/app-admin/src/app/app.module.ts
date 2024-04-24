@@ -7,14 +7,18 @@ import { NavigationBarComponent } from './navigation-bar/navigation-bar.componen
 import { ProductsComponent } from './products/products.component';
 import { ClientesComponent } from './clientes/clientes.component';
 import { OrdenesComponent } from './ordenes/ordenes.component';
-import { FormsModule } from '@angular/forms'; // Importa FormsModule
+import { FormsModule } from '@angular/forms';
+import { LoginComponent } from './login/login.component';
+import { HomeComponent } from './home/home.component'; // Importa FormsModule
 @NgModule({
   declarations: [
     AppComponent,
     NavigationBarComponent,
     ProductsComponent,
     ClientesComponent,
-    OrdenesComponent
+    OrdenesComponent,
+    LoginComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,

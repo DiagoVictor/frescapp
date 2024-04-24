@@ -1,12 +1,18 @@
-<br><br>
-<div class="container-fluid">
-  <div class="row justify-content-end d-flex">
+<div class="container-fluid mt-5">
+  <div class="row justify-right">
     <div class="col-auto">
+      <!-- Botón para actualizar precios -->
       <button type="button" class="btn btn-success" (click)="updatePrice()">Actualizar precios</button>
     </div>
     <div class="col-auto">
+      <!-- Botón para abrir el modal de nuevo producto -->
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal"
         data-bs-dismiss="modal" (click)="openEditModal({},'new')">Nuevo Producto</button>
+    </div>
+    <div class="col-6">
+      <!-- Buscador de productos -->
+      <input type="text" class="form-control" placeholder="Buscar producto..." [(ngModel)]="searchText"
+        (keyup)="filterProducts()">
     </div>
   </div>
   <br>
@@ -24,15 +30,14 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let product of products">
+      <tr *ngFor="let product of filteredProducts">
         <td>{{ product.sku }}</td>
         <td>{{ product.name }}</td>
         <td>{{ product.unit }}</td>
         <td>{{ product.category }}</td>
         <td>{{ product.price_purchase }}</td>
         <td>
-          <input type="number" class="form-control" id="price_sale" name="price_sale"
-                  [(ngModel)]="product.price_sale">
+          <input type="number" class="form-control" id="price_sale" name="price_sale" [(ngModel)]="product.price_sale">
         </td>
         <td>{{ product.status }}</td>
         <td>
@@ -120,7 +125,11 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="iva">IVA:</label>
-                <input type="number" class="form-control" id="iva" name="iva" [(ngModel)]="this.product.iva">
+                <select class="form-control" id="iva" name="iva" [(ngModel)]="product.iva">
+                  <option value="" disabled selected>Selecciona una unidad</option>
+                  <option value="true">Si</option>
+                  <option value="false">No</option>
+                </select>
               </div>
             </div>
             <div class="col-6">
@@ -138,31 +147,33 @@
           </div>
           <div class="row">
             <div class="col-6">
-          <div class="form-group">
-            <label for="image">Imagen:</label>
-            <input type="text" class="form-control" id="image" name="image" [(ngModel)]="this.product.image">
-          </div>
-          <div class="form-group">
-            <label for="status">Estado:</label>
-            <select class="form-control" id="status" name="status" [(ngModel)]="this.product.status">
-              <option value="active">Activo</option>
-              <option value="inactive">Inactivo</option>
-            </select>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="col-8">
-            <img  [src]="'http://localhost:5000/shared/' + this.product.image" alt="Imagen del producto" class="img-fluid">
-          </div>
+              <div class="form-group">
+                <label for="image">Imagen:</label>
+                <input type="text" class="form-control" id="image" name="image" [(ngModel)]="this.product.image">
+              </div>
+              <div class="form-group">
+                <label for="status">Estado:</label>
+                <select class="form-control" id="status" name="status" [(ngModel)]="this.product.status">
+                  <option value="active">Activo</option>
+                  <option value="inactive">Inactivo</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="col-8">
+                <img [src]="this.product.image" alt="Imagen del producto" class="img-fluid">
+              </div>
 
-        </div>
-      </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" [disabled]="!camposCompletos()" *ngIf="actionTipo === 'update'" (click)="updated_product()">Guardar Cambios</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" [disabled]="!camposCompletos()" *ngIf="actionTipo === 'new'" (click)="created_product()">Nuevo Producto</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" [disabled]="!camposCompletos()"
+          *ngIf="actionTipo === 'update'" (click)="updated_product()">Guardar Cambios</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" [disabled]="!camposCompletos()"
+          *ngIf="actionTipo === 'new'" (click)="created_product()">Nuevo Producto</button>
       </div>
     </div>
   </div>

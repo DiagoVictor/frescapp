@@ -18,4 +18,8 @@ describe('NavigationBarComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+
+
 });
+

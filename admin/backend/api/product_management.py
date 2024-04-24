@@ -3,6 +3,7 @@ from models.product import Product
 import json, dump
 from flask_bcrypt import Bcrypt
 from datetime import datetime
+from decimal import Decimal
 
 product_api = Blueprint('product', __name__)
 
@@ -14,12 +15,12 @@ def create_product():
     unit = data.get('unit')
     category = data.get('category')
     sku = data.get('sku')  
-    price_sale = data.get('price_sale')  
-    price_purchase = data.get('price_purchase')
-    discount = data.get('discount')
-    margen = data.get('margen')
-    iva = data.get('iva')
-    iva_value = data.get('iva_value')
+    price_sale = Decimal(data.get('price_sale')) if data.get('price_sale') else None
+    price_purchase = Decimal(data.get('price_purchase')) if data.get('price_purchase') else None
+    discount = Decimal(data.get('discount')) if data.get('discount') else None
+    margen = Decimal(data.get('margen')) if data.get('margen') else None
+    iva = data.get('iva').lower()  if data.get('iva') else None
+    iva_value = Decimal(data.get('iva_value')) if data.get('iva_value') else None
     description = data.get('description')
     image = data.get('image')
     status = data.get('status')
@@ -54,35 +55,39 @@ def update_product(product_id):
     name = data.get('name')
     unit = data.get('unit')
     category = data.get('category')
-    sku = data.get('sku')  
-    price_sale = data.get('price_sale')  
-    price_purchase = data.get('price_purchase')
-    discount = data.get('discount')
-    margen = data.get('margen')
-    iva = data.get('iva')
-    iva_value = data.get('iva_value')
+    sku = data.get('sku')
+    price_sale = float(data.get('price_sale')) if data.get('price_sale') else None
+    price_purchase = float(data.get('price_purchase')) if data.get('price_purchase') else None
+    discount = float(data.get('discount')) if data.get('discount') else None
+    margen = float(data.get('margen')) if data.get('margen') else None
+    iva = data.get('iva').lower()  if data.get('iva') else None
+    iva_value = float(data.get('iva_value')) if data.get('iva_value') else None
     description = data.get('description')
     image = data.get('image')
     status = data.get('status')
+
     product = Product.object(product_id)
     if not product:
         return jsonify({'message': 'Product not found'}), 404
+
     product.id = product_id
     product.name = name or product.name
     product.unit = unit or product.unit
     product.category = category or product.category
     product.sku = sku or product.sku
-    product.price_sale =price_sale or product.price_sale
-    product.price_purchase = price_purchase or product.price_purchase
-    product.discount = discount or product.discount
-    product.margen = margen or product.margen
+    product.price_sale = price_sale if price_sale is not None else product.price_sale
+    product.price_purchase = price_purchase if price_purchase is not None else product.price_purchase
+    product.discount = discount if discount is not None else product.discount
+    product.margen = margen if margen is not None else product.margen
     product.iva = iva or product.iva
-    product.iva_value = iva_value or product.iva_value
+    product.iva_value = iva_value if iva_value is not None else product.iva_value
     product.description = description or product.description
     product.image = image or product.image
     product.status = status or product.status
     product.updated()
-    return jsonify({'message': 'product updated successfully'}), 200
+
+    return jsonify({'message': 'Product updated successfully'}), 200
+
 
 @product_api.route('/products', methods=['GET'])
 def list_product():
