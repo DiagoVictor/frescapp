@@ -54,7 +54,7 @@ def create_order():
     return jsonify({'message': 'Order created successfully'}), 201
 
 # Ruta para actualizar un usuario existente
-@order_api.route('/customers/<string:order_id>', methods=['PUT'])
+@order_api.route('/order/<string:order_id>', methods=['PUT'])
 def update_order(order_id):
     data = request.get_json()
     order_number = data.get('order_number')

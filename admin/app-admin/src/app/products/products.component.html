@@ -46,7 +46,7 @@
         <td>{{ product.status }}</td>
         <td>
           <!-- Utiliza solo el ícono sin el marco del botón -->
-          <span (click)="openEditModal(product,'update')" style="cursor: pointer;">
+          <span (click)="openEditModal(product,'update')" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#editProductModal" data-bs-dismiss="modal">
             <i class="fas fa-pencil-alt fa-lg"></i> <!-- Ícono de lápiz -->
           </span>
         </td>

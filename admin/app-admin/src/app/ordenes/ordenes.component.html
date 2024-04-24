@@ -1,1 +1,180 @@
-<p>ordenes works!</p>
+<div class="container-fluid mt-5">
+  <div class="row justify-right">
+    <div class="col-auto">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal"
+        data-bs-dismiss="modal" (click)="openEditModal({}, 'new')">Nueva Orden</button>
+    </div>
+    <div class="col-6">
+      <input type="text" class="form-control" placeholder="Buscar orden..." [(ngModel)]="searchText"
+        (keyup)="filterOrders()">
+    </div>
+  </div>
+  <br *ngIf="successMessage">
+  <div *ngIf="successMessage" class="alert alert-success" role="alert">
+    {{ successMessage }}
+  </div>
+  <br>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Número de Orden</th>
+        <th>Email del Cliente</th>
+        <th>Teléfono del Cliente</th>
+        <th>Documento del Cliente</th>
+        <th>Nombre del Cliente</th>
+        <th>Fecha de Entrega</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of filteredOrders">
+        <td>{{ order.order_number }}</td>
+        <td>{{ order.customer_email }}</td>
+        <td>{{ order.customer_phone }}</td>
+        <td>{{ order.customer_documentNumber }}</td>
+        <td>{{ order.customer_name }}</td>
+        <td>{{ order.delivery_date }}</td>
+        <td>{{ order.status }}</td>
+        <td>
+          <span (click)="openEditModal(order, 'update')" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-bs-dismiss="modal">
+            <i class="fas fa-pencil-alt fa-lg"></i>
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Agrega esto al final de tu archivo HTML -->
+<div class="modal fade" id="editOrderModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Orden</h5>
+      </div>
+      <div class="modal-body">
+        <div class="container">
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group">
+                <label for="order_number">Número de Orden:</label>
+                <input type="text" class="form-control" id="order_number" name="order_number" [(ngModel)]="order.order_number">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label for="customer_email">Email del Cliente:</label>
+                <input type="email" class="form-control" id="customer_email" name="customer_email" [(ngModel)]="order.customer_email">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group">
+                <label for="customer_phone">Teléfono del Cliente:</label>
+                <input type="text" class="form-control" id="customer_phone" name="customer_phone" [(ngModel)]="order.customer_phone">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label for="customer_documentNumber">Número de Documento del Cliente:</label>
+                <input type="text" class="form-control" id="customer_documentNumber" name="customer_documentNumber" [(ngModel)]="order.customer_documentNumber">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group">
+                <label for="customer_documentType">Tipo de Documento del Cliente:</label>
+                <input type="text" class="form-control" id="customer_documentType" name="customer_documentType" [(ngModel)]="order.customer_documentType">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label for="customer_name">Nombre del Cliente:</label>
+                <input type="text" class="form-control" id="customer_name" name="customer_name" [(ngModel)]="order.customer_name">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group">
+                <label for="delivery_date">Fecha de Entrega:</label>
+                <input type="date" class="form-control" id="delivery_date" name="delivery_date" [(ngModel)]="order.delivery_date">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label for="status">Estado:</label>
+                <input type="text" class="form-control" id="status" name="status" [(ngModel)]="order.status">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group">
+                <label for="total">Total:</label>
+                <input type="number" class="form-control" id="total" name="total" [(ngModel)]="order.total">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label for="deliverySlot">Horario de Entrega:</label>
+                <input type="text" class="form-control" id="deliverySlot" name="deliverySlot" [(ngModel)]="order.deliverySlot">
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="paymentMethod">Método de Pago:</label>
+            <input type="text" class="form-control" id="paymentMethod" name="paymentMethod" [(ngModel)]="order.paymentMethod">
+          </div>
+          <div class="form-group">
+            <label for="deliveryAddress">Dirección de Entrega:</label>
+            <input type="text" class="form-control" id="deliveryAddress" name="deliveryAddress" [(ngModel)]="order.deliveryAddress">
+          </div>
+          <div class="form-group">
+            <label for="deliveryAddressDetails">Detalles de la Dirección de Entrega:</label>
+            <input type="text" class="form-control" id="deliveryAddressDetails" name="deliveryAddressDetails" [(ngModel)]="order.deliveryAddressDetails">
+          </div>
+          <br><br>
+          <div class="row">
+            <div class="col-12">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Nombre</th>
+                    <th>Precio Venta</th>
+                    <th>Cantidad</th>
+                    <th>IVA</th>
+                    <th>Valor IVA</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let product of order.products">
+                    <td>{{ product.sku }}</td>
+                    <td>{{ product.name }}</td>
+                    <td><input type="number" class="form-control" [(ngModel)]="product.price_sale"></td>
+                    <td><input type="number" class="form-control" [(ngModel)]="product.quantity"></td>
+                    <td><input type="checkbox" [(ngModel)]="product.iva"></td>
+                    <td><input type="number" class="form-control" [(ngModel)]="product.iva_value"></td>
+                    <td>
+                      <button type="button" class="btn btn-sm btn-danger" (click)="removeProduct(product)">Eliminar</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <button type="button" class="btn btn-primary" (click)="addProduct()">Agregar Producto</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" (click)="updated_order()">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
