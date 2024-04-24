@@ -22,17 +22,16 @@ if __name__ == '__main__':
     app.register_blueprint(configOrder_api, url_prefix='/api/config')
 
 
-@app.route('/api/shared/<path:filename>')
-def serve_static(filename):
-    root_dir = os.path.dirname(os.getcwd())
-    file_path = os.path.join(root_dir, 'backend', 'shared', 'products', filename)
-    
-    # Verificar si el archivo existe
-    if os.path.exists(file_path):
-        return send_from_directory(os.path.join(root_dir, 'backend', 'shared', 'products'), filename)
-    else:
-        # Si el archivo no existe, envía sin_foto.png
-        return send_from_directory(os.path.join(root_dir, 'backend', 'shared'), 'sin_foto.png')
+    @app.route('/api/shared/<path:filename>')
+    def serve_static(filename):
+        root_dir = os.path.dirname(os.getcwd())
+        file_path = os.path.join(root_dir, 'backend', 'shared', 'products', filename)
+        
+        if os.path.exists(file_path):
+            return send_from_directory(os.path.join(root_dir, 'backend', 'shared', 'products'), filename)
+        else:
+            # Si el archivo no existe, envía sin_foto.png
+            return send_from_directory(os.path.join(root_dir, 'backend', 'shared'), 'sin_foto.png')
 
 
     # Configurar CORS para permitir solicitudes desde cualquier origen
