@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../product.service';
-import { NgModule } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -9,11 +8,12 @@ import { Router } from '@angular/router';
   styleUrls: ['./products.component.css']
 })
 export class ProductsComponent implements OnInit {
-  products: any[] | [] | undefined;
-  filteredProducts: any[] | undefined;
+  products: any[] = [];
+  filteredProducts: any[] = [];
   searchText: string = '';
   product: any = {};
   actionTipo: any = '';
+  successMessage: string = '';
 
   constructor(private productService: ProductService, private router: Router) { }
 
@@ -29,12 +29,14 @@ export class ProductsComponent implements OnInit {
       this.getProducts();
     }
   }
+
   // Función para verificar si el usuario está autenticado (puedes implementar tu propia lógica aquí)
   checkIfLoggedIn(): boolean {
     // Por ejemplo, podrías verificar si existe un token de autenticación en el almacenamiento local
     const token = localStorage.getItem('token');
     return !!token; // Devuelve true si hay un token, de lo contrario false
   }
+
   getProducts(): void {
     this.productService.getProducts()
       .subscribe(products => {
@@ -46,7 +48,7 @@ export class ProductsComponent implements OnInit {
 
   filterProducts(): void {
     if (this.searchText.trim() !== '') {
-      this.filteredProducts = this.products?.filter(product => {
+      this.filteredProducts = this.products.filter(product => {
         // Filtra los productos cuyo nombre contiene el texto de búsqueda
         return product.name.toLowerCase().includes(this.searchText.toLowerCase());
       });
@@ -75,12 +77,15 @@ export class ProductsComponent implements OnInit {
     // Llama al servicio para actualizar el producto
     this.productService.updateProduct(this.product.id, this.product).subscribe((data: any) => {
       // Lógica después de actualizar el producto, si es necesario
+      this.successMessage = '¡Producto actualizado correctamente!';
+      setTimeout(() => {
+        this.successMessage = ''; // Reiniciar el mensaje después de unos segundos
+      }, 3000); // Mostrar el mensaje durante 3 segundos
     });
 
     // Actualiza la lista de productos después de actualizar uno
     this.getProducts();
   }
-
 
   created_product(): void {
     // Convierte los campos price_sale y price_purchase a tipo number
@@ -97,16 +102,20 @@ export class ProductsComponent implements OnInit {
 
   updatePrice(): void {
     // Obtener la lista de SKU y precios de venta actualizados
-    const skuPriceList:any = this.filteredProducts?.map(product => {
+    const skuPriceList: any = this.filteredProducts.map(product => {
       return { sku: product.sku, price_sale: product.price_sale, id: product.id };
     });
 
     // Llamar al servicio para actualizar los precios de los productos
     this.productService.updatePrices(skuPriceList).subscribe((data: any) => {
+      // Lógica después de actualizar los precios, si es necesario
+      this.successMessage = '¡Precios actualizados correctamente!';
+      setTimeout(() => {
+        this.successMessage = ''; // Reiniciar el mensaje después de unos segundos
+      }, 3000); // Mostrar el mensaje durante 3 segundos
     });
 
-    // Actualizar la lista de productos después de actualizar los precios
-    this.getProducts();
+    // No es necesario llamar a getProducts() aquí, ya que se llama dentro de updatePrices().
   }
 
   camposCompletos(): boolean {

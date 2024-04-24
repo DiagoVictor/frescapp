@@ -15,6 +15,10 @@
         (keyup)="filterProducts()">
     </div>
   </div>
+  <br *ngIf="successMessage">
+  <div *ngIf="successMessage" class="alert alert-success" role="alert">
+    {{ successMessage }}
+  </div>
   <br>
   <table class="table">
     <thead>
@@ -30,7 +34,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let product of filteredProducts">
+      <tr *ngFor="let product of this.filteredProducts">
         <td>{{ product.sku }}</td>
         <td>{{ product.name }}</td>
         <td>{{ product.unit }}</td>
@@ -41,8 +45,10 @@
         </td>
         <td>{{ product.status }}</td>
         <td>
-          <button type="submit" data-bs-toggle="modal" data-bs-target="#editProductModal" data-bs-dismiss="modal"
-            (click)="openEditModal(product,'update')">Editar</button>
+          <!-- Utiliza solo el ícono sin el marco del botón -->
+          <span (click)="openEditModal(product,'update')" style="cursor: pointer;">
+            <i class="fas fa-pencil-alt fa-lg"></i> <!-- Ícono de lápiz -->
+          </span>
         </td>
       </tr>
     </tbody>
