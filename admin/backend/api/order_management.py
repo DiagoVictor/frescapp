@@ -1,8 +1,13 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from models.order import Order
 import json
 from flask_bcrypt import Bcrypt
 from datetime import datetime
+from io import BytesIO
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from reportlab.lib.styles import getSampleStyleSheet
 
 order_api = Blueprint('order', __name__)
 
@@ -154,3 +159,55 @@ def list_orders_customer(email):
 
     orders_json = json.dumps(order_data)
     return orders_json, 200
+
+@order_api.route('/generate_pd/<string:id>f', methods=['GET'])
+def generate_remision(id_order):
+    orden = Order.object(id_order)
+    data = request.get_json()
+
+    # Crear un objeto de tipo BytesIO para almacenar el PDF en memoria
+    buffer = BytesIO()
+
+    # Crear un documento PDF
+    pdf = SimpleDocTemplate(buffer, pagesize=letter)
+
+    # Estilos de párrafo
+    styles = getSampleStyleSheet()
+
+    # Agregar imagen en la parte superior
+    image_path = 'http://3.23.102.32:5000/api/shared/banner1.png'  # Ruta de la imagen
+    logo = Image(image_path, width=500, height=200)
+    pdf_content = [logo]
+
+    # Crear tabla con los datos de la orden
+    order_data = [
+        ['Número de Orden', 'Email del Cliente', 'Teléfono del Cliente', ...],  # Encabezado
+        [data.get('order_number'), data.get('customer_email'), data.get('customer_phone'), ...],  # Datos de la orden
+    ]
+    order_table = Table(order_data)
+    order_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray)]))  # Estilo para el encabezado
+    pdf_content.append(order_table)
+
+    # Crear tabla con la lista de productos
+    product_data = [
+        ['SKU', 'Nombre', 'Cantidad', 'Precio'],  # Encabezado
+        # Datos de los productos
+        [product.get('sku'), product.get('name'), product.get('quantity'), product.get('price')] for product in data.get('products')
+    ]
+    product_table = Table(product_data)
+    product_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray)]))  # Estilo para el encabezado
+    pdf_content.append(product_table)
+
+    # Otros detalles de la orden (total, etc.)
+    total = data.get('total')
+    # Agregar más contenido al documento PDF según sea necesario
+
+    # Generar el PDF
+    pdf.build(pdf_content)
+
+    # Mover el cursor del buffer al inicio
+    buffer.seek(0)
+
+    # Devolver el PDF como respuesta
+    return send_file(buffer, as_attachment=True, attachment_filename='orden.pdf')
+
