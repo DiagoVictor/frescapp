@@ -180,8 +180,6 @@ def generate_remision(id_order):
 
     # Mover el cursor del buffer al inicio
     buffer.seek(0)
-
-    # Devolver el PDF como respuesta
-    return send_file(buffer, as_attachment=True, attachment_filename=f'orden_{order.order_number}.pdf')
+    return send_file(buffer, as_attachment=True, download_name=f'orden_{order.order_number}.pdf',  mimetype='application/pdf')
 
 
