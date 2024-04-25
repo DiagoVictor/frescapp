@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, jsonify, request, send_file, Response
 from models.order import Order
 import json
 from flask_bcrypt import Bcrypt
@@ -180,6 +180,9 @@ def generate_remision(id_order):
 
     # Mover el cursor del buffer al inicio
     buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name=f'orden_{order.order_number}.pdf',  mimetype='application/pdf')
 
+    # Crear una respuesta con el archivo PDF y establecer el encabezado Content-Disposition
+    response = Response(buffer, mimetype='application/pdf')
+    response.headers['Content-Disposition'] = 'inline; filename=orden_{}.pdf'.format(order.order_number)
 
+    return response

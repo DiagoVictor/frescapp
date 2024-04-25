@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit } from '@angular/core';
 import { OrderService } from '../order.service';
 import { Router } from '@angular/router';
 import { ProductService } from '../product.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-orders',
@@ -22,8 +23,9 @@ export class OrdenesComponent implements OnInit {
   orderStatus: string[] = ['Creada', 'Confirmada', 'Despachada', 'Entregada', 'Facturada', 'Archivada'];
   productos: any[] = [];
   selectedsku: string = '';
+  pdfData: string = '';
   constructor(private orderService: OrderService, private router: Router,
-    private productService: ProductService) { }
+    private productService: ProductService, private sanitizer: DomSanitizer) { }
 
   ngOnInit(): void {
     const isLoggedIn = this.checkIfLoggedIn();
@@ -41,12 +43,10 @@ export class OrdenesComponent implements OnInit {
 
     }
   }
-
   checkIfLoggedIn(): boolean {
     const token = localStorage.getItem('token');
     return !!token;
   }
-
   getOrders(): void {
     this.orders = [];
     this.filteredOrders = [];
@@ -57,7 +57,6 @@ export class OrdenesComponent implements OnInit {
         this.filterOrders();
       });
   }
-
   filterOrders(): void {
     if (this.searchText.trim() !== '') {
       this.filteredOrders = this.orders?.filter(order => {
@@ -68,13 +67,10 @@ export class OrdenesComponent implements OnInit {
       this.filteredOrders = this.orders;
     }
   }
-
-
   openEditModal(order: any, type: any): void {
     this.order = order;
     this.actionType = type;
   }
-
   updated_order(): void {
     const currentDate: Date = new Date();
     // Obtener los componentes de la fecha y hora
@@ -96,7 +92,6 @@ export class OrdenesComponent implements OnInit {
 
     this.getOrders();
   }
-
   created_order(): void {
     const currentDate: Date = new Date();
     // Obtener los componentes de la fecha y hora
@@ -118,7 +113,6 @@ export class OrdenesComponent implements OnInit {
     });
     this.getOrders();
   }
-
   saveOrder() {
     if (this.actionType === 'update') {
       this.updated_order();
@@ -126,12 +120,10 @@ export class OrdenesComponent implements OnInit {
       this.created_order();
     }
   }
-
   camposCompletos(): boolean {
     const { order_number, customer_email, customer_phone, customer_documentNumber, customer_documentType, customer_name, delivery_date, status } = this.order;
     return !!order_number && !!customer_email && !!customer_phone && !!customer_documentNumber && !!customer_documentType && !!customer_name && !!delivery_date && !!status;
   }
-  // Función para eliminar un producto de la orden
   removeProduct(product: any): void {
     const index = this.order.products.indexOf(product);
     if (index !== -1) {
@@ -159,5 +151,9 @@ export class OrdenesComponent implements OnInit {
         },
       );
   }
-}
+  openPdfModal(order: any): void {
+    this.pdfData = 'http://3.23.102.32:5000/api/order/generate_pdf/' + order;
 
+  }
+
+}
