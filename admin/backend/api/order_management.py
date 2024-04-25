@@ -30,7 +30,7 @@ def create_order():
         return jsonify({'message': 'Missing required fields'}), 400
 
     if Order.find_by_order_number(order_number=order_number):
-        return jsonify({'message': 'Customer already exists'}), 400
+        return jsonify({'message': 'Order already exists'}), 400
 
     order = Order(        
         order_number = order_number,
@@ -58,12 +58,12 @@ def create_order():
 def update_order(order_id):
     data = request.get_json()
     order_number = data.get('order_number')
-    customer_email = data.get('customer_email')
-    customer_phone = data.get('customer_phone')
-    customer_documentNumber = data.get('customer_documentNumber')
-    customer_documentType = data.get('customer_documentType')
-    customer_name = data.get('customer_documencustomer_nametType')
-    delivery_date = data.get('delivery_date')
+    customer_email = data.get('email')
+    customer_phone = data.get('phoneNumber')
+    customer_documentNumber = data.get('documentNumber')
+    customer_documentType = data.get('documentType')
+    customer_name = data.get('customerName')
+    delivery_date = data.get('deliveryDate')
     status = data.get('status')  
     created_at = data.get('created_at')
     updated_at = data.get('updated_at')

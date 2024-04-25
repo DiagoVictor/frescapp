@@ -47,7 +47,7 @@
 </div>
 
 <!-- Agrega esto al final de tu archivo HTML -->
-<div class="modal fade" id="editOrderModal" tabindex="-1" role="dialog">
+<div class="modal fade bd-example-modal-lg" id="editOrderModal" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -86,8 +86,10 @@
           <div class="row">
             <div class="col-6">
               <div class="form-group">
-                <label for="customer_documentType">Tipo de Documento del Cliente:</label>
-                <input type="text" class="form-control" id="customer_documentType" name="customer_documentType" [(ngModel)]="order.customer_documentType">
+                <label for="documentType">Tipo de Documento:</label>
+                <select class="form-control" id="documentType" name="documentType" [(ngModel)]="order.customer_documentType">
+                  <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
+                </select>
               </div>
             </div>
             <div class="col-6">
@@ -107,7 +109,9 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="status">Estado:</label>
-                <input type="text" class="form-control" id="status" name="status" [(ngModel)]="order.status">
+                <select class="form-control" id="status" name="status" [(ngModel)]="order.status">
+                  <option *ngFor="let statu of orderStatus" [value]="statu">{{ statu }}</option>
+                </select>
               </div>
             </div>
           </div>
@@ -121,13 +125,17 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="deliverySlot">Horario de Entrega:</label>
-                <input type="text" class="form-control" id="deliverySlot" name="deliverySlot" [(ngModel)]="order.deliverySlot">
+                <select class="form-control" id="deliverySlot" name="deliverySlot" [(ngModel)]="order.deliverySlot">
+                  <option *ngFor="let slot of deliverySlots" [value]="slot">{{ slot }}</option>
+                </select>
               </div>
             </div>
           </div>
           <div class="form-group">
             <label for="paymentMethod">Método de Pago:</label>
-            <input type="text" class="form-control" id="paymentMethod" name="paymentMethod" [(ngModel)]="order.paymentMethod">
+            <select class="form-control" id="paymentMethod" name="paymentMethod" [(ngModel)]="order.paymentMethod">
+              <option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</option>
+            </select>
           </div>
           <div class="form-group">
             <label for="deliveryAddress">Dirección de Entrega:</label>
@@ -154,14 +162,16 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let product of order.products">
-                    <td>{{ product.sku }}</td>
-                    <td>{{ product.name }}</td>
+                    <td><input type="text" class="form-control" [(ngModel)]="product.sku"></td>
+                    <td><input type="text" class="form-control" [(ngModel)]="product.name"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.price_sale"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.quantity"></td>
                     <td><input type="checkbox" [(ngModel)]="product.iva"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.iva_value"></td>
                     <td>
-                      <button type="button" class="btn btn-sm btn-danger" (click)="removeProduct(product)">Eliminar</button>
+                      <button type="button" class="btn btn-sm btn-danger" (click)="removeProduct(product)">
+                        <i class="fas fa-trash"></i> <!-- Icono de papelera -->
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -173,7 +183,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" (click)="updated_order()">Guardar Cambios</button>
+        <button type="button" class="btn btn-primary" (click)="saveOrder()">Guardar Cambios</button>
       </div>
     </div>
   </div>
