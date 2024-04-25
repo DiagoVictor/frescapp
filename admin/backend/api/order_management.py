@@ -189,8 +189,8 @@ def generate_remision(id_order):
 
     # Crear tabla con la lista de productos
     product_data = [
-        ['SKU', 'Nombre', 'Cantidad', 'Precio'],  # Encabezado
-        [product['sku'], product['name'], product['quantity'], product['price_sale'] ] for product in orden['products']
+        ['sku', 'Nombre', 'Cantidad', 'Precio'],  
+        [product.get('sku'), product.get('name'), product.get('quantity'), product.get('price_sale')] for product in orden['products']
     ]
     product_table = Table(product_data)
     product_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray)]))  # Estilo para el encabezado
