@@ -129,40 +129,12 @@ def list_orders():
     ]
     orders_json = json.dumps(order_data)
     return orders_json, 200
-
-@order_api.route('/orders_customer/<string:email>', methods=['GET'])
-def list_orders_customer(email):
-    orders_cursor = Order.find_by_customer(email)
-    order_data = [
-        {
-         "id": str(order["_id"]), 
-         "order_number": order["order_number"], 
-         "customer_email": order["customer_email"], 
-         "customer_phone": order["customer_phone"], 
-         "customer_documentNumber": order["customer_documentNumber"], 
-         "customer_documentType": order["customer_documentType"], 
-         "customer_name": order["customer_name"], 
-         "delivery_date": order["delivery_date"], 
-         "status": order["status"], 
-         "created_at": order["created_at"], 
-         "updated_at": order["updated_at"], 
-         "products": order["products"],
-         "total": order["total"], 
-         "deliverySlot": order["deliverySlot"], 
-         "paymentMethod": order["paymentMethod"], 
-         "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
-         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
-         }
-        for order in orders_cursor
-    ]
-    order_data.sort(key=lambda x: x['created_at'], reverse=True)
-
-    orders_json = json.dumps(order_data)
-    return orders_json, 200
-
-@order_api.route('/generate_pd/<string:id>f', methods=['GET'])
+@order_api.route('/generate_pdf/<string:id_order>', methods=['GET'])
 def generate_remision(id_order):
-    orden = Order.object(id_order)
+    order = Order.object(id_order)
+
+    if not order:
+        return jsonify({'message': 'Order not found'}), 404
 
     # Crear un objeto de tipo BytesIO para almacenar el PDF en memoria
     buffer = BytesIO()
@@ -181,7 +153,7 @@ def generate_remision(id_order):
     # Crear tabla con los datos de la orden
     order_data = [
         ['Número de Orden', 'Email del Cliente', 'Teléfono del Cliente'],  # Encabezado
-        [orden['order_number'],orden['customer_email'], orden['customer_phone']]  # Datos de la orden
+        [order.order_number, order.customer_email, order.customer_phone]  # Datos de la orden
     ]
     order_table = Table(order_data)
     order_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray)]))  # Estilo para el encabezado
@@ -189,16 +161,19 @@ def generate_remision(id_order):
 
     # Crear tabla con la lista de productos
     product_data = [
-        ['sku', 'Nombre', 'Cantidad', 'Precio'],  
-        [product.get('sku'), product.get('name'), product.get('quantity'), product.get('price_sale')] for product in orden['products']
+        ['SKU', 'Nombre', 'Cantidad', 'Precio'],  # Encabezado
     ]
+    for product in order.products:
+        product_row = [product.get('sku'), product.get('name'), product.get('quantity'), product.get('price_sale')]
+        product_data.append(product_row)
+
     product_table = Table(product_data)
     product_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray)]))  # Estilo para el encabezado
     pdf_content.append(product_table)
 
-    # Otros detalles de la orden (total, etc.)
-    total = orden["total"]
     # Agregar más contenido al documento PDF según sea necesario
+    total = order.total
+    # Otros detalles de la orden (total, etc.)
 
     # Generar el PDF
     pdf.build(pdf_content)
@@ -207,5 +182,6 @@ def generate_remision(id_order):
     buffer.seek(0)
 
     # Devolver el PDF como respuesta
-    return send_file(buffer, as_attachment=True, attachment_filename='orden'+orden['order_number']+'.pdf')
+    return send_file(buffer, as_attachment=True, attachment_filename=f'orden_{order.order_number}.pdf')
+
 
