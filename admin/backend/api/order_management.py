@@ -163,7 +163,6 @@ def list_orders_customer(email):
 @order_api.route('/generate_pd/<string:id>f', methods=['GET'])
 def generate_remision(id_order):
     orden = Order.object(id_order)
-    data = request.get_json()
 
     # Crear un objeto de tipo BytesIO para almacenar el PDF en memoria
     buffer = BytesIO()
@@ -181,8 +180,8 @@ def generate_remision(id_order):
 
     # Crear tabla con los datos de la orden
     order_data = [
-        ['Número de Orden', 'Email del Cliente', 'Teléfono del Cliente', ...],  # Encabezado
-        [data.get('order_number'), data.get('customer_email'), data.get('customer_phone'), ...],  # Datos de la orden
+        ['Número de Orden', 'Email del Cliente', 'Teléfono del Cliente'],  # Encabezado
+        [orden['order_number'],orden['customer_email'], orden['customer_phone']]  # Datos de la orden
     ]
     order_table = Table(order_data)
     order_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray)]))  # Estilo para el encabezado
@@ -191,15 +190,14 @@ def generate_remision(id_order):
     # Crear tabla con la lista de productos
     product_data = [
         ['SKU', 'Nombre', 'Cantidad', 'Precio'],  # Encabezado
-        # Datos de los productos
-        [product.get('sku'), product.get('name'), product.get('quantity'), product.get('price')] for product in data.get('products')
+        [product['sku'], product['name'], product['quantity'], product['price_sale'] ] for product in [orden['products']]
     ]
     product_table = Table(product_data)
     product_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray)]))  # Estilo para el encabezado
     pdf_content.append(product_table)
 
     # Otros detalles de la orden (total, etc.)
-    total = data.get('total')
+    total = orden["total"]
     # Agregar más contenido al documento PDF según sea necesario
 
     # Generar el PDF
@@ -209,5 +207,5 @@ def generate_remision(id_order):
     buffer.seek(0)
 
     # Devolver el PDF como respuesta
-    return send_file(buffer, as_attachment=True, attachment_filename='orden.pdf')
+    return send_file(buffer, as_attachment=True, attachment_filename='orden'+orden['order_number']+'.pdf')
 
