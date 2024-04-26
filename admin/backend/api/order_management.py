@@ -9,6 +9,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
 
 order_api = Blueprint('order', __name__)
 
@@ -158,20 +159,20 @@ def generate_remision(id_order):
     image_path = 'http://3.23.102.32:5000/api/shared/banner1.png'  # Ruta de la imagen
     logo = Image(image_path, width=500, height=200)
     pdf_content = [logo]
-
     centered_style = ParagraphStyle(
         name='Centered',
         fontSize=16,  # Tamaño de la letra aumentado a 16
-        alignment=1,  # 1 para alineación centrada
-        textColor=colors.white  # Color del texto blanco
+        alignment=TA_CENTER,  # Centrado horizontal
+        textColor=colors.white,  # Color del texto blanco
+        leading=50  # Espaciado entre líneas para centrar verticalmente
     )
 
     # Crear el párrafo con el nuevo estilo
     remision_number = order.order_number
-    remision_paragraph = Paragraph('<font>{}</font>'.format(remision_number), centered_style)
+    remision_paragraph = Paragraph('<font>Remisión de la orden # {}</font>'.format(remision_number), centered_style)
 
     # Crear la tabla con el párrafo centrado y con el tamaño de letra aumentado
-    green_box = Table([[remision_paragraph]], colWidths=[500], rowHeights=[50], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
+    green_box = Table([[remision_paragraph]], colWidths=[500], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
     pdf_content.append(green_box)
 
     # Espacio entre la caja verde y la tabla
@@ -183,12 +184,12 @@ def generate_remision(id_order):
         [order.order_number, order.customer_email, order.customer_phone]  # Datos de la orden
     ]
     order_table = Table(order_data)
-    pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
     order_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
     ]))
     pdf_content.append(order_table)
+    pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
 
     # Crear tabla con la lista de productos
     product_data = [
