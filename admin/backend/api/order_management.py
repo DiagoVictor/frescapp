@@ -115,8 +115,8 @@ def list_orders():
     order_data = [
         {
          "id": str(order["_id"]), 
-         "order_number": order["order_number"], 
-         "customer_email": order["customer_email"] if order["customer_email"] else order["email"], 
+         "order_number": order["order_number"] if order["order_number"] else order["orderNumber"], 
+         "customer_email": order["customer_email"] if order["customer_email"] else order["customerEmail"], 
          "customer_phone": order["customer_phone"] if order["customer_phone"] else order["customerPhone"], 
          "customer_documentNumber": order["customer_documentNumber"] if order["customer_documentNumber"] else order["customerDocumentNumber"], 
          "customer_documentType": order["customer_documentType"] if order["customer_documentType"] else order["customerDocumentType"], 
