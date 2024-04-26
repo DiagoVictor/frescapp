@@ -192,28 +192,32 @@ def generate_remision(id_order):
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
 
     product_data = [
-        ['SKU', 'Nombre', 'Cantidad', 'Precio'],  # Encabezado
+        ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
     ]
     for product in order.products:
-        product_row = [product.get('sku'), product.get('name'), product.get('quantity'), product.get('price_sale')]
+        sku = product.get('sku')
+        name = product.get('name')
+        quantity = product.get('quantity')
+        price_sale = product.get('price_sale')
+        price_per_quantity = price_sale / quantity  # Precio por cantidad
+        total = product.get('price_sale') * quantity  # Total del producto
+        product_row = [sku, name, quantity, price_per_quantity, total]
         product_data.append(product_row)
 
     # Agregar líneas adicionales para subtotal, descuentos, IVA y total
     subtotal = sum(product['quantity'] * product['price_sale'] for product in order.products)
     descuentos = 0  # Ajusta esto según corresponda
-    iva = subtotal * 0.16  # Ajusta el valor del IVA según corresponda
-    total = subtotal - descuentos + iva
+    total = subtotal - descuentos 
 
     # Añadir líneas adicionales al producto_data
     product_data.extend([
-        ['Subtotal', '', '', subtotal],
-        ['Descuentos', '', '', descuentos],
-        ['IVA (16%)', '', '', iva],
-        ['Total', '', '', total]
+        ['', '', '', 'Subtotal', subtotal],
+        ['', '', '', 'Descuentos', descuentos],
+        ['', '', '', 'Total', total]
     ])
 
     # Crear la tabla de productos
-    product_table = Table(product_data, colWidths=[table_width / 4] * 4)
+    product_table = Table(product_data, colWidths=[table_width / 5] * 5)
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
