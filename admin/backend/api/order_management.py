@@ -129,6 +129,14 @@ def list_orders():
     ]
     orders_json = json.dumps(order_data)
     return orders_json, 200
+
+
+from flask import Response
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from io import BytesIO
+
 @order_api.route('/generate_pdf/<string:id_order>', methods=['GET'])
 def generate_remision(id_order):
     order = Order.object(id_order)
@@ -150,13 +158,23 @@ def generate_remision(id_order):
     logo = Image(image_path, width=500, height=200)
     pdf_content = [logo]
 
+    # Agregar caja verde debajo de la imagen
+    green_box = Table([[Paragraph('<font color="white">Contenido de la caja verde</font>', styles['BodyText'])]], colWidths=[500], rowHeights=[50], style=[('BACKGROUND', (0,0), (-1,-1), colors.green)])
+    pdf_content.append(green_box)
+
+    # Espacio entre la caja verde y la tabla
+    pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
+
     # Crear tabla con los datos de la orden
     order_data = [
         ['Número de Orden', 'Email del Cliente', 'Teléfono del Cliente'],  # Encabezado
         [order.order_number, order.customer_email, order.customer_phone]  # Datos de la orden
     ]
     order_table = Table(order_data)
-    order_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray)]))  # Estilo para el encabezado
+    order_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.green),  # Color de fondo del encabezado
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
+    ]))
     pdf_content.append(order_table)
 
     # Crear tabla con la lista de productos
@@ -168,7 +186,10 @@ def generate_remision(id_order):
         product_data.append(product_row)
 
     product_table = Table(product_data)
-    product_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.gray)]))  # Estilo para el encabezado
+    product_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.green),  # Color de fondo del encabezado
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
+    ]))
     pdf_content.append(product_table)
 
     # Agregar más contenido al documento PDF según sea necesario

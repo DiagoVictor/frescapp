@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { ProductService } from '../product.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
+
 @Component({
   selector: 'app-orders',
   templateUrl: './ordenes.component.html',
@@ -23,7 +24,7 @@ export class OrdenesComponent implements OnInit {
   orderStatus: string[] = ['Creada', 'Confirmada', 'Despachada', 'Entregada', 'Facturada', 'Archivada'];
   productos: any[] = [];
   selectedsku: string = '';
-  pdfData: string = '';
+  pdfData: any;
   constructor(private orderService: OrderService, private router: Router,
     private productService: ProductService, private sanitizer: DomSanitizer) { }
 
@@ -152,7 +153,7 @@ export class OrdenesComponent implements OnInit {
       );
   }
   openPdfModal(order: any): void {
-    this.pdfData = 'http://3.23.102.32:5000/api/order/generate_pdf/' + order;
+    this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('http://3.23.102.32:5000/api/order/generate_pdf/' + order);
 
   }
 

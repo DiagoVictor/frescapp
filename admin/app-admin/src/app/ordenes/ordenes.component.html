@@ -37,12 +37,20 @@
         <td>{{ order.delivery_date }}</td>
         <td>{{ order.status }}</td>
         <td>
-          <span (click)="openEditModal(order, 'update')" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-bs-dismiss="modal">
-            <i class="fas fa-pencil-alt fa-lg"></i>
-          </span>
-          <span (click)="openPdfModal(order.id)" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#pdfModal" data-bs-dismiss="modal">
-            <i class="fas fa-file-pdf fa-lg"></i>
-          </span>
+          <div class="row">
+            <div class="col-auto">
+              <span (click)="openEditModal(order, 'update')" style="cursor: pointer;" data-bs-toggle="modal"
+                data-bs-target="#editOrderModal" data-bs-dismiss="modal">
+                <i class="fas fa-pencil-alt fa-lg text-primary"></i>
+              </span>
+            </div>
+            <div class="col-auto">
+              <span (click)="openPdfModal(order.id)" style="cursor: pointer;" data-bs-toggle="modal"
+                data-bs-target="#pdfModal" data-bs-dismiss="modal">
+                <i class="fas fa-file-pdf fa-lg text-danger"></i>
+              </span>
+            </div>
+          </div>
         </td>
       </tr>
     </tbody>
@@ -62,13 +70,15 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="order_number">Número de Orden:</label>
-                <input type="text" class="form-control" id="order_number" name="order_number" [(ngModel)]="order.order_number">
+                <input type="text" class="form-control" id="order_number" name="order_number"
+                  [(ngModel)]="order.order_number">
               </div>
             </div>
             <div class="col-6">
               <div class="form-group">
                 <label for="customer_email">Email del Cliente:</label>
-                <input type="email" class="form-control" id="customer_email" name="customer_email" [(ngModel)]="order.customer_email">
+                <input type="email" class="form-control" id="customer_email" name="customer_email"
+                  [(ngModel)]="order.customer_email">
               </div>
             </div>
           </div>
@@ -76,13 +86,15 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="customer_phone">Teléfono del Cliente:</label>
-                <input type="text" class="form-control" id="customer_phone" name="customer_phone" [(ngModel)]="order.customer_phone">
+                <input type="text" class="form-control" id="customer_phone" name="customer_phone"
+                  [(ngModel)]="order.customer_phone">
               </div>
             </div>
             <div class="col-6">
               <div class="form-group">
                 <label for="customer_documentNumber">Número de Documento del Cliente:</label>
-                <input type="text" class="form-control" id="customer_documentNumber" name="customer_documentNumber" [(ngModel)]="order.customer_documentNumber">
+                <input type="text" class="form-control" id="customer_documentNumber" name="customer_documentNumber"
+                  [(ngModel)]="order.customer_documentNumber">
               </div>
             </div>
           </div>
@@ -90,7 +102,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="documentType">Tipo de Documento:</label>
-                <select class="form-control" id="documentType" name="documentType" [(ngModel)]="order.customer_documentType">
+                <select class="form-control" id="documentType" name="documentType"
+                  [(ngModel)]="order.customer_documentType">
                   <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
                 </select>
               </div>
@@ -98,7 +111,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="customer_name">Nombre del Cliente:</label>
-                <input type="text" class="form-control" id="customer_name" name="customer_name" [(ngModel)]="order.customer_name">
+                <input type="text" class="form-control" id="customer_name" name="customer_name"
+                  [(ngModel)]="order.customer_name">
               </div>
             </div>
           </div>
@@ -106,7 +120,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="delivery_date">Fecha de Entrega:</label>
-                <input type="date" class="form-control" id="delivery_date" name="delivery_date" [(ngModel)]="order.delivery_date">
+                <input type="date" class="form-control" id="delivery_date" name="delivery_date"
+                  [(ngModel)]="order.delivery_date">
               </div>
             </div>
             <div class="col-6">
@@ -142,11 +157,13 @@
           </div>
           <div class="form-group">
             <label for="deliveryAddress">Dirección de Entrega:</label>
-            <input type="text" class="form-control" id="deliveryAddress" name="deliveryAddress" [(ngModel)]="order.deliveryAddress">
+            <input type="text" class="form-control" id="deliveryAddress" name="deliveryAddress"
+              [(ngModel)]="order.deliveryAddress">
           </div>
           <div class="form-group">
             <label for="deliveryAddressDetails">Detalles de la Dirección de Entrega:</label>
-            <input type="text" class="form-control" id="deliveryAddressDetails" name="deliveryAddressDetails" [(ngModel)]="order.deliveryAddressDetails">
+            <input type="text" class="form-control" id="deliveryAddressDetails" name="deliveryAddressDetails"
+              [(ngModel)]="order.deliveryAddressDetails">
           </div>
           <br><br>
           <div class="row">
@@ -201,7 +218,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <iframe [src]="pdfData" type="application/pdf" width="100%" height="600px"></iframe>
+        <iframe [src]="this.pdfData" type="application/pdf" width="100%" height="600px"></iframe>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -209,4 +226,3 @@
     </div>
   </div>
 </div>
-
