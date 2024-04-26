@@ -188,23 +188,31 @@ def generate_remision(id_order):
     ]))
     pdf_content.append(order_table)
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
+    styles = getSampleStyleSheet()
+    word_wrap_style = styles["Normal"]
+    word_wrap_style.wordWrap = 'CJK'
 
+    # Crear tabla con los datos de los productos
     product_data = [
-        ['sku', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
+        ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
     ]
     for product in order.products:
         sku = product.get('sku')
         name = product.get('name')
         quantity = product.get('quantity')
-        price_sale = locale.format_string('%.2f', product.get('price_sale'), grouping=True)
-        total = locale.format_string('%.2f', float(price_sale) * float(quantity) , grouping=True)
-        product_row = [sku, name, quantity, price_sale, total]
+        price_sale = locale.format_string('%.2f', round(product.get('price_sale'),0), grouping=True)
+        total = locale.format_string('%.2f', round(float(price_sale) * float(quantity),0), grouping=True)
+        
+        # Crear un párrafo con el nombre del producto y aplicar el estilo WordWrap
+        name_paragraph = Paragraph(name, word_wrap_style)
+
+        product_row = [sku, name_paragraph, quantity, price_sale, total]
         product_data.append(product_row)
 
     # Agregar líneas adicionales para subtotal, descuentos y total
-    subtotal = sum(float(product['quantity']) * float(product['price_sale']) for product in order.products)
+    subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in order.products)
     descuentos = 0  # Ajusta esto según corresponda
-    total = subtotal - descuentos 
+    total = subtotal - descuentos
     subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
     descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
     total_formatted = locale.format_string('%.2f', total, grouping=True)
@@ -222,10 +230,6 @@ def generate_remision(id_order):
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
     ]))
     pdf_content.append(product_table)
-
-    # Agregar más contenido al documento PDF según sea necesario
-    total = order.total
-    # Otros detalles de la orden (total, etc.)
 
     # Generar el PDF
     pdf.build(pdf_content)
