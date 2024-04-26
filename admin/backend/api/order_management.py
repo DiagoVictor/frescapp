@@ -22,7 +22,7 @@ order_api = Blueprint('order', __name__)
 def create_order():
     data = request.get_json()
     order_number = data.get('order_number')
-    customer_email = data.get('email') or  data.get('customer_email')
+    customer_email = data.get('email') if data.get('email') else data.get('customer_email')
     customer_phone = data.get('phoneNumber') if data.get('phoneNumber') else data.get('customer_phone')
     customer_documentNumber = data.get('documentNumber') if data.get('documentNumber') else data.get('customer_documentNumber')
     customer_documentType = data.get('documentType') if data.get('documentType') else data.get('customer_documentType')
@@ -116,12 +116,12 @@ def list_orders():
         {
          "id": str(order["_id"]), 
          "order_number": order["order_number"], 
-         "customer_email": order["customer_email"], 
-         "customer_phone": order["customer_phone"], 
-         "customer_documentNumber": order["customer_documentNumber"], 
-         "customer_documentType": order["customer_documentType"], 
-         "customer_name": order["customer_name"], 
-         "delivery_date": order["delivery_date"], 
+         "customer_email": order["customer_email"] if order["customer_email"] else order["email"], 
+         "customer_phone": order["customer_phone"] if order["customer_phone"] else order["customerPhone"], 
+         "customer_documentNumber": order["customer_documentNumber"] if order["customer_documentNumber"] else order["customerDocumentNumber"], 
+         "customer_documentType": order["customer_documentType"] if order["customer_documentType"] else order["customerDocumentType"], 
+         "customer_name": order["customer_name"] if order["customer_name"] else order["customerName"], 
+         "delivery_date": order["delivery_date"] if order["delivery_date"] else order["deliveryDate"], 
          "status": order["status"], 
          "created_at": order["created_at"], 
          "updated_at": order["updated_at"], 
