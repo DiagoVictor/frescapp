@@ -10,7 +10,12 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
-
+import locale
+from flask import Response
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from io import BytesIO
 order_api = Blueprint('order', __name__)
 
 @order_api.route('/order', methods=['POST'])
@@ -132,13 +137,6 @@ def list_orders():
     orders_json = json.dumps(order_data)
     return orders_json, 200
 
-
-from flask import Response
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
-from io import BytesIO
-
 @order_api.route('/generate_pdf/<string:id_order>', methods=['GET'])
 def generate_remision(id_order):
     order = Order.object(id_order)
@@ -192,28 +190,29 @@ def generate_remision(id_order):
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
 
     product_data = [
-        ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
+        ['sku', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
     ]
     for product in order.products:
         sku = product.get('sku')
         name = product.get('name')
         quantity = product.get('quantity')
-        price_sale = product.get('price_sale')
-        price_per_quantity = price_sale / quantity  # Precio por cantidad
-        total = product.get('price_sale') * quantity  # Total del producto
-        product_row = [sku, name, quantity, price_per_quantity, total]
+        price_sale = locale.format_string('%.2f', product.get('price_sale'), grouping=True)
+        total = locale.format_string('%.2f', price_sale * quantity , grouping=True)
+        product_row = [sku, name, quantity, price_sale, total]
         product_data.append(product_row)
 
-    # Agregar líneas adicionales para subtotal, descuentos, IVA y total
+    # Agregar líneas adicionales para subtotal, descuentos y total
     subtotal = sum(product['quantity'] * product['price_sale'] for product in order.products)
     descuentos = 0  # Ajusta esto según corresponda
     total = subtotal - descuentos 
-
+    subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
+    descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
+    total_formatted = locale.format_string('%.2f', total, grouping=True)
     # Añadir líneas adicionales al producto_data
     product_data.extend([
-        ['', '', '', 'Subtotal', subtotal],
-        ['', '', '', 'Descuentos', descuentos],
-        ['', '', '', 'Total', total]
+        ['', '', '', 'Subtotal', subtotal_formatted],
+        ['', '', '', 'Descuentos', descuentos_formatted],
+        ['', '', '', 'Total', total_formatted]
     ])
 
     # Crear la tabla de productos
