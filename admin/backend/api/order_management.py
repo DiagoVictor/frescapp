@@ -197,12 +197,12 @@ def generate_remision(id_order):
         name = product.get('name')
         quantity = product.get('quantity')
         price_sale = locale.format_string('%.2f', product.get('price_sale'), grouping=True)
-        total = locale.format_string('%.2f', price_sale * quantity , grouping=True)
+        total = locale.format_string('%.2f', float(price_sale) * float(quantity) , grouping=True)
         product_row = [sku, name, quantity, price_sale, total]
         product_data.append(product_row)
 
     # Agregar líneas adicionales para subtotal, descuentos y total
-    subtotal = sum(product['quantity'] * product['price_sale'] for product in order.products)
+    subtotal = sum(float(product['quantity']) * float(product['price_sale']) for product in order.products)
     descuentos = 0  # Ajusta esto según corresponda
     total = subtotal - descuentos 
     subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
