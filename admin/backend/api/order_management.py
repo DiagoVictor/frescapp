@@ -128,9 +128,9 @@ def list_orders():
          "products": order["products"],
          "total": order["total"], 
          "deliverySlot": order["deliverySlot"], 
-         "paymentMethod": order["paymentMethod"], 
-         "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
-         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
+         "paymentMethod": order["paymentMethod"]
+        # "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
+         #"deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
          }
         for order in orders_cursor
     ]
