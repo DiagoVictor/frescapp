@@ -191,7 +191,6 @@ def generate_remision(id_order):
     pdf_content.append(order_table)
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
 
-    # Crear tabla con la lista de productos
     product_data = [
         ['SKU', 'Nombre', 'Cantidad', 'Precio'],  # Encabezado
     ]
@@ -199,7 +198,22 @@ def generate_remision(id_order):
         product_row = [product.get('sku'), product.get('name'), product.get('quantity'), product.get('price_sale')]
         product_data.append(product_row)
 
-    product_table = Table(product_data, colWidths=[table_width / 3] * 3)
+    # Agregar líneas adicionales para subtotal, descuentos, IVA y total
+    subtotal = sum(product['quantity'] * product['price_sale'] for product in order.products)
+    descuentos = 0  # Ajusta esto según corresponda
+    iva = subtotal * 0.16  # Ajusta el valor del IVA según corresponda
+    total = subtotal - descuentos + iva
+
+    # Añadir líneas adicionales al producto_data
+    product_data.extend([
+        ['Subtotal', '', '', subtotal],
+        ['Descuentos', '', '', descuentos],
+        ['IVA (16%)', '', '', iva],
+        ['Total', '', '', total]
+    ])
+
+    # Crear la tabla de productos
+    product_table = Table(product_data, colWidths=[table_width / 4] * 4)
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
