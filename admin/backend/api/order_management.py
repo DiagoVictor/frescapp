@@ -157,7 +157,7 @@ def generate_remision(id_order):
 
     # Agregar imagen en la parte superior
     image_path = 'http://3.23.102.32:5000/api/shared/banner1.png'  # Ruta de la imagen
-    logo = Image(image_path, width=500, height=200)
+    logo = Image(image_path, width=500, height=170)
     pdf_content = [logo]
     centered_style = ParagraphStyle(
         name='Centered',
@@ -178,12 +178,12 @@ def generate_remision(id_order):
     # Espacio entre la caja verde y la tabla
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
 
-    # Crear tabla con los datos de la orden
+    table_width = 500
     order_data = [
         ['Número de Orden', 'Email del Cliente', 'Teléfono del Cliente'],  # Encabezado
         [order.order_number, order.customer_email, order.customer_phone]  # Datos de la orden
     ]
-    order_table = Table(order_data)
+    order_table = Table(order_data, colWidths=[table_width / 3] * 3)  # Dividir el ancho en 3 columnas iguales
     order_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
@@ -199,7 +199,7 @@ def generate_remision(id_order):
         product_row = [product.get('sku'), product.get('name'), product.get('quantity'), product.get('price_sale')]
         product_data.append(product_row)
 
-    product_table = Table(product_data)
+    product_table = Table(product_data, colWidths=[table_width / 3] * 3)
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
