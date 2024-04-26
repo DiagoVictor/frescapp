@@ -9,7 +9,8 @@ import { ClientesComponent } from './clientes/clientes.component';
 import { OrdenesComponent } from './ordenes/ordenes.component';
 import { FormsModule } from '@angular/forms';
 import { LoginComponent } from './login/login.component';
-import { HomeComponent } from './home/home.component'; // Importa FormsModule
+import { HomeComponent } from './home/home.component';
+import { ReportsComponent } from './reports/reports.component'; // Importa FormsModule
 @NgModule({
   declarations: [
     AppComponent,
@@ -18,7 +19,8 @@ import { HomeComponent } from './home/home.component'; // Importa FormsModule
     ClientesComponent,
     OrdenesComponent,
     LoginComponent,
-    HomeComponent
+    HomeComponent,
+    ReportsComponent
   ],
   imports: [
     BrowserModule,

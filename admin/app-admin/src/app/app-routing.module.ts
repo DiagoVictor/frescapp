@@ -5,14 +5,16 @@ import { ClientesComponent } from './clientes/clientes.component';
 import { OrdenesComponent } from './ordenes/ordenes.component';
 import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
+import { ReportsComponent } from './reports/reports.component';
 
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent }, // Ruta para el componente de productos
   { path: 'clientes', component: ClientesComponent  },
   { path: 'ordenes', component: OrdenesComponent    },
   { path: 'login', component: LoginComponent    },
-  { path: 'home', component: HomeComponent    }
-
+  { path: 'home', component: HomeComponent    },
+  { path: 'reports', component: ReportsComponent    },
+  { path: '', component: HomeComponent    }
 ];
 
 @NgModule({

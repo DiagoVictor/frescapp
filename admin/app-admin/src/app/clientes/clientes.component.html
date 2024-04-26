@@ -1,1 +1,42 @@
-<p>clientes works!</p>
+<div class="container-fluid mt-5">
+  <div class="row">
+    <div class="col">
+      <input type="text" class="form-control" placeholder="Buscar cliente..." [(ngModel)]="searchText" (keyup)="filterCustomers()">
+      <br>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Documento</th>
+            <th>Tipo de Documento</th>
+            <th>Dirección</th>
+            <th>Nombre del Restaurante</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Creado</th>
+            <th>Actualizado</th>
+            <th>Categoría</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let customer of filteredCustomers">
+            <td>{{ customer.id }}</td>
+            <td>{{ customer.name }}</td>
+            <td>{{ customer.phone }}</td>
+            <td>{{ customer.document }}</td>
+            <td>{{ customer.document_type }}</td>
+            <td>{{ customer.address }}</td>
+            <td>{{ customer.restaurant_name }}</td>
+            <td>{{ customer.email }}</td>
+            <td>{{ customer.status }}</td>
+            <td>{{ customer.created_at }}</td>
+            <td>{{ customer.updated_at }}</td>
+            <td>{{ customer.category }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
