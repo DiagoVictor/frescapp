@@ -128,9 +128,9 @@ def list_orders():
          "products": order["products"],
          "total": order["total"], 
          "deliverySlot": order["deliverySlot"], 
-         "paymentMethod": order["paymentMethod"]
-        # "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
-         #"deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
+         "paymentMethod": order["paymentMethod"],
+         "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
+         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
          }
         for order in orders_cursor
     ]
@@ -242,3 +242,28 @@ def generate_remision(id_order):
     response.headers['Content-Disposition'] = 'inline; filename=orden_{}.pdf'.format(order.order_number)
 
     return response
+@order_api.route('/orders_customer/<string:email>', methods=['GET'])
+def list_orders_customer(email):
+    orders_cursor = Order.find_by_customer(email)
+    order_data = [
+        {
+         "id": str(order["_id"]), 
+         "order_number": order["order_number"], 
+         "customer_email": order["customer_email"], 
+         "customer_phone": order["customer_phone"], 
+         "customer_documentNumber": order["customer_documentNumber"], 
+         "customer_documentType": order["customer_documentType"], 
+         "customer_name": order["customer_name"], 
+         "delivery_date": order["delivery_date"], 
+         "status": order["status"], 
+         "created_at": order["created_at"], 
+         "updated_at": order["updated_at"], 
+         "products": order["products"],
+         "total": order["total"], 
+         "deliverySlot": order["deliverySlot"], 
+         "paymentMethod": order["paymentMethod"], 
+         }
+        for order in orders_cursor
+    ]
+    orders_json = json.dumps(order_data)
+    return orders_json, 200
