@@ -8,6 +8,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle
 
 order_api = Blueprint('order', __name__)
 
@@ -158,8 +159,19 @@ def generate_remision(id_order):
     logo = Image(image_path, width=500, height=200)
     pdf_content = [logo]
 
-    # Agregar caja verde debajo de la imagen
-    green_box = Table([[Paragraph('<font color="white">Contenido de la caja verde</font>', styles['BodyText'])]], colWidths=[500], rowHeights=[50], style=[('BACKGROUND', (0,0), (-1,-1), colors.green)])
+    centered_style = ParagraphStyle(
+        name='Centered',
+        fontSize=16,  # Tamaño de la letra aumentado a 16
+        alignment=1,  # 1 para alineación centrada
+        textColor=colors.white  # Color del texto blanco
+    )
+
+    # Crear el párrafo con el nuevo estilo
+    remision_number = order.order_number
+    remision_paragraph = Paragraph('<font>{}</font>'.format(remision_number), centered_style)
+
+    # Crear la tabla con el párrafo centrado y con el tamaño de letra aumentado
+    green_box = Table([[remision_paragraph]], colWidths=[500], rowHeights=[50], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
     pdf_content.append(green_box)
 
     # Espacio entre la caja verde y la tabla
@@ -171,8 +183,9 @@ def generate_remision(id_order):
         [order.order_number, order.customer_email, order.customer_phone]  # Datos de la orden
     ]
     order_table = Table(order_data)
+    pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
     order_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.green),  # Color de fondo del encabezado
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
     ]))
     pdf_content.append(order_table)
@@ -187,7 +200,7 @@ def generate_remision(id_order):
 
     product_table = Table(product_data)
     product_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.green),  # Color de fondo del encabezado
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
     ]))
     pdf_content.append(product_table)
