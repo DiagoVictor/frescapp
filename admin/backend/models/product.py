@@ -80,6 +80,9 @@ class Product:
     def objects():
         return products_collection.find()
     @staticmethod
+    def objects(status):
+        return products_collection.find({"status": status})
+    @staticmethod
     def object(id):
         product_data = products_collection.find_one({'_id': ObjectId(id) }, {'_id': 0})
         if product_data:
