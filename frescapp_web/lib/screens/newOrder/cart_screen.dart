@@ -9,14 +9,11 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-
 class CartScreen extends StatefulWidget {
   final List<Product> productsInCart;
 
   const CartScreen({super.key, required this.productsInCart, required void Function(int value) updateCounter});
   
-  get total => null;
-
   @override
   // ignore: library_private_types_in_public_api
   _CartScreenState createState() => _CartScreenState();
@@ -24,37 +21,36 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
     
+  void _openWhatsApp(BuildContext context) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      String name = prefs.getString('user_name') ?? '';
+      String email = prefs.getString('user_email') ?? '';
+      String phone = prefs.getString('user_phone') ?? '';
+      String contactPhone = prefs.getString('contact_phone') ?? '';
 
-void _openWhatsApp(BuildContext context) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  try {
-    String name = prefs.getString('user_name') ?? '';
-    String email = prefs.getString('user_email') ?? '';
-    String phone = prefs.getString('user_phone') ?? '';
-    String contactPhone = prefs.getString('contact_phone') ?? '';
+      String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
 
-    String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
+      // Codificar el mensaje para que se pueda enviar correctamente en la URL
+      String encodedMessage = Uri.encodeComponent(message);
 
-    // Codificar el mensaje para que se pueda enviar correctamente en la URL
-    String encodedMessage = Uri.encodeComponent(message);
+      // Construir la URL para abrir WhatsApp con el mensaje predefinido
+      String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
 
-    // Construir la URL para abrir WhatsApp con el mensaje predefinido
-    String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
-
-    // Lanzar la URL para abrir WhatsApp
-    await launchUrlString(url);
-  } catch (error) {
-    if (kDebugMode) {
-      print('Error opening WhatsApp: $error');
+      // Lanzar la URL para abrir WhatsApp
+      await launchUrlString(url);
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error opening WhatsApp: $error');
+      }
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al abrir WhatsApp.'),
+        ),
+      );
     }
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Error al abrir WhatsApp.'),
-      ),
-    );
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +72,7 @@ void _openWhatsApp(BuildContext context) async {
           children: [
             ListView.builder(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(), // Para evitar que el ListView ocupe todo el espacio disponible
               itemCount: productsWithQuantity.length,
               itemBuilder: (context, index) {
                 final Product product = productsWithQuantity[index];
@@ -93,61 +90,59 @@ void _openWhatsApp(BuildContext context) async {
                     ),
                   ),
                   subtitle: Text(product.category),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return StatefulBuilder(
-                            builder:
-                                (BuildContext context, StateSetter setState) {
-                              return AlertDialog(
-                                title: Text(product.name,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18),
-                                    textAlign: TextAlign.center),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Image.network(
-                                      product.image,
-                                      height: 200,
-                                      width: 200,
-                                    ),
-                                    const SizedBox(height: 20),
-                                    Text(product.name,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                        textAlign: TextAlign.center),
-                                    Text(
-                                      ' \$  ${NumberFormat('#,###').format(product.price_sale)}',
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return StatefulBuilder(
+                          builder:
+                              (BuildContext context, StateSetter setState) {
+                            return AlertDialog(
+                              title: Text(product.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18),
+                                  textAlign: TextAlign.center),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.network(
+                                    product.image,
+                                    height: 200,
+                                    width: 200,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Text(product.name,
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    Text(product.category,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                        textAlign: TextAlign.center),
-
-
-                                    // Agregar más atributos aquí según sea necesario
-                                  ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text('Cerrar'),
+                                      textAlign: TextAlign.center),
+                                  Text(
+                                    ' \$  ${NumberFormat('#,###').format(product.price_sale)}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
                                   ),
+                                  Text(product.category,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center),
+                                  // Agregar más atributos aquí según sea necesario
                                 ],
-                              );
-                            },
-                          );
-                        },
-                      );
-                    },
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Cerrar'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -183,7 +178,7 @@ void _openWhatsApp(BuildContext context) async {
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-            // Botón para confirmar el pedido
+                     // Botón para confirmar el pedido
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
@@ -200,57 +195,54 @@ void _openWhatsApp(BuildContext context) async {
           ],
         ),
       ),
-           bottomNavigationBar: SafeArea(
-  child: BottomNavigationBar(
-    currentIndex: 0,
-    selectedItemColor: Colors.lightGreen.shade900,// Color de los iconos seleccionados
-    unselectedItemColor: Colors.grey, // Color de los iconos no seleccionados
-    items: const [
-      BottomNavigationBarItem(
-        icon: Icon(Icons.home),
-        label: 'Inicio',
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        selectedItemColor: Colors.lightGreen.shade900,// Color de los iconos seleccionados
+        unselectedItemColor: Colors.grey, // Color de los iconos no seleccionados
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Pedidos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat), // Icono de WhatsApp
+            label: 'WhatsApp', // Etiqueta para el botón
+          ),
+        ],
+        onTap: (int index) {
+          switch (index) {
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OrdersScreen()),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+              break;
+            case 3:
+              _openWhatsApp(context); // Función para abrir WhatsApp
+              break;
+          }
+        },
       ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.shopping_cart),
-        label: 'Pedidos',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.person),
-        label: 'Perfil',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.chat), // Icono de WhatsApp
-        label: 'WhatsApp', // Etiqueta para el botón
-      ),
-    ],
-    onTap: (int index) {
-      switch (index) {
-        case 0:
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
-          break;
-        case 1:
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const OrdersScreen()),
-          );
-          break;
-        case 2:
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-          );
-          break;
-        case 3:
-          _openWhatsApp(context); // Función para abrir WhatsApp
-          break;
-      }
-    },
-  ),
-),
-);
+    );
   }
-  
 }

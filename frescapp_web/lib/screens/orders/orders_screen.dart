@@ -131,13 +131,17 @@ void _openWhatsApp(BuildContext context) async {
                     title: Text.rich(
                       TextSpan(
                         style: const TextStyle(color: Colors.black87),
-                        children: [
-                          const TextSpan(
-                            text: '# Orden:   ',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          TextSpan(text: order.orderNumber),
-                        ],
+                      children: [
+                        TextSpan(
+                          text: 'Pedido: ${index + 1} \n', // Añadir el índice
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const TextSpan(
+                          text: 'Número de Orden:   ',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        TextSpan(text: order.orderNumber),
+                      ],
                       ),
                     ),
                     subtitle: Column(
@@ -184,6 +188,20 @@ void _openWhatsApp(BuildContext context) async {
                             style: const TextStyle(color: Colors.black87),
                             children: [
                               const TextSpan(
+                                text: 'Fecha de Creación: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(
+                                text: DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(order.createdAt)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            style: const TextStyle(color: Colors.black87),
+                            children: [
+                              const TextSpan(
                                 text: 'Cantidad de Productos: ',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
@@ -219,100 +237,97 @@ void _openWhatsApp(BuildContext context) async {
                         ),
                       ],
                     ),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Detalle de la Orden'),
-                            content: SizedBox(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Detalle de la Orden'),
+                          content: SingleChildScrollView(
+                            child: SizedBox(
                               height: 300,
                               width: double.maxFinite,
-                              child: ListView(children: [
-                                Text('# Orden: ${order.orderNumber}'),
-                                Text('Método de Pago: ${order.paymentMethod}'),
-                                Text(
-                                    'Horario de Entrega: ${order.deliverySlot}'),
-                                Text('Fecha de Entrega: ${order.deliveryDate}'),
-                                Text(
-                                    'Total: \$ ${NumberFormat('#,###').format(order.total)}'),
-                                ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: order.products.length,
-                                    itemBuilder: (context, index) {
-                                      final List<Map> product =
-                                          order.products.cast<Map>();
-                                      return ListTile(
-                                        title: RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text:
-                                                    '${product[index]["name"]}',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.normal,
-                                                  color: Colors
-                                                      .black, // Cambia el color del texto a negro
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    Text('# Orden: ${order.orderNumber}'),
+                                    Text('Método de Pago: ${order.paymentMethod}'),
+                                    Text('Horario de Entrega: ${order.deliverySlot}'),
+                                    Text('Fecha de Entrega: ${order.deliveryDate}'),
+                                    Text('Total: \$ ${NumberFormat('#,###').format(order.total)}'),
+                                    ListView.builder(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      itemCount: order.products.length,
+                                      itemBuilder: (context, index) {
+                                        final List<Map> product = order.products.cast<Map>();
+                                        return ListTile(
+                                          title: RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: '${product[index]["name"]}',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.normal,
+                                                    color: Colors.black,
+                                                  ),
                                                 ),
-                                              ),
-                                              const TextSpan(
-                                                text: '\nPrecio: ',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors
-                                                      .black, // Cambia el color del texto a negro
+                                                const TextSpan(
+                                                  text: '\nPrecio: ',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
                                                 ),
-                                              ),
-                                              TextSpan(
-                                                text:
-                                                    '\$ ${NumberFormat('#,###').format(product[index]["price_sale"])}',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.normal,
-                                                  color: Colors
-                                                      .black, // Cambia el color del texto a negro
+                                                TextSpan(
+                                                  text: '\$ ${NumberFormat('#,###').format(product[index]["price_sale"])}',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.normal,
+                                                    color: Colors.black,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                        subtitle: RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              const TextSpan(
-                                                text: 'Cantidad: ',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors
-                                                      .black, // Cambia el color del texto a negro
+                                          subtitle: RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                const TextSpan(
+                                                  text: 'Cantidad: ',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
                                                 ),
-                                              ),
-                                              TextSpan(
-                                                text: product[index]["quantity"]
-                                                    .toString(),
-                                                style: const TextStyle(
-                                                  color: Colors
-                                                      .black, // Cambia el color del texto a negro
+                                                TextSpan(
+                                                  text: product[index]["quantity"].toString(),
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    }),
-                              ]),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('Cerrar'),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          );
-                        },
-                      );
-                    },
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Cerrar'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                   ),
                 );
               },

@@ -97,112 +97,114 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(
         title: const Text('Registro de Usuario'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
-              keyboardType: TextInputType.name,
-              textInputAction: TextInputAction.next,
-              autofocus: true,
-              autocorrect: false,
-              enableSuggestions: false,
-            ),
-            DropdownButtonFormField<String>(
-              value: _selectedDocumentType,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedDocumentType = newValue;
-                });
-              },
-              items: documentTypes.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              decoration: const InputDecoration(labelText: 'Tipo de Documento'),
-            ),
-            TextField(
-              controller: _documentController,
-              decoration: const InputDecoration(labelText: 'Documento'),
-              keyboardType: TextInputType.text,
-              textInputAction: TextInputAction.next,
-            ),
-            TextField(
-              controller: _restaurantNameController,
-              decoration: const InputDecoration(labelText: 'Nombre del Restaurante'),
-              keyboardType: TextInputType.text,
-              textInputAction: TextInputAction.next,
-            ),
-            TextField(
-              controller: _addressController,
-              decoration: const InputDecoration(labelText: 'Dirección'),
-              keyboardType: TextInputType.text,
-              textInputAction: TextInputAction.next,
-            ),
-            TextField(
-              controller: _phoneController,
-              decoration: const InputDecoration(labelText: 'Teléfono'),
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.next,
-            ),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-            ),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-              keyboardType: TextInputType.visiblePassword,
-              textInputAction: TextInputAction.next,
-            ),
-            TextField(
-              controller: _confirmPasswordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Confirmar Contraseña',
-                errorText: _passwordErrorText,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+                keyboardType: TextInputType.name,
+                textInputAction: TextInputAction.next,
+                autofocus: true,
+                autocorrect: false,
+                enableSuggestions: false,
               ),
-              keyboardType: TextInputType.visiblePassword,
-              textInputAction: TextInputAction.done,
-              onChanged: (value) {
-                setState(() {
-                  if (_passwordController.text == value) {
-                    _passwordErrorText = null;
-                  } else {
-                    _passwordErrorText = 'Las contraseñas no coinciden';
-                  }
-                });
-              },
-            ),
-            DropdownButtonFormField<String>(
-              value: _selectedCustomerType,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedCustomerType = newValue;
-                });
-              },
-              items: customerTypes.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              decoration: const InputDecoration(labelText: 'Tipo de Cliente'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _createUser,
-              child: const Text('Crear Usuario'),
-            ),
-          ],
+              DropdownButtonFormField<String>(
+                value: _selectedDocumentType,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedDocumentType = newValue;
+                  });
+                },
+                items: documentTypes.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(labelText: 'Tipo de Documento'),
+              ),
+              TextField(
+                controller: _documentController,
+                decoration: const InputDecoration(labelText: 'Documento'),
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+              ),
+              TextField(
+                controller: _restaurantNameController,
+                decoration: const InputDecoration(labelText: 'Nombre del Restaurante'),
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+              ),
+              TextField(
+                controller: _addressController,
+                decoration: const InputDecoration(labelText: 'Dirección'),
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+              ),
+              TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(labelText: 'Teléfono'),
+                keyboardType: TextInputType.phone,
+                textInputAction: TextInputAction.next,
+              ),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+              ),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Contraseña'),
+                keyboardType: TextInputType.visiblePassword,
+                textInputAction: TextInputAction.next,
+              ),
+              TextField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Confirmar Contraseña',
+                  errorText: _passwordErrorText,
+                ),
+                keyboardType: TextInputType.visiblePassword,
+                textInputAction: TextInputAction.done,
+                onChanged: (value) {
+                  setState(() {
+                    if (_passwordController.text == value) {
+                      _passwordErrorText = null;
+                    } else {
+                      _passwordErrorText = 'Las contraseñas no coinciden';
+                    }
+                  });
+                },
+              ),
+              DropdownButtonFormField<String>(
+                value: _selectedCustomerType,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedCustomerType = newValue;
+                  });
+                },
+                items: customerTypes.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(labelText: 'Tipo de Cliente'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _createUser,
+                child: const Text('Crear Usuario'),
+              ),
+            ],
+          ),
         ),
       ),
     );

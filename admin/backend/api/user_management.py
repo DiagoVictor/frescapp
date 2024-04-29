@@ -106,3 +106,21 @@ def change_password():
         return jsonify({'message': 'Password updated successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@user_api.route('/forgot_password', methods=['POST'])
+def forgot_password():
+    data = request.json
+    user = data.get('user')
+    
+    if not user:
+        return jsonify({'message': 'Missing user field'}), 400
+
+    # Buscar en la colección de clientes por correo electrónico o teléfono
+    user_data = customers_collection.find_one({'$or': [{'email': user}, {'phone': user}]})
+    
+    if user_data:
+        # Aquí se enviaría un mensaje al correo electrónico registrado con las instrucciones para restablecer la contraseña.
+        # En esta implementación de ejemplo, solo se devuelve un mensaje indicando que se envió la solicitud.
+        return jsonify({'message': 'Se ha enviado un mensaje al correo registrado con instrucciones para restablecer la contraseña'}), 200
+    else:
+        return jsonify({'message': 'User not found'}), 404

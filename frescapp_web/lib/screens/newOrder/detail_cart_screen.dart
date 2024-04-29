@@ -263,33 +263,45 @@ void _openWhatsApp(BuildContext context) async {
     return true;
   }
 
-  void _confirmOrder(BuildContext context) {
-    List<Map<String, dynamic>> productList =
-        widget.productsInCart.map((product) {
-      return {
-        'sku': product.sku,
-        'name': product.name,
-        'price_sale': product.price_sale,
-        'quantity': product.quantity,
-        'iva': product.iva,
-        'iva_value': product.iva_value
-      };
-    }).toList();
-
-    Map<String, dynamic> orderDetails = {
-      'products': productList,
-      'total': widget.productsInCart.fold(
-          0.0 , (sum, product) => sum + (product.price_sale * product.quantity!)),
-      'deliverySlot': selectedDeliverySlot,
-      'paymentMethod': selectedPaymentMethod,
-      'deliveryDate': DateFormat('yyyy-MM-dd').format(selectedDate),
-    };
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) =>
-              OrderConfirmationScreen(orderDetails: orderDetails)),
+void _confirmOrder(BuildContext context) {
+  // Verificar que se hayan seleccionado la fecha de entrega, el horario de entrega y el medio de pago
+  if (selectedDeliverySlot == 'Horario de entrega' || selectedPaymentMethod == 'Método de pago') {
+    // Mostrar un mensaje de advertencia si no se han seleccionado todos los campos
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Por favor, seleccione fecha, horario de entrega y medio de pago.'),
+      ),
     );
+    return; // Salir del método sin continuar con la confirmación del pedido
   }
+
+  List<Map<String, dynamic>> productList =
+      widget.productsInCart.map((product) {
+    return {
+      'sku': product.sku,
+      'name': product.name,
+      'price_sale': product.price_sale,
+      'quantity': product.quantity,
+      'iva': product.iva,
+      'iva_value': product.iva_value
+    };
+  }).toList();
+
+  Map<String, dynamic> orderDetails = {
+    'products': productList,
+    'total': widget.productsInCart.fold(
+        0.0 , (sum, product) => sum + (product.price_sale * product.quantity!)),
+    'deliverySlot': selectedDeliverySlot,
+    'paymentMethod': selectedPaymentMethod,
+    'deliveryDate': DateFormat('yyyy-MM-dd').format(selectedDate),
+  };
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+        builder: (context) =>
+            OrderConfirmationScreen(orderDetails: orderDetails)),
+  );
+}
+
 }

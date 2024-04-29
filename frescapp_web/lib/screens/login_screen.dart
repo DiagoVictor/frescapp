@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:frescapp/api_routes.dart';
+import 'package:frescapp/api_routes.dart'; 
 import 'package:frescapp/screens/newOrder/home_screen.dart';
+import 'package:frescapp/screens/forgot_password_screen.dart'; // Importar la pantalla para olvidar la contraseña
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
@@ -28,7 +29,6 @@ class LoginScreen extends StatelessWidget {
     prefs.setString('user_category', user['user_data']['category']);
     prefs.setString('token', user['token']);
   }
-
 
   Future<void> _login(BuildContext context, String email, String password) async {
     if (email.isEmpty || password.isEmpty) {
@@ -143,6 +143,16 @@ class LoginScreen extends StatelessWidget {
                   },
                   child: const Text(
                     '¿No tienes una cuenta? Regístrate aquí',
+                    style: TextStyle(color: Colors.white), // Texto blanco
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Navegar a la pantalla para olvidar la contraseña
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
+                  },
+                  child: const Text(
+                    '¿Olvidaste tu contraseña?',
                     style: TextStyle(color: Colors.white), // Texto blanco
                   ),
                 ),

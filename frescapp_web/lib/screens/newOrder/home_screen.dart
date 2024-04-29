@@ -70,20 +70,32 @@ Future<void> getUserInfo() async {
     });
   }
 
-  void filterProducts(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        displayedProducts = allProducts
-            .toList(); // Mostrar todos los productos si la consulta está vacía
-      } else {
-        displayedProducts = allProducts
-            .where((product) =>
-                product.name.toLowerCase().contains(query.toLowerCase()) ||
-                product.category.toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      }
-    });
-  }
+void filterProducts(String query) {
+  setState(() {
+    if (query.isEmpty) {
+      displayedProducts = allProducts
+          .toList(); // Mostrar todos los productos si la consulta está vacía
+    } else {
+      displayedProducts = allProducts
+          .where((product) =>
+              removeDiacritics(product.name.toLowerCase())
+                  .contains(removeDiacritics(query.toLowerCase())) ||
+              removeDiacritics(product.category.toLowerCase())
+                  .contains(removeDiacritics(query.toLowerCase())))
+          .toList();
+    }
+  });
+}
+
+String removeDiacritics(String str) {
+  return str
+      .replaceAll('á', 'a')
+      .replaceAll('é', 'e')
+      .replaceAll('í', 'i')
+      .replaceAll('ó', 'o')
+      .replaceAll('ú', 'u');
+}
+
 
   void increaseQuantity(Product product) {
     setState(() {
