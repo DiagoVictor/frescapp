@@ -274,11 +274,11 @@ def list_orders_customer(email):
     return orders_json, 200
 
 def send_order_email(order_number, customer_email, delivery_date, products, total):
-    subject = f'Order Confirmation - Order #{order_number}'
-    message = f"Your order with number {order_number} has been confirmed.\n\nDelivery Date: {delivery_date}\n\nProducts:\n"
+    subject = f'Orden confirmada - Orden #{order_number}'
+    message = f"Tu orden con número {order_number} ha sido confirmada.\n\nFecha de entrega: {delivery_date}\n\nProductos:\n"
     
     for product in products:
-        message += f"{product['name']}: {product['quantity']} x {product['price']}\n"
+        message += f"{product['name']}: {product['quantity']} x {product['price_sale']}\n"
     
     message += f"\nTotal: {total}"
 
