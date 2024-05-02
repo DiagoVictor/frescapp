@@ -16,6 +16,9 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from io import BytesIO
+from utils.email_utils import send_email  # Importa la función send_email que creamos antes
+
+
 order_api = Blueprint('order', __name__)
 
 @order_api.route('/order', methods=['POST'])
@@ -63,6 +66,7 @@ def create_order():
         deliveryAddressDetails = deliveryAddressDetails 
     )
     order.save()
+    send_order_email(order_number, customer_email, delivery_date, products, total)
     return jsonify({'message': 'Order created successfully'}), 201
 
 # Ruta para actualizar un usuario existente
@@ -242,6 +246,7 @@ def generate_remision(id_order):
     response.headers['Content-Disposition'] = 'inline; filename=orden_{}.pdf'.format(order.order_number)
 
     return response
+
 @order_api.route('/orders_customer/<string:email>', methods=['GET'])
 def list_orders_customer(email):
     orders_cursor = Order.find_by_customer(email)
@@ -267,3 +272,15 @@ def list_orders_customer(email):
     ]
     orders_json = json.dumps(order_data)
     return orders_json, 200
+
+def send_order_email(order_number, customer_email, delivery_date, products, total):
+    subject = f'Order Confirmation - Order #{order_number}'
+    message = f"Your order with number {order_number} has been confirmed.\n\nDelivery Date: {delivery_date}\n\nProducts:\n"
+    
+    for product in products:
+        message += f"{product['name']}: {product['quantity']} x {product['price']}\n"
+    
+    message += f"\nTotal: {total}"
+
+    # Envía el correo
+    send_email(subject, message, customer_email)

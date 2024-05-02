@@ -30,6 +30,7 @@ class ForgotPasswordScreen extends StatelessWidget {
         }),
       );
       if (response.statusCode == 200) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Se ha enviado un mensaje al correo registrado con instrucciones para restablecer la contraseña'),
