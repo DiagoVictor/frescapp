@@ -8,7 +8,7 @@ db = client['frescapp']
 config = db['orderConfig']  
 
 def send_email(subject, message, to_email):
-    sender_document = config.find_one({}, {'email_sender': 1})
+    sender_document = config.find_one({})
     sender_email = sender_document['email_sender']
     smtp_server = sender_document['smtp_server']
     smtp_port = sender_document['smtp_port']
