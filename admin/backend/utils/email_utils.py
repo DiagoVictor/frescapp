@@ -7,7 +7,7 @@ client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp')
 db = client['frescapp']
 config = db['orderConfig']  
 
-def send_email(subject, message, to_email,   smtp_username, smtp_password):
+def send_email(subject, message, to_email):
     sender_document = config.find_one({}, {'email_sender': 1})
     sender_email = sender_document['email_sender']
     smtp_server = sender_document['smtp_server']
