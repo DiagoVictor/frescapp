@@ -10,7 +10,8 @@ import { OrdenesComponent } from './ordenes/ordenes.component';
 import { FormsModule } from '@angular/forms';
 import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
-import { ReportsComponent } from './reports/reports.component'; // Importa FormsModule
+import { ReportsComponent } from './reports/reports.component';
+import { RestorePasswordComponent } from './restore-password/restore-password.component'; // Importa FormsModule
 @NgModule({
   declarations: [
     AppComponent,
@@ -20,7 +21,8 @@ import { ReportsComponent } from './reports/reports.component'; // Importa Forms
     OrdenesComponent,
     LoginComponent,
     HomeComponent,
-    ReportsComponent
+    ReportsComponent,
+    RestorePasswordComponent
   ],
   imports: [
     BrowserModule,

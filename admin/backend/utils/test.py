@@ -1,18 +1,11 @@
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import os
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 import base64
-from pymongo import MongoClient
-from datetime import datetime
-from email.mime.multipart import MIMEMultipart
-
-
-client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
-db = client['frescapp']
-config = db['orderConfig']  
 
 # Archivo JSON de credenciales descargado desde la Consola de Desarrolladores de Google
 creds_filename = 'C:/Users/USUARIO/Documents/frescapp/admin/backend/utils/credenciales.json'
@@ -49,30 +42,18 @@ def create_message(sender, to, subject, html_body):
 
     return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')}
 
-def send_message( user_id, message, type):
+def send_message( user_id, message):
     credentials = authenticate()
     service = build('gmail', 'v1', credentials=credentials)
     try:
         message = (service.users().messages().send(userId=user_id, body=message).execute())
         print('Message Id: %s' % message['id'])
-        now = datetime.now()  # Obtiene la fecha y hora actuales
-        created_at = now.strftime("%Y-%m-%d %H:%M:%S") 
-        notification = {
-            "created_at" : created_at,
-            "type" : type, 
-            "message": message
-        }
-        db.notifications.insert_one(notification)
         return message
     except Exception as e:
         print('An error occurred: %s' % e)
         return None
-def send_new_order():
-    return ''
 
-def send_restore_password(user_data):
-    url = "http://localhost:4200/restore/"+user_data.get('user_id')
-    cuerpo = f"""
+cuerpo = """
 <!DOCTYPE html>
 <html lang="es" style="height: 100%; position: relative;" height="100%">
 
@@ -129,7 +110,7 @@ def send_restore_password(user_data):
                                             <h1
                                                 style='margin: 0; text-text-align: left; font-size: 30px; line-height: 40px; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-style: normal; font-weight: 300; color: #fff;'>
                                                 Para restlabecer tu contraseña por favor da click en el siguiente botón.
-                                                <a href="{url}" target="_blank">
+                                                <a href="http://3.23.102.32/" target="_blank">
                                                     <button style="background-color: white; /* Green */
                                                                     border: none;
                                                                     color: #4CAF50;
@@ -159,8 +140,7 @@ def send_restore_password(user_data):
 
 </html>
 """
-    message = create_message('Frescapp <fescapp@gmail.com>', user_data.get('email'), 'Restablecer contraseña en Frescapp', cuerpo)
-    send_message('me', message)
+message = create_message('Frescapp <fescapp@gmail.com>', 'vmdiagov@gmail.com', 'Restablecer contraseña en Frescapp', cuerpo)
 
-
-
+# Envía el mensaje
+send_message( 'me', message)

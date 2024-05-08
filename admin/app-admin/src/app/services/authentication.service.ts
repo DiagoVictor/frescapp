@@ -41,12 +41,7 @@ export class AuthenticationService {
     return this.http.post<any>(this.baseUrl+'api/user/check_token', {}, httpOptions);
   }
 
-  changePassword(token: string, newPassword: string): Observable<any> {
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      })
-    };
-    return this.http.post<any>(this.baseUrl+'api/user/change_password', { password: newPassword }, httpOptions);
+  changePassword(user_id: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(this.baseUrl+'api/user/restore_change_password', { password: newPassword, user_id : user_id });
   }
 }

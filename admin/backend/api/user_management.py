@@ -6,7 +6,7 @@ from jose import JWTError, jwt
 import json
 from bson import ObjectId
 from functools import wraps
-
+import utils.email_utils as emails
 user_api = Blueprint('user', __name__)
 client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
 db = client['frescapp']
@@ -119,8 +119,23 @@ def forgot_password():
     user_data = customers_collection.find_one({'$or': [{'email': user}, {'phone': user}]})
     
     if user_data:
-        # Aquí se enviaría un mensaje al correo electrónico registrado con las instrucciones para restablecer la contraseña.
-        # En esta implementación de ejemplo, solo se devuelve un mensaje indicando que se envió la solicitud.
+        emails.send_restore_password(user_data)
         return jsonify({'message': 'Se ha enviado un mensaje al correo registrado con instrucciones para restablecer la contraseña'}), 200
     else:
         return jsonify({'message': 'User not found'}), 404
+
+@user_api.route('/restore', methods=['POST'])
+def forgot_change_password():
+    data = request.json
+    new_password = data.get('password')
+    user_id = data.get('user_id')
+    
+    try:
+        # Actualizar la contraseña del usuario en la base de datos
+        bcrypt = Bcrypt()
+        new_hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        customers_collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'password': new_hashed_password}})
+
+        return jsonify({'message': 'Password updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
