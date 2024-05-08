@@ -31,13 +31,7 @@ def authenticate():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES)
-            authorization_url, state = flow.authorization_url(prompt='consent')
-
-            print('Por favor, visite la siguiente URL para autorizar la aplicación:')
-            print(authorization_url)
-
-            authorization_code = input('Ingrese el código de autorización: ')
-            creds = flow.fetch_token(code=authorization_code)
+            creds = flow.run_local_server(port=0)
         # Guarda las credenciales para la próxima vez
         with open('credenciales.json', 'w') as token:
             token.write(creds.to_json())
