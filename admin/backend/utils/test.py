@@ -19,6 +19,8 @@ def authenticate():
     if os.path.exists('credenciales.json'):
         creds = Credentials.from_authorized_user_file('credenciales.json', SCOPES)
     # Si no hay credenciales válidas disponibles, solicita al usuario que inicie sesión
+    flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES)
+    creds = flow.run_local_server(port=0)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
