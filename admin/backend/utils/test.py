@@ -17,7 +17,7 @@ def authenticate():
     creds = None
     # Intenta cargar las credenciales desde el archivo JSON
     if os.path.exists('credenciales.json'):
-        creds = Credentials.from_authorized_user_file('credenciales.json', SCOPES)
+        creds = Credentials.from_authorized_user_file(creds_filename, SCOPES)
     # Si no hay credenciales válidas disponibles, solicita al usuario que inicie sesión
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
