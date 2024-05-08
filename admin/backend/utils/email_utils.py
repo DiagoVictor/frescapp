@@ -31,7 +31,7 @@ def authenticate():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES)
-            creds = flow.run_local_server(port=0)
+            creds = flow.run_console()
         # Guarda las credenciales para la próxima vez
         with open('credenciales.json', 'w') as token:
             token.write(creds.to_json())
