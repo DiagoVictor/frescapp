@@ -16,7 +16,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from io import BytesIO
-from utils.email_utils import send_email  # Importa la función send_email que creamos antes
+from utils.email_utils import send_restore_password  # Importa la función send_email que creamos antes
 
 
 order_api = Blueprint('order', __name__)
@@ -283,4 +283,4 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
     message += f"\nTotal: {total}"
 
     # Envía el correo
-    send_email(subject, message, customer_email)
+    send_restore_password(subject, message, customer_email)
