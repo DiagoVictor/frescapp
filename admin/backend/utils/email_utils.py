@@ -71,7 +71,7 @@ def send_new_order():
     return ''
 
 def send_restore_password(user_data):
-    url = "http://localhost:4200/restore/"+user_data.get('user_id')
+    url = "http://localhost:4200/restore/"+str(user_data.get('user_id'))
     cuerpo = f"""
 <!DOCTYPE html>
 <html lang="es" style="height: 100%; position: relative;" height="100%">
