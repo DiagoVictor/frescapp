@@ -160,7 +160,7 @@ def send_restore_password(user_data):
 </html>
 """
     message = create_message('Frescapp <fescapp@gmail.com>', user_data.get('email'), 'Restablecer contraseña en Frescapp', cuerpo)
-    send_message('me', message)
+    send_message('me', message,'Reset Password')
 
 
 
