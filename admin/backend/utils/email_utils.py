@@ -14,8 +14,8 @@ client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp')
 db = client['frescapp']
 config = db['orderConfig']  
 
-# Archivo JSON de credenciales descargado desde la Consola de Desarrolladores de Google
-creds_filename = 'credenciales.json'
+directorio_actual = os.path.dirname(os.path.abspath(__file__))
+creds_filename = os.path.join(directorio_actual, 'credenciales.json')
 
 # Alcance del acceso para enviar correos electrónicos
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
