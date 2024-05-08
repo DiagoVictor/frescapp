@@ -30,10 +30,14 @@ def authenticate():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES)
-            creds = flow.authorization_url
-            creds = flow.run_local_server(port=0)
-            print(flow.authorization_url)
+            flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES, redirect_uri='urn:ietf:wg:oauth:2.0:oob')
+            authorization_url, state = flow.authorization_url(prompt='consent')
+
+            print('Por favor, visite la siguiente URL para autorizar la aplicación:')
+            print(authorization_url)
+
+            authorization_code = input('Ingrese el código de autorización: ')
+            creds = flow.fetch_token(code=authorization_code)
         # Guarda las credenciales para la próxima vez
         with open('credenciales.json', 'w') as token:
             token.write(creds.to_json())
