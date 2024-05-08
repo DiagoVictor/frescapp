@@ -30,7 +30,7 @@ def authenticate():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES, redirect_uri='urn:ietf:wg:oauth:2.0:oob')
+            flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES)
             authorization_url, state = flow.authorization_url(prompt='consent')
 
             print('Por favor, visite la siguiente URL para autorizar la aplicación:')
