@@ -15,7 +15,7 @@ db = client['frescapp']
 config = db['orderConfig']  
 
 # Archivo JSON de credenciales descargado desde la Consola de Desarrolladores de Google
-creds_filename = 'C:/Users/USUARIO/Documents/frescapp/admin/backend/utils/credenciales.json'
+creds_filename = 'credenciales.json'
 
 # Alcance del acceso para enviar correos electrónicos
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
