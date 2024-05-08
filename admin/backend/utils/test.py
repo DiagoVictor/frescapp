@@ -6,7 +6,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 import base64
-
+import json
+from google.oauth2.credentials import Credentials
 # Archivo JSON de credenciales descargado desde la Consola de Desarrolladores de Google
 directorio_actual = os.path.dirname(os.path.abspath(__file__))
 creds_filename = os.path.join(directorio_actual, 'credenciales.json')
@@ -16,8 +17,18 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 def authenticate():
     creds = None
     # Intenta cargar las credenciales desde el archivo JSON
-    if os.path.exists('credenciales.json'):
-        creds = Credentials.from_authorized_user_file(creds_filename, SCOPES)
+    with open('credenciales.json') as f:
+        creds_data = json.load(f)
+    creds = Credentials(
+        token=None,
+        refresh_token=None,
+        id_token=None,
+        token_uri=creds_data['installed']['token_uri'],
+        client_id=creds_data['installed']['client_id'],
+        client_secret=creds_data['installed']['client_secret'],
+        scopes=None
+    )
+
     # Si no hay credenciales válidas disponibles, solicita al usuario que inicie sesión
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
