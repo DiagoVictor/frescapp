@@ -6,40 +6,25 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 import base64
-import json
-from google.oauth2.credentials import Credentials
+
 # Archivo JSON de credenciales descargado desde la Consola de Desarrolladores de Google
-directorio_actual = os.path.dirname(os.path.abspath(__file__))
-creds_filename = os.path.join(directorio_actual, 'credenciales.json')
+creds_filename = 'C:/Users/USUARIO/Documents/frescapp/admin/backend/utils/credenciales.json'
+
 # Alcance del acceso para enviar correos electrónicos
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 def authenticate():
     creds = None
     # Intenta cargar las credenciales desde el archivo JSON
-    with open('credenciales.json') as f:
-        creds_data = json.load(f)
-    creds = Credentials(
-        token=None,
-        refresh_token=None,
-        id_token=None,
-        token_uri=creds_data['installed']['token_uri'],
-        client_id=creds_data['installed']['client_id'],
-        client_secret=creds_data['installed']['client_secret'],
-        scopes=None
-    )
-
+    if os.path.exists('credenciales.json'):
+        creds = Credentials.from_authorized_user_file('credenciales.json', SCOPES)
     # Si no hay credenciales válidas disponibles, solicita al usuario que inicie sesión
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES)
-            flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
-            auth_url, _ = flow.authorization_url(prompt='consent')
-            print('Por favor, visite la siguiente URL para autorizar la aplicación: \n', auth_url)
-            auth_code = input('Ingrese el código de autorización: ')
-            creds = flow.fetch_token(code=auth_code)
+            creds = flow.run_local_server(port=0)
         # Guarda las credenciales para la próxima vez
         with open('credenciales.json', 'w') as token:
             token.write(creds.to_json())
