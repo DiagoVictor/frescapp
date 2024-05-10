@@ -1,5 +1,6 @@
 from email.mime.text import MIMEText
 import os
+from bson import ObjectId
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -15,13 +16,16 @@ client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp')
 db = client['frescapp']
 config = db['orderConfig']  
 
-directorio_actual = os.path.dirname(os.path.abspath(__file__))
-creds_filename = os.path.join(directorio_actual, 'credenciales.json')
 path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
 # Alcance del acceso para enviar correos electrónicos
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 def authenticate():
+    if os.name == 'posix':  # Linux o macOS
+        path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
+    if os.name == 'nt':  # Windows
+        path_file = 'C:/Users/USUARIO/Documents/frescapp/admin/backend/utils/'
+
     # creates credentials with a refresh token
     credential_path = os.path.join(path_file, 'credentials.json')
     client_secret_path = os.path.join(path_file, 'client_secret.json')
@@ -44,18 +48,18 @@ def create_message(sender, to, subject, html_body):
 
     return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')}
 
-def send_message( user_id, message, type):
+def send_message( user_id, cuerpo, type):
     credentials = authenticate()
     service = build('gmail', 'v1', credentials=credentials)
     try:
-        message = (service.users().messages().send(userId=user_id, body=message).execute())
+        message = (service.users().messages().send(userId=user_id, body=cuerpo).execute())
         print('Message Id: %s' % message['id'])
         now = datetime.now()  # Obtiene la fecha y hora actuales
         created_at = now.strftime("%Y-%m-%d %H:%M:%S") 
         notification = {
             "created_at" : created_at,
             "type" : type, 
-            "message": message
+            "message": cuerpo
         }
         db.notifications.insert_one(notification)
         return message
@@ -66,7 +70,7 @@ def send_new_order():
     return ''
 
 def send_restore_password(user_data):
-    url = "http://3.23.102.32/restore/"+str(user_data.get('user_id'))
+    url = "https://app.buyfrescapp.com/restore/"+str(ObjectId(user_data['_id']))
     cuerpo = f"""
 <!DOCTYPE html>
 <html lang="es" style="height: 100%; position: relative;" height="100%">
@@ -123,7 +127,7 @@ def send_restore_password(user_data):
                                             text-align="left">
                                             <h1
                                                 style='margin: 0; text-text-align: left; font-size: 30px; line-height: 40px; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-style: normal; font-weight: 300; color: #fff;'>
-                                                Para restlabecer tu contraseña por favor da click en el siguiente botón.
+                                                Para restablecer tu contraseña por favor da click en el siguiente botón.
                                                 <a href="{url}" target="_blank">
                                                     <button style="background-color: white; /* Green */
                                                                     border: none;

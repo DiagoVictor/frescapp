@@ -42,6 +42,6 @@ export class AuthenticationService {
   }
 
   changePassword(user_id: string, newPassword: string): Observable<any> {
-    return this.http.post<any>(this.baseUrl+'api/user/restore_change_password', { password: newPassword, user_id : user_id });
+    return this.http.post<any>(this.baseUrl+'api/user/restore', { password: newPassword, user_id : user_id });
   }
 }
