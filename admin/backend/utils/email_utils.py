@@ -48,7 +48,7 @@ def create_message(sender, to, subject, html_body):
 
     return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')}
 
-def send_message( user_id, cuerpo, type):
+def send_message( user_id, cuerpo, type, to, body):
     credentials = authenticate()
     service = build('gmail', 'v1', credentials=credentials)
     try:
@@ -59,7 +59,8 @@ def send_message( user_id, cuerpo, type):
         notification = {
             "created_at" : created_at,
             "type" : type, 
-            "message": cuerpo
+            "to" : to,
+            "message": body
         }
         db.notifications.insert_one(notification)
         return message
@@ -159,7 +160,7 @@ def send_restore_password(user_data):
 </html>
 """
     message = create_message('Frescapp <fescapp@gmail.com>', user_data.get('email'), 'Restablecer contraseña en Frescapp', cuerpo)
-    send_message('me', message,'Reset Password')
+    send_message('me', message,'Reset Password', user_data.get('email'), cuerpo)
 
 
 
