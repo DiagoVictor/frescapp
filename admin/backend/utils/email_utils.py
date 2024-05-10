@@ -8,6 +8,7 @@ import base64
 from pymongo import MongoClient
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
+from oauth2client import client, tools, file
 
 
 client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
@@ -16,25 +17,18 @@ config = db['orderConfig']
 
 directorio_actual = os.path.dirname(os.path.abspath(__file__))
 creds_filename = os.path.join(directorio_actual, 'credenciales.json')
-
+path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
 # Alcance del acceso para enviar correos electrónicos
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 def authenticate():
-    creds = None
-    # Intenta cargar las credenciales desde el archivo JSON
-    if os.path.exists('credenciales.json'):
-        creds = Credentials.from_authorized_user_file('credenciales.json', SCOPES)
-    # Si no hay credenciales válidas disponibles, solicita al usuario que inicie sesión
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Guarda las credenciales para la próxima vez
-        with open('credenciales.json', 'w') as token:
-            token.write(creds.to_json())
+    # creates credentials with a refresh token
+    credential_path = os.path.join(path_file, 'credentials.json')
+    store = file.Storage(credential_path)
+    creds = store.get()
+    if not creds or creds.invalid:
+        flow = client.flow_from_clientsecrets(path_file +'client_secret.json', SCOPES)
+        creds = tools.run_flow(flow, store)
     return creds
 
 # Autenticar y obtener las credenciales

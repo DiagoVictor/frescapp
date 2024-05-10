@@ -1,146 +1,164 @@
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import os
-from google.oauth2.credentials import Credentials
-from google.oauth2 import id_token
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-from googleapiclient.discovery import build
 import base64
-import oauth2client # type: ignore
-from oauth2client import client, tools, file # type: ignore
+import os
 
-# Archivo JSON de credenciales descargado desde la Consola de Desarrolladores de Google
-creds_filename = 'C:/Users/USUARIO/Documents/frescapp/admin/backend/utils/credenciales.json'
-# Alcance del acceso para enviar correos electrónicos
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-def authenticate():
-    creds = None
-    # Intenta cargar las credenciales desde el archivo JSON
-    if os.path.exists(creds_filename):
-        creds = Credentials.from_authorized_user_file(creds_filename, SCOPES)
-    # Si no hay credenciales válidas disponibles, solicita al usuario que inicie sesión
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(creds_filename, SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Guarda las credenciales para la próxima vez
-        with open(creds_filename, 'w') as token:
-            token.write(creds.to_json())
+# import parsing modules
+import httplib2
+import html2text # type: ignore
+
+# import gmail modules
+from googleapiclient import errors, discovery
+from oauth2client import client, tools, file
+
+# import email modules
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import mimetypes
+from email.mime.image import MIMEImage
+from email.mime.audio import MIMEAudio
+from email.mime.base import MIMEBase
+
+SCOPES = 'https://www.googleapis.com/auth/gmail.send'
+
+# store the below in the working directory
+CLIENT_SECRET_FILE = 'client_secret.json'
+
+'''
+FUNCTIONS FOR CREATING AND SEND EMAIL MESSAGE
+'''
+
+def get_credentials():
+    wd = os.getcwd()
+    print(wd)
+    # creates credentials with a refresh token
+    credential_path = os.path.join('C:/Users/USUARIO/Documents/frescapp/admin/backend/utils/',
+                                  'credentials.json')
+    store = file.Storage(credential_path)
+    creds = store.get()
+    if not creds or creds.invalid:
+        flow = client.flow_from_clientsecrets('C:/Users/USUARIO/Documents/frescapp/admin/backend/utils/client_secret.json', SCOPES)
+        creds = tools.run_flow(flow, store)
     return creds
-# Autenticar y obtener las credenciales
 
-def create_message(sender, to, subject, html_body):
-    message = MIMEMultipart()
-    message['to'] = to
-    message['from'] = sender
-    message['subject'] = subject
-    html_part = MIMEText(html_body, 'html')
-    message.attach(html_part)
 
-    return {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')}
+def SendMessage(sender, to, subject, msgHtml, msgPlain, attachmentFile=None):
+    credentials = get_credentials()
+    http = credentials.authorize(httplib2.Http())
+    service = discovery.build('gmail', 'v1', http=http)
+    if attachmentFile:
+        message1 = createMessageWithAttachment(sender, to, subject, msgHtml, msgPlain, attachmentFile)
+    else:
+        message1 = CreateMessageHtml(sender, to, subject, msgHtml, msgPlain)
+    result = SendMessageInternal(service, "me", message1)
+    return result
 
-def send_message( user_id, message):
-    credentials = authenticate()
-    service = build('gmail', 'v1', credentials=credentials)
+
+def SendMessageInternal(service, user_id, message):
     try:
         message = (service.users().messages().send(userId=user_id, body=message).execute())
         print('Message Id: %s' % message['id'])
         return message
-    except Exception as e:
-        print('An error occurred: %s' % e)
-        return None
+    except errors.HttpError as error:
+        print('An error occurred: %s' % error)
+        return "Error"
+    return "OK"
 
-cuerpo = """
-<!DOCTYPE html>
-<html lang="es" style="height: 100%; position: relative;" height="100%">
 
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Frescapp</title>
-</head>
+def CreateMessageHtml(sender, to, subject, msgHtml, msgPlain):
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = to
+    msg.attach(MIMEText(msgPlain, 'plain'))
+    msg.attach(MIMEText(msgHtml, 'html'))
+    return {'raw': base64.urlsafe_b64encode(msg.as_string().encode('UTF-8')).decode('ascii')}
 
-<body leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0"
-    class="kt-woo-wrap order-items-normal k-responsive-normal title-style-none email-id-new_order"
-    style="height: 100%; position: relative; background-color: #f7f7f7; margin: 0; padding: 0;" height="100%"
-    backgound-color="#f7f7f7">
-    <div id="wrapper" dir="ltr"
-        style="background-color: #f7f7f7; margin: 0; padding: 70px 0 70px 0; width: 100%; padding-top: 70px; padding-bottom: px; -webkit-text-size-adjust: none;"
-        backgound-color="#f7f7f7" width="100%">
-        <table cellpadding="0" cellspacing="0" height="100%" width="100%">
-            <tr>
-                <td text-align="center" vtext-align="top">
-                    <table id="template_header_image_container" style="width: 100%; background-color: transparent;"
-                        width="100%" backgound-color="transparent">
-                        <tr id="template_header_image">
-                            <td text-align="center" vtext-align="middle">
-                                <table cellpadding="0" cellspacing="0" width="100%" id="template_header_image_table">
-                                    <tr>
-                                        <td text-align="center" vtext-align="middle"
-                                            style="text-text-align: center; padding-top: 0px; padding-bottom: 0px;">
-                                            <p style="margin-bottom: 0; margin-top: 0;"><a
-                                                    href="https://www.buyfrescapp.com" target="_blank"
-                                                    style="font-weight: normal; color: #97d700; display: block; text-decoration: none;"><img
-                                                        src="http://3.23.102.32:5000/api/shared/banner1.png"
-                                                        alt="Frescapp" width="600"
-                                                        style="border: none; display: inline; font-weight: bold; height: auto; outline: none; text-decoration: none; text-transform: capitalize; font-size: 14px; line-height: 24px; max-width: 100%; width: 600px;"></a>
-                                            </p>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                    <table cellpadding="0" cellspacing="0" width="600" id="template_container"
-                        style="background-color: #fff; overflow: hidden; border-style: solid; border-width: 1px; border-right-width: px; border-bottom-width: px; border-left-width: px; border-color: #dedede; border-radius: 3px; box-shadow: 0 1px 4px 1px rgba(0,0,0,.1);"
-                        backgound-color="#fff">
-                        <tr>
-                            <td text-align="center" vtext-align="top">
-                                <!-- Header -->
-                                <table cellpadding="0" cellspacing="0" width="100%" id="template_header"
-                                    style='border-bottom: 0; font-weight: bold; line-height: 100%; vertical-text-align: middle; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; background-color: #97d700; color: #fff;'
-                                    backgound-color="#97d700">
-                                    <tr>
-                                        <td id="header_wrapper"
-                                            style="padding: 36px 48px; display: block; text-text-align: left; padding-top: px; padding-bottom: px; padding-left: 48px; padding-right: 48px;"
-                                            text-align="left">
-                                            <h1
-                                                style='margin: 0; text-text-align: left; font-size: 30px; line-height: 40px; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-style: normal; font-weight: 300; color: #fff;'>
-                                                Para restlabecer tu contraseña por favor da click en el siguiente botón.
-                                                <a href="http://3.23.102.32/" target="_blank">
-                                                    <button style="background-color: white; /* Green */
-                                                                    border: none;
-                                                                    color: #4CAF50;
-                                                                    padding: 15px 32px;
-                                                                    text-align: center;
-                                                                    text-decoration: none;
-                                                                    display: inline-block;
-                                                                    font-size: 16px;
-                                                                    margin: 4px 2px;
-                                                                    cursor: pointer;">
-                                                        Ir a cambiar contraseña
-                                                    </button>
-                                                </a>
-                                            </h1>
-                                        </td>
-                                    </tr>
-                                </table>
-                                <!-- End Header -->
-                            </td>
-                        </tr>
-                    </table> <!-- End template container -->
-                </td>
-            </tr>
-        </table>
-    </div>
-</body>
 
+def createMessageWithAttachment(
+        sender, to, subject, msgHtml, msgPlain, attachmentFile):
+    """Create a message for an email.
+    Args:
+      sender: Email address of the sender.
+      to: Email address of the receiver.
+      subject: The subject of the email message.
+      msgHtml: Html message to be sent
+      msgPlain: Alternative plain text message for older email clients
+      attachmentFile: The path to the file to be attached.
+    Returns:
+      An object containing a base64url encoded email object.
+    """
+    message = MIMEMultipart('mixed')
+    message['to'] = to
+    message['from'] = sender
+    message['subject'] = subject
+
+    messageA = MIMEMultipart('alternative')
+    messageR = MIMEMultipart('related')
+
+    messageR.attach(MIMEText(msgHtml, 'html'))
+    messageA.attach(MIMEText(msgPlain, 'plain'))
+    messageA.attach(messageR)
+
+    message.attach(messageA)
+
+    print("create_message_with_attachment: file: %s" % attachmentFile)
+    content_type, encoding = mimetypes.guess_type(attachmentFile)
+
+    if content_type is None or encoding is not None:
+        content_type = 'application/octet-stream'
+    main_type, sub_type = content_type.split('/', 1)
+    if main_type == 'text':
+        fp = open(attachmentFile, 'rb')
+        msg = MIMEText(fp.read(), _subtype=sub_type)
+        fp.close()
+    elif main_type == 'image':
+        fp = open(attachmentFile, 'rb')
+        msg = MIMEImage(fp.read(), _subtype=sub_type)
+        fp.close()
+    elif main_type == 'audio':
+        fp = open(attachmentFile, 'rb')
+        msg = MIMEAudio(fp.read(), _subtype=sub_type)
+        fp.close()
+    else:
+        fp = open(attachmentFile, 'rb')
+        msg = MIMEBase(main_type, sub_type)
+        msg.set_payload(fp.read())
+        fp.close()
+    filename = os.path.basename(attachmentFile)
+    msg.add_header('Content-Disposition', 'attachment', filename=filename)
+    message.attach(msg)
+
+    return {'raw': base64.urlsafe_b64encode(msg.as_string().encode('UTF-8')).decode('ascii')}
+
+
+'''
+END EMAIL FUNCTIONS
+'''
+
+COMBINED_HTML_MESSAGE = """\
+<html>
+      <body>
+        Sending email via a Python script via Gmail OAuth
+      </body>
 </html>
 """
-message = create_message('Frescapp <fescapp@gmail.com>', 'vmdiagov@gmail.com', 'Restablecer contraseña en Frescapp', cuerpo)
 
-# Envía el mensaje
-send_message( 'me', message)
+def html_to_plain_text(html):
+    plain = html2text.html2text(html)
+    return plain
+
+
+'''
+BELOW BEGINS THE SET UP FOR SENDING AN EMAIL
+'''
+sender_email = ""
+receiver_email = sender_email
+subject = ""
+
+
+def main():
+    SendMessage(sender_email, receiver_email, subject, msgHtml=COMBINED_HTML_MESSAGE,
+                msgPlain=html_to_plain_text(COMBINED_HTML_MESSAGE))
+
+
+if __name__ == '__main__':
+    main()
