@@ -11,7 +11,10 @@ import { FormsModule } from '@angular/forms';
 import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
 import { ReportsComponent } from './reports/reports.component';
-import { RestorePasswordComponent } from './restore-password/restore-password.component'; // Importa FormsModule
+import { RestorePasswordComponent } from './restore-password/restore-password.component';
+import { DeleteAccountComponent } from './delete-account/delete-account.component'; // Importa FormsModule
+
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -22,13 +25,16 @@ import { RestorePasswordComponent } from './restore-password/restore-password.co
     LoginComponent,
     HomeComponent,
     ReportsComponent,
-    RestorePasswordComponent
+    RestorePasswordComponent,
+    DeleteAccountComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    FormsModule
+    FormsModule,
+    BrowserModule,
+    AppRoutingModule
   ],
   providers: [],
   bootstrap: [AppComponent]

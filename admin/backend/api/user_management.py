@@ -139,3 +139,31 @@ def forgot_change_password():
         return jsonify({'message': 'Password updated successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@user_api.route('/delete_account', methods=['POST'])
+def delete_account():
+    # Obtener datos del cuerpo de la solicitud
+    data = request.json
+    email = data.get('user_email')
+    password = data.get('password')
+
+    if not email or not password:
+        return jsonify({'message': 'Missing required fields'}), 400
+
+    bcrypt = Bcrypt()
+    # Buscar en la colección de clientes por correo electrónico
+    user_data = customers_collection.find_one({'email': email})
+
+    if user_data:
+        # Verificar la contraseña almacenada en la base de datos con la proporcionada
+        hashed_password = user_data.get('password')
+        if bcrypt.check_password_hash(hashed_password, password):
+            # Eliminar la cuenta de usuario de la base de datos
+            customers_collection.delete_one({'email': email})
+            return jsonify({'message': 'Account deleted successfully'}), 200
+        else:
+            # Contraseña incorrecta
+            return jsonify({'message': 'Invalid password'}), 401
+    else:
+        # Usuario no encontrado
+        return jsonify({'message': 'User not found'}), 404

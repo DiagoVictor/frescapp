@@ -12,15 +12,17 @@ import 'package:url_launcher/url_launcher_string.dart';
 class CartScreen extends StatefulWidget {
   final List<Product> productsInCart;
 
-  const CartScreen({super.key, required this.productsInCart, required void Function(int value) updateCounter});
-  
+  const CartScreen(
+      {super.key,
+      required this.productsInCart,
+      required void Function(int value) updateCounter});
+
   @override
   // ignore: library_private_types_in_public_api
   _CartScreenState createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
-    
   void _openWhatsApp(BuildContext context) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     try {
@@ -29,7 +31,8 @@ class _CartScreenState extends State<CartScreen> {
       String phone = prefs.getString('user_phone') ?? '';
       String contactPhone = prefs.getString('contact_phone') ?? '';
 
-      String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
+      String message =
+          'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
 
       // Codificar el mensaje para que se pueda enviar correctamente en la URL
       String encodedMessage = Uri.encodeComponent(message);
@@ -55,12 +58,16 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     // Filtra los productos con una cantidad mayor a cero
-    final List<Product> productsWithQuantity = widget.productsInCart.where((product) => product.quantity! > 0).toList();
+    final List<Product> productsWithQuantity = widget.productsInCart
+        .where((product) => product.quantity! > 0)
+        .toList();
 
     // Calcula el total del pedido
     double total = 0;
     for (var product in productsWithQuantity) {
-      total += product.quantity! * product.price_sale; // Multiplica la cantidad por el precio de venta y lo suma al total
+      total += product.quantity! *
+          product
+              .price_sale; // Multiplica la cantidad por el precio de venta y lo suma al total
     }
 
     return Scaffold(
@@ -72,20 +79,37 @@ class _CartScreenState extends State<CartScreen> {
           children: [
             ListView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // Para evitar que el ListView ocupe todo el espacio disponible
+              physics:
+                  const NeverScrollableScrollPhysics(), // Para evitar que el ListView ocupe todo el espacio disponible
               itemCount: productsWithQuantity.length,
               itemBuilder: (context, index) {
                 final Product product = productsWithQuantity[index];
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.white,
-                    backgroundImage: NetworkImage(product.image), // Ejemplo: imagen del producto
+                    backgroundImage: NetworkImage(
+                        product.image), // Ejemplo: imagen del producto
                   ),
                   title: RichText(
                     text: TextSpan(
                       children: [
-                        TextSpan(text: '${product.name} - ', style: const TextStyle(fontWeight: FontWeight.normal)),
-                        TextSpan(text: '\n \$ ${NumberFormat('#,###').format(product.price_sale)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(
+                            text: '${product.name} - ',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.black)),
+                        TextSpan(
+                            text:
+                                '\nPrecio \$ ${NumberFormat('#,###').format(product.price_sale ?? 0)}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black)),
+                        TextSpan(
+                            text:
+                                '\nSubtotal \$ ${NumberFormat('#,###').format((product.price_sale ?? 0) * (product.quantity ?? 0))}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black))
                       ],
                     ),
                   ),
@@ -151,17 +175,20 @@ class _CartScreenState extends State<CartScreen> {
                         onPressed: () {
                           setState(() {
                             if (product.quantity! > 0) {
-                              product.quantity = product.quantity! - 1; // Disminuye la cantidad del producto
+                              product.quantity = product.quantity! -
+                                  1; // Disminuye la cantidad del producto
                             }
                           });
                         },
                       ),
-                      Text(product.quantity.toString()), // Muestra la cantidad del producto
+                      Text(product.quantity
+                          .toString()), // Muestra la cantidad del producto
                       IconButton(
                         icon: const Icon(Icons.add),
                         onPressed: () {
                           setState(() {
-                            product.quantity = product.quantity! + 1; // Aumenta la cantidad del producto
+                            product.quantity = product.quantity! +
+                                1; // Aumenta la cantidad del producto
                           });
                         },
                       ),
@@ -175,20 +202,23 @@ class _CartScreenState extends State<CartScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Text(
                 'Total: \$ ${NumberFormat('#,###').format(total)}',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-                     // Botón para confirmar el pedido
+            // Botón para confirmar el pedido
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                              builder: (context) => OrderDetailScreen(productsInCart: productsWithQuantity),
-                        ),
-                      );                },
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderDetailScreen(
+                          productsInCart: productsWithQuantity),
+                    ),
+                  );
+                },
                 child: const Text('Confirmar Pedido'),
               ),
             ),
@@ -197,8 +227,10 @@ class _CartScreenState extends State<CartScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
-        selectedItemColor: Colors.lightGreen.shade900,// Color de los iconos seleccionados
-        unselectedItemColor: Colors.grey, // Color de los iconos no seleccionados
+        selectedItemColor:
+            Colors.lightGreen.shade900, // Color de los iconos seleccionados
+        unselectedItemColor:
+            Colors.grey, // Color de los iconos no seleccionados
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

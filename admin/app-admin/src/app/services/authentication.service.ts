@@ -44,4 +44,7 @@ export class AuthenticationService {
   changePassword(user_id: string, newPassword: string): Observable<any> {
     return this.http.post<any>(this.baseUrl+'api/user/restore', { password: newPassword, user_id : user_id });
   }
+  deleteAccount(user_email: string, password: string): Observable<any> {
+    return this.http.post<any>(this.baseUrl+'api/user/delete_account', { password: password, user_email : user_email });
+  }
 }

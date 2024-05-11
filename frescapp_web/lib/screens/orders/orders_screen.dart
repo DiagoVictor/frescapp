@@ -305,6 +305,10 @@ void _openWhatsApp(BuildContext context) async {
                                                     color: Colors.black,
                                                   ),
                                                 ),
+                                                  TextSpan(
+                                                    text: '\nSubtotal \$ ${NumberFormat('#,###').format((product[index]["price_sale"] ?? 0) * (product[index]["quantity"] ?? 0))}',
+                                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)
+                                                 ),
                                               ],
                                             ),
                                           ),
