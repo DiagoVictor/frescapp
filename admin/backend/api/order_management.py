@@ -279,7 +279,9 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
     # Construir la lista de productos en HTML
     product_list_html = ""
     for product in products:
-        product_list_html += f"<tr><td>{product['name']}</td><td>{product['quantity']}</td><td>{product['price_sale']}</td></tr>"
+        subtotal = product['quantity'] * product['price_sale']
+        price_formatted = f'{subtotal:,.2f} COP'  # Formatear el precio con COP
+        product_list_html += f"<tr><td>{product['name']}</td><td style='text-align: center;'>{product['quantity']}</td><td style='text-align: center;'>{price_formatted}</td><td style='text-align: center;'>{subtotal:,.2f} COP</td></tr>"
     
     # Construir el mensaje HTML completo
     html_message = f"""
@@ -334,7 +336,7 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                             <td id="header_wrapper"
                                                 style="padding: 36px 48px; display: block; text-text-align: left; padding-top: px; padding-bottom: px; padding-left: 48px; padding-right: 48px;"
                                                 text-align="left">
-    
+                                            <h1> Hemos recibido tu nueva orden, será un gusto entregarla.
                                             </td>
                                         </tr>
                                     </table>
@@ -345,14 +347,15 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                         backgound-color="#ffffff">
                                         <tr>
                                             <th>Producto</th>
-                                            <th>Cantidad</th>
-                                            <th>Precio</th>
+                                            <th style="text-align: center;">Cantidad</th>
+                                            <th style="text-align: center;">Precio Unitario</th>
+                                            <th style="text-align: center;">Subtotal</th>
                                         </tr>
                                         {product_list_html}
                                     </table>
                                     <!-- End Products List -->
                                     <!-- Total -->
-                                    <p>Total: {total}</p>
+                                    <p style="text-align: right;">Total: {total:,.2f} COP</p>
                                     <!-- End Total -->
                                 </td>
                             </tr>
@@ -367,4 +370,3 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
     
     # Envía el correo
     send_new_order(subject, html_message, customer_email)
-
