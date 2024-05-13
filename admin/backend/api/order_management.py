@@ -280,8 +280,8 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
     product_list_html = ""
     for product in products:
         subtotal = product['quantity'] * float(product['price_sale'])
-        price_formatted = f'{float(product["price_sale"]):,.2f} COP'  # Formatear el precio con COP
-        subtotal_formatted = f'{subtotal:,.2f} COP'  # Formatear el subtotal con COP
+        price_formatted = f'{float(product["price_sale"]):,.2f}'  
+        subtotal_formatted = f'{subtotal:,.2f}'  #
         product_list_html += f"<tr><td>{product['name']}</td><td style='text-align: center;'>{product['quantity']}</td><td style='text-align: center;'>{price_formatted}</td><td style='text-align: center;'>{subtotal_formatted}</td></tr>"
     
     # Construir el mensaje HTML completo
@@ -337,7 +337,7 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                             <td id="header_wrapper"
                                                 style="padding: 36px 48px; display: block; text-text-align: left; padding-top: px; padding-bottom: px; padding-left: 48px; padding-right: 48px;"
                                                 text-align="left">
-                                            <h1> Hemos recibido tu nueva orden, será un gusto entregarla.</h1>
+                                                <h1>Hemos recibido tu nueva orden, será un gusto entregarla.</h1>
                                             </td>
                                         </tr>
                                     </table>
@@ -356,7 +356,7 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                     </table>
                                     <!-- End Products List -->
                                     <!-- Total -->
-                                    <p style="text-align: right;"><b>Total: </b>{total:,.2f} COP</p>
+                                    <p style="text-align: right;"><b>Total: </b>{total:,.2f}</p>
                                     <!-- End Total -->
                                 </td>
                             </tr>
