@@ -280,8 +280,9 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
     product_list_html = ""
     for product in products:
         subtotal = product['quantity'] * product['price_sale']
-        price_formatted = f'{subtotal:,.2f} COP'  # Formatear el precio con COP
-        product_list_html += f"<tr><td>{product['name']}</td><td style='text-align: center;'>{product['quantity']}</td><td style='text-align: center;'>{price_formatted}</td><td style='text-align: center;'>{subtotal:,.2f} COP</td></tr>"
+        price_formatted = f'{product['price_sale']:,.2f}'  
+        subtotal_formatted = f'{subtotal:,.2f}'  
+        product_list_html += f"<tr><td>{product['name']}</td><td style='text-align: center;'>{product['quantity']}</td><td style='text-align: center;'>{price_formatted}</td><td style='text-align: center;'>{subtotal_formatted:,.2f} </td></tr>"
     
     # Construir el mensaje HTML completo
     html_message = f"""
@@ -355,7 +356,7 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                     </table>
                                     <!-- End Products List -->
                                     <!-- Total -->
-                                    <p style="text-align: right;">Total: {total:,.2f} COP</p>
+                                    <p style="text-align: right;"><b>Total: </b>{total:,.2f} </p>
                                     <!-- End Total -->
                                 </td>
                             </tr>
