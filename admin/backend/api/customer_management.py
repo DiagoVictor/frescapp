@@ -3,6 +3,7 @@ from models.customer import Customer
 import json, dump
 from flask_bcrypt import Bcrypt
 from datetime import datetime
+import utils.email_utils as emails
 
 customer_api = Blueprint('customer', __name__)
 
@@ -45,6 +46,82 @@ def create_customer():
         category = category
     )
     customer.save()
+    message = """
+                <!DOCTYPE html>
+            <html lang="es" style="height: 100%; position: relative;" height="100%">
+
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                <meta content="width=device-width, initial-scale=1.0" name="viewport">
+                <title>Frescapp</title>
+            </head>
+
+            <body leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0"
+                class="kt-woo-wrap order-items-normal k-responsive-normal title-style-none email-id-new_order"
+                style="height: 100%; position: relative; background-color: #f7f7f7; margin: 0; padding: 0;" height="100%"
+                backgound-color="#f7f7f7">
+                <div id="wrapper" dir="ltr"
+                    style="background-color: #f7f7f7; margin: 0; padding: 70px 0 70px 0; width: 100%; padding-top: 70px; padding-bottom: px; -webkit-text-size-adjust: none;"
+                    backgound-color="#f7f7f7" width="100%">
+                    <table cellpadding="0" cellspacing="0" height="100%" width="100%">
+                        <tr>
+                            <td text-align="center" vtext-align="top">
+                                <table id="template_header_image_container" style="width: 100%; background-color: transparent;"
+                                    width="100%" backgound-color="transparent">
+                                    <tr id="template_header_image">
+                                        <td text-align="center" vtext-align="middle">
+                                            <table cellpadding="0" cellspacing="0" width="100%" id="template_header_image_table">
+                                                <tr>
+                                                    <td text-align="center" vtext-align="middle"
+                                                        style="text-text-align: center; padding-top: 0px; padding-bottom: 0px;">
+                                                        <p style="margin-bottom: 0; margin-top: 0;"><a
+                                                                href="https://www.buyfrescapp.com" target="_blank"
+                                                                style="font-weight: normal; color: #97d700; display: block; text-decoration: none;"><img
+                                                                    src="https://www.buyfrescapp.com/wp-content/uploads/2024/03/cropped-Captura-de-pantalla-2024-03-14-132748-1.png"
+                                                                    alt="Frescapp" width="600"
+                                                                    style="border: none; display: inline; font-weight: bold; height: auto; outline: none; text-decoration: none; text-transform: capitalize; font-size: 14px; line-height: 24px; max-width: 100%; width: 600px;"></a>
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <table cellpadding="0" cellspacing="0" width="600" id="template_container"
+                                    style="background-color: #fff; overflow: hidden; border-style: solid; border-width: 1px; border-right-width: px; border-bottom-width: px; border-left-width: px; border-color: #dedede; border-radius: 3px; box-shadow: 0 1px 4px 1px rgba(0,0,0,.1);"
+                                    backgound-color="#fff">
+                                    <tr>
+                                        <td text-align="center" vtext-align="top">
+                                            <!-- Header -->
+                                            <table cellpadding="0" cellspacing="0" width="100%" id="template_header"
+                                                style='border-bottom: 0; font-weight: bold; line-height: 100%; vertical-text-align: middle; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; background-color: #97d700; color: #fff;'
+                                                backgound-color="#97d700">
+                                                <tr>
+                                                    <td id="header_wrapper"
+                                                        style="padding: 36px 48px; display: block; text-text-align: left; padding-top: px; padding-bottom: px; padding-left: 48px; padding-right: 48px;"
+                                                        text-align="left">
+                                                        <h1>Hola """+str(data.get('name'))+"""!</h1><br>
+                                                        <h1
+                                                            style='margin: 0; text-text-align: left; font-size: 30px; line-height: 40px; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-style: normal; font-weight: 300; color: #fff;'>
+                                                            Desde el equipo de Frescapp te damos la bienvenida a la plataforma que te ayudará a optimizar tus compras y crecer juntos.
+                                                        </h1>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            <!-- End Header -->
+                                        </td>
+                                    </tr>
+                                </table> <!-- End template container -->
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </body>
+
+            </html>
+    """
+    subject = 'Bienvenido a Frescapp!!'
+    emails.send_new_account(subject, message, data.get('email'))
     return jsonify({'message': 'Customer created successfully'}), 201
 
 # Ruta para actualizar un usuario existente

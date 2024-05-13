@@ -67,8 +67,9 @@ def send_message( user_id, cuerpo, type, to, body):
     except Exception as e:
         print('An error occurred: %s' % e)
         return None
-def send_new_order():
-    return ''
+def send_new_order(subject, cuerpo, customer_email):
+    message = create_message('Frescapp <fescapp@gmail.com>', customer_email, subject, cuerpo)
+    send_message('me', message, 'New order', customer_email, cuerpo)
 
 def send_restore_password(user_data):
     url = "http://3.23.102.32/restore/"+str(ObjectId(user_data['_id']))
@@ -162,5 +163,8 @@ def send_restore_password(user_data):
     message = create_message('Frescapp <fescapp@gmail.com>', user_data.get('email'), 'Restablecer contraseña en Frescapp', cuerpo)
     send_message('me', message,'Reset Password', user_data.get('email'), cuerpo)
 
+def send_new_account(subject, cuerpo, customer_email):
+    message = create_message('Frescapp <fescapp@gmail.com>', customer_email, subject, cuerpo)
+    send_message('me', message, 'New customer', customer_email, cuerpo)
 
 

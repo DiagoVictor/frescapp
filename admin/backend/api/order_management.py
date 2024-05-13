@@ -16,7 +16,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from io import BytesIO
-from utils.email_utils import send_restore_password  # Importa la función send_email que creamos antes
+from utils.email_utils import send_new_order  # Importa la función send_email que creamos antes
 
 
 order_api = Blueprint('order', __name__)
@@ -275,12 +275,96 @@ def list_orders_customer(email):
 
 def send_order_email(order_number, customer_email, delivery_date, products, total):
     subject = f'Orden confirmada - Orden #{order_number}'
-    message = f"Tu orden con número {order_number} ha sido confirmada.\n\nFecha de entrega: {delivery_date}\n\nProductos:\n"
     
+    # Construir la lista de productos en HTML
+    product_list_html = ""
     for product in products:
-        message += f"{product['name']}: {product['quantity']} x {product['price_sale']}\n"
+        product_list_html += f"<tr><td>{product['name']}</td><td>{product['quantity']}</td><td>{product['price_sale']}</td></tr>"
     
-    message += f"\nTotal: {total}"
-
+    # Construir el mensaje HTML completo
+    html_message = f"""
+    <!DOCTYPE html>
+    <html lang="es" style="height: 100%; position: relative;" height="100%">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <title>Frescapp</title>
+    </head>
+    <body leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0"
+        class="kt-woo-wrap order-items-normal k-responsive-normal title-style-none email-id-new_order"
+        style="height: 100%; position: relative; background-color: #f7f7f7; margin: 0; padding: 0;" height="100%"
+        backgound-color="#f7f7f7">
+        <div id="wrapper" dir="ltr"
+            style="background-color: #f7f7f7; margin: 0; padding: 70px 0 70px 0; width: 100%; padding-top: 70px; padding-bottom: px; -webkit-text-size-adjust: none;"
+            backgound-color="#f7f7f7" width="100%">
+            <table cellpadding="0" cellspacing="0" height="100%" width="100%">
+                <tr>
+                    <td text-align="center" vtext-align="top">
+                        <table id="template_header_image_container" style="width: 100%; background-color: transparent;"
+                            width="100%" backgound-color="transparent">
+                            <tr id="template_header_image">
+                                <td text-align="center" vtext-align="middle">
+                                    <table cellpadding="0" cellspacing="0" width="100%" id="template_header_image_table">
+                                        <tr>
+                                            <td text-align="center" vtext-align="middle"
+                                                style="text-text-align: center; padding-top: 0px; padding-bottom: 0px;">
+                                                <p style="margin-bottom: 0; margin-top: 0;"><a
+                                                        href="https://www.buyfrescapp.com" target="_blank"
+                                                        style="font-weight: normal; color: #97d700; display: block; text-decoration: none;"><img
+                                                            src="https://www.buyfrescapp.com/wp-content/uploads/2024/03/cropped-Captura-de-pantalla-2024-03-14-132748-1.png"
+                                                            alt="Frescapp" width="600"
+                                                            style="border: none; display: inline; font-weight: bold; height: auto; outline: none; text-decoration: none; text-transform: capitalize; font-size: 14px; line-height: 24px; max-width: 100%; width: 600px;"></a>
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <table cellpadding="0" cellspacing="0" width="600" id="template_container"
+                            style="background-color: #fff; overflow: hidden; border-style: solid; border-width: 1px; border-right-width: px; border-bottom-width: px; border-left-width: px; border-color: #dedede; border-radius: 3px; box-shadow: 0 1px 4px 1px rgba(0,0,0,.1);"
+                            backgound-color="#fff">
+                            <tr>
+                                <td text-align="center" vtext-align="top">
+                                    <!-- Header -->
+                                    <table cellpadding="0" cellspacing="0" width="100%" id="template_header"
+                                        style='border-bottom: 0; font-weight: bold; line-height: 100%; vertical-text-align: middle; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; background-color: #97d700; color: #fff;'
+                                        backgound-color="#97d700">
+                                        <tr>
+                                            <td id="header_wrapper"
+                                                style="padding: 36px 48px; display: block; text-text-align: left; padding-top: px; padding-bottom: px; padding-left: 48px; padding-right: 48px;"
+                                                text-align="left">
+    
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- End Header -->
+                                    <!-- Products List -->
+                                    <table cellpadding="0" cellspacing="0" width="100%" id="template_product_list"
+                                        style="font-family: 'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif; font-size: 14px; line-height: 24px; color: #333; width: 100%;"
+                                        backgound-color="#ffffff">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Cantidad</th>
+                                            <th>Precio</th>
+                                        </tr>
+                                        {product_list_html}
+                                    </table>
+                                    <!-- End Products List -->
+                                    <!-- Total -->
+                                    <p>Total: {total}</p>
+                                    <!-- End Total -->
+                                </td>
+                            </tr>
+                        </table> <!-- End template container -->
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </body>
+    </html>
+    """
+    
     # Envía el correo
-    send_restore_password(subject, message, customer_email)
+    send_new_order(subject, html_message, customer_email)
+
