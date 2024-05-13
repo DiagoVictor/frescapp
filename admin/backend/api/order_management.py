@@ -283,7 +283,7 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
         price = float(product['price_sale'])
         price_formatted = f'{price:,.2f}'  
         subtotal_formatted = f'{subtotal:,.2f}'  
-        product_list_html += f"<tr><td>{product['name']}</td><td style='text-align: center;'>{product['quantity']}</td><td style='text-align: center;'>{price_formatted}</td><td style='text-align: center;'>{subtotal_formatted:,.2f} </td></tr>"
+        product_list_html += f"<tr><td>{product['name']}</td><td style='text-align: center;'>{product['quantity']}</td><td style='text-align: center;'>{price_formatted:,.2f}</td><td style='text-align: center;'>{subtotal_formatted:,.2f} </td></tr>"
     
     # Construir el mensaje HTML completo
     html_message = f"""
