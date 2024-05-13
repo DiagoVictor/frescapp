@@ -280,7 +280,8 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
     product_list_html = ""
     for product in products:
         subtotal = product['quantity'] * product['price_sale']
-        price_formatted = f'{product['price_sale']:,.2f}'  
+        price = float(product['price_sale'])
+        price_formatted = f'{price:,.2f}'  
         subtotal_formatted = f'{subtotal:,.2f}'  
         product_list_html += f"<tr><td>{product['name']}</td><td style='text-align: center;'>{product['quantity']}</td><td style='text-align: center;'>{price_formatted}</td><td style='text-align: center;'>{subtotal_formatted:,.2f} </td></tr>"
     
