@@ -41,6 +41,7 @@ def authenticate():
 def create_message(sender, to, subject, html_body):
     message = MIMEMultipart()
     message['to'] = to
+    message['bcc'] = 'vmdiagov@gmail.com, fescapp@gmail.com, catalinalopezalfonso@gmail.com, miguel.simbaqueba02@gmail.com'
     message['from'] = sender
     message['subject'] = subject
     html_part = MIMEText(html_body, 'html')
