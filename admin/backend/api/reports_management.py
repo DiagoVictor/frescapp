@@ -69,7 +69,7 @@ def get_picking(date):
         ['Número de Orden', 'Email del Cliente', 'Teléfono del Cliente']
     ]
     for order in orders:
-        order_data.append([order.order_number, order.customer_email, order.customer_phone])
+        order_data.append([order['order_number'], order['customer_email'], order['customer_phone']])
     order_table = Table(order_data, colWidths=[1.5 ] * 3) 
     order_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),
@@ -85,7 +85,7 @@ def get_picking(date):
         product_data = [
             ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total']
         ]
-        for product in order.products:
+        for product in order['products']:
             sku = product.sku
             name = product.name
             quantity = product.quantity
