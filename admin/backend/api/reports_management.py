@@ -58,7 +58,7 @@ def get_picking(date):
         fontSize=20,
         alignment=TA_CENTER,
         textColor=colors.HexColor('#97D700'),
-        spaceAfter=0.5 * inch # type: ignore
+        spaceAfter=0.5  
     )
     title_text = '<font size="20">Ordenes para la fecha {}</font>'.format(date)
     title = Paragraph(title_text, title_style)
@@ -70,7 +70,7 @@ def get_picking(date):
     ]
     for order in orders:
         order_data.append([order.order_number, order.customer_email, order.customer_phone])
-    order_table = Table(order_data, colWidths=[1.5 * inch] * 3) # type: ignore
+    order_table = Table(order_data, colWidths=[1.5 ] * 3) 
     order_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)
@@ -92,7 +92,7 @@ def get_picking(date):
             price_sale = locale.format_string('%.2f', product.price_sale, grouping=True)
             total = locale.format_string('%.2f', product.quantity * product.price_sale, grouping=True)
             product_data.append([sku, name, quantity, price_sale, total])
-        product_table = Table(product_data, colWidths=[1.0 * inch] * 5) # type: ignore
+        product_table = Table(product_data, colWidths=[1.0 ] * 5) # type: ignore
         product_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)
