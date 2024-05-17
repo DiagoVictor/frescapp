@@ -8,6 +8,9 @@ import { HomeComponent } from './home/home.component';
 import { ReportsComponent } from './reports/reports.component';
 import { RestorePasswordComponent } from './restore-password/restore-password.component';
 import { DeleteAccountComponent } from './delete-account/delete-account.component';
+import { PickingComponent } from './reports/picking/picking.component';
+import { ComprasComponent } from './reports/compras/compras.component';
+
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent }, // Ruta para el componente de productos
   { path: 'clientes', component: ClientesComponent  },
@@ -15,6 +18,8 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent    },
   { path: 'home', component: HomeComponent    },
   { path: 'reports', component: ReportsComponent    },
+  { path: 'reports/picking', component: PickingComponent    },
+  { path: 'reports/compras', component: ComprasComponent    },
   { path: 'delete-account', component: DeleteAccountComponent    },
   { path: 'restore/:user_id', component: RestorePasswordComponent    },
   { path: '', component: HomeComponent    }

@@ -12,7 +12,9 @@ import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
 import { ReportsComponent } from './reports/reports.component';
 import { RestorePasswordComponent } from './restore-password/restore-password.component';
-import { DeleteAccountComponent } from './delete-account/delete-account.component'; // Importa FormsModule
+import { DeleteAccountComponent } from './delete-account/delete-account.component';
+import { PickingComponent } from './reports/picking/picking.component';
+import { ComprasComponent } from './reports/compras/compras.component'; // Importa FormsModule
 
 
 @NgModule({
@@ -26,7 +28,9 @@ import { DeleteAccountComponent } from './delete-account/delete-account.componen
     HomeComponent,
     ReportsComponent,
     RestorePasswordComponent,
-    DeleteAccountComponent
+    DeleteAccountComponent,
+    PickingComponent,
+    ComprasComponent
   ],
   imports: [
     BrowserModule,

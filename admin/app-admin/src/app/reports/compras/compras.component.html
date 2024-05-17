@@ -1,0 +1,22 @@
+<div class="container">
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h3>Generar Archivo PDF con Compras</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="fecha">Fecha:</label>
+            <input type="date" class="form-control" id="fecha" name="fecha" [(ngModel)]="fecha">
+          </div>
+          <br>
+          <div class="text-right"> <!-- Alineación a la derecha -->
+            <button class="btn btn-primary" (click)="generarPDF()">Generar PDF</button>
+          </div>
+        </div>
+      </div>
+      <iframe [src]="this.pfdPicking" type="application/pdf" width="100%" height="600px"></iframe>
+    </div>
+  </div>
+</div>

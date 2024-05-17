@@ -6,6 +6,7 @@ from api.product_management import product_api
 from api.customer_management import customer_api
 from api.user_management import user_api
 from api.config_order import configOrder_api
+from api.reports_management import report_api
 
 if __name__ == '__main__':
     app = Flask(__name__)
