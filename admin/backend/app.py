@@ -21,6 +21,7 @@ if __name__ == '__main__':
     app.register_blueprint(customer_api, url_prefix='/api/customer')
     app.register_blueprint(user_api, url_prefix='/api/user')
     app.register_blueprint(configOrder_api, url_prefix='/api/config')
+    app.register_blueprint(report_api, url_prefix='/api/reports')
 
 
     @app.route('/api/shared/<path:filename>')
