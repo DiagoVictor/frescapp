@@ -18,98 +18,209 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from io import BytesIO
 from utils.email_utils import send_new_order  # Importa la función send_email que creamos antes
 from pymongo import MongoClient
+from reportlab.lib.units import inch
+from reportlab.platypus import PageBreak
+import locale
 
-
+locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
 report_api = Blueprint('report', __name__)
 client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
 db = client['frescapp']
 orders_collection = db['orders']  
-
+products_collection = db['orders']  
 @report_api.route('/picking/<string:date>', methods=['GET'])
 def get_picking(date):
-    orders = orders_collection.find({"delivery_date" : date})
-
-    if not orders:
-        return jsonify({'message': 'No orders found for the specified date'}), 404
-
-    # Crear un objeto de tipo BytesIO para almacenar el PDF en memoria
     buffer = BytesIO()
-
-    # Establecer el locale para formatear los números
-    locale.setlocale(locale.LC_ALL, '')
-
-    # Crear un documento PDF
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
-
-    # Estilos de párrafo
     styles = getSampleStyleSheet()
-
-    # Crear contenido del PDF
+    image_path = 'http://3.23.102.32:5000/api/shared/banner1.png'
+    logo = Image(image_path, width=200, height=70)
+    centered_style = ParagraphStyle(
+            name='Centered',
+            fontSize=16,  # Tamaño de la letra aumentado a 16
+            alignment=TA_CENTER,  # Centrado horizontal
+            textColor=colors.white,  # Color del texto blanco
+            leading=50  # Espaciado entre líneas para centrar verticalmente
+        )
     pdf_content = []
-
-    # Agregar encabezado
-    logo_path = 'http://3.23.102.32:5000/api/shared/banner1.png'
-    logo = Image(logo_path, width=500, height=170)
-    pdf_content.append(logo)
-
-    # Agregar título
-    title_style = ParagraphStyle(
-        name='TitleStyle',
-        fontSize=20,
-        alignment=TA_CENTER,
-        textColor=colors.HexColor('#97D700'),
-        spaceAfter=0.5  
-    )
-    title_text = '<font size="20">Ordenes para la fecha {}</font>'.format(date)
-    title = Paragraph(title_text, title_style)
-    pdf_content.append(title)
-
-    # Agregar tabla de órdenes
-    order_data = [
-        ['Número de Orden', 'Email del Cliente', 'Teléfono del Cliente']
-    ]
+    orders = orders_collection.find({"delivery_date" : date})
     for order in orders:
-        order_data.append([order['order_number'], order['customer_email'], order['customer_phone']])
-    order_table = Table(order_data, colWidths=[1.5 ] * 3) 
-    order_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)
-    ]))
-    pdf_content.append(order_table)
+        if not order:
+            return jsonify({'message': 'Order not found'}), 404        
+        remision_number = order['order_number']
+        remision_paragraph = Paragraph('<font>Remisión de la orden # {}</font>'.format(remision_number), centered_style)
+        green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
 
-    # Agregar espacio entre la tabla de órdenes y la tabla de productos
-    pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
+        # Tabla contenedora de la imagen y la caja verde
+        content_table = Table([
+            [logo, green_box]
+        ], colWidths=[200, 250])
+        pdf_content.append(content_table)
+        pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
+        table_width = 500
 
-    # Agregar tabla de productos para cada orden
-    for order in orders:
-        product_data = [
-            ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total']
+        # Aplicar estilos de WordWrap a las celdas de la tabla
+        word_wrap_style = getSampleStyleSheet()["Normal"]
+        word_wrap_style.wordWrap = 'CJK'
+
+        # Datos de la orden
+        order_data = [
+            ['Nombre', Paragraph(order['customer_name'], word_wrap_style), 'Teléfono del Cliente', Paragraph(order['customer_phone'], word_wrap_style)],
+            ['Método de pago', Paragraph(order['paymentMethod'], word_wrap_style), 'Horario de entrega', Paragraph(order['deliverySlot'], word_wrap_style)],
+            ['Dirección de entrega', Paragraph(order['deliveryAddress'], word_wrap_style), 'Detalle de entrega', Paragraph(order['deliveryAddressDetails'], word_wrap_style)]
         ]
-        for product in order['products']:
-            sku = product.sku
-            name = product.name
-            quantity = product.quantity
-            price_sale = locale.format_string('%.2f', product.price_sale, grouping=True)
-            total = locale.format_string('%.2f', product.quantity * product.price_sale, grouping=True)
-            product_data.append([sku, name, quantity, price_sale, total])
-        product_table = Table(product_data, colWidths=[1.0 ] * 5) # type: ignore
-        product_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)
-        ]))
-        pdf_content.append(product_table)
 
-        # Agregar espacio entre las tablas de productos
+        # Crear la tabla con cuatro columnas
+        order_table = Table(order_data, colWidths=[table_width / 4] * 4)
+
+        # Aplicar estilos a la tabla
+        order_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.white),  # Color de fondo de las celdas
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),  # Color del texto
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Alinear texto a la izquierda
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # Alinear verticalmente al centro
+            ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
+        ]))
+
+        # Agregar la tabla al contenido del PDF
+        pdf_content.append(order_table)
         pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
 
-    # Construir el PDF
+        # Aplicar estilos de WordWrap
+        word_wrap_style = styles["Normal"]
+        word_wrap_style.wordWrap = 'CJK'
+
+        product_data = [
+            ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
+        ]
+        for product in list(order['products']):
+            sku = product['sku']
+            name = product['name']
+            quantity = product['quantity']
+            price_sale = locale.format_string('%.2f', round(product.get('price_sale'),0), grouping=True)
+            total = locale.format_string('%.2f', round(float(product.get('price_sale')) * float(quantity),0), grouping=True)
+            name_paragraph = Paragraph(name, word_wrap_style)
+            product_row = [sku, name_paragraph, quantity, price_sale, total]
+            product_data.append(product_row)
+
+        subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order['products']))
+        descuentos = 0
+        total = subtotal - descuentos
+        subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
+        descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
+        total_formatted = locale.format_string('%.2f', total, grouping=True)
+        product_data.extend([['','','','',''],
+            ['', '', '', 'Subtotal', subtotal_formatted],
+            ['', '', '', 'Descuentos', descuentos_formatted],
+            ['', '', '', 'Total', total_formatted]
+        ])
+        product_table = Table(product_data, colWidths=[table_width / 5] * 5)
+        product_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
+        ]))
+        pdf_content.append(product_table)
+        pdf_content.append(PageBreak())
+
     pdf.build(pdf_content)
-
-    # Mover el cursor del buffer al inicio
     buffer.seek(0)
-
-    # Crear una respuesta con el archivo PDF y establecer el encabezado Content-Disposition
     response = Response(buffer, mimetype='application/pdf')
     response.headers['Content-Disposition'] = 'inline; filename=ordenes_{}.pdf'.format(date)
+    return response
 
+@report_api.route('/compras/<string:date>', methods=['GET'])
+def get_compras(date):
+    pipeline = [
+        {
+            "$match": {
+                "delivery_date": date
+            }
+        },
+        {
+            "$unwind": "$products"
+        },
+        {
+            "$group": {
+                "_id": "$products.sku",
+                "total_quantity_ordered": {"$sum": "$products.quantity"}
+            }
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "_id",
+                "foreignField": "sku",
+                "as": "product_info"
+            }
+        },
+        {
+            "$unwind": "$product_info"
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "sku": "$_id",
+                "name": "$product_info.name",
+                "total_quantity_ordered": 1,
+                "price_purchase": "$product_info.price_purchase",
+                "proveedor": "$product_info.proveedor"
+            }
+        }
+    ]
+    products = list(orders_collection.aggregate(pipeline))
+    buffer = BytesIO()
+    pdf = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    image_path = 'http://3.23.102.32:5000/api/shared/banner1.png'
+    logo = Image(image_path, width=200, height=70)
+    centered_style = ParagraphStyle(
+            name='Centered',
+            fontSize=16,  # Tamaño de la letra aumentado a 16
+            alignment=TA_CENTER,  # Centrado horizontal
+            textColor=colors.white,  # Color del texto blanco
+            leading=50  # Espaciado entre líneas para centrar verticalmente
+        )
+    pdf_content = []
+    compras_paragraph = Paragraph('<font>Compras para el {}</font>'.format(date), centered_style)
+    green_box = Table([[compras_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
+    content_table = Table([
+    [logo, green_box]], colWidths=[200, 250])
+    pdf_content.append(content_table)
+    pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
+    table_width = 500
+    product_data = [
+        ['sku', 'Nombre', 'Cantidad', 'Precio Unitario', 'Proveedor'],  # Encabezado
+    ]
+    word_wrap_style = styles["Normal"]
+    word_wrap_style.wordWrap = 'CJK'
+    for product in products:
+        sku = product['sku']
+        name = product['name']
+        quantity = product.get('total_quantity_ordered')
+        price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
+        proveedor = product['proveedor']
+        name_paragraph = Paragraph(name, word_wrap_style)
+        product_row = [sku, name_paragraph, quantity, price, proveedor]
+        product_data.append(product_row)
+    total = locale.format_string('%.2f',sum(round(float(product['total_quantity_ordered']) * float(product['price_purchase']),0) for product in products), grouping=True)
+    product_data.extend([['','','','',''],
+            ['', '', 'Total', total, '']
+        ])
+    product_table = Table(product_data, colWidths=[table_width / 5] * 5)
+    product_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
+    ]))
+    pdf_content.append(product_table)
+    pdf_content.append(PageBreak())
+
+    pdf.build(pdf_content)
+    buffer.seek(0)
+    response = Response(buffer, mimetype='application/pdf')
+    response.headers['Content-Disposition'] = 'inline; filename=ordenes_{}.pdf'.format(date)
     return response

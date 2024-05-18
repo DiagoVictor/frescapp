@@ -13,6 +13,7 @@ export class PickingComponent {
 
   }
   generarPDF(): void {
+    console.log(this.fecha)
     this.pfdPicking = this.orderService.getPicking(this.fecha);
   }
 }
