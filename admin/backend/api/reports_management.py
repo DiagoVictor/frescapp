@@ -22,7 +22,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak
 import locale
 
-locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 report_api = Blueprint('report', __name__)
 client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
 db = client['frescapp']
