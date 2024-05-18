@@ -12,7 +12,7 @@ from email.mime.multipart import MIMEMultipart
 from oauth2client import client, tools, file
 
 
-client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
+client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
 db = client['frescapp']
 config = db['orderConfig']  
 
@@ -73,7 +73,7 @@ def send_new_order(subject, cuerpo, customer_email):
     send_message('me', message, 'New order', customer_email, cuerpo)
 
 def send_restore_password(user_data):
-    url = "http://3.23.102.32/restore/"+str(ObjectId(user_data['_id']))
+    url = "http://app.buyfrescapp.com/restore/"+str(ObjectId(user_data['_id']))
     cuerpo = f"""
 <!DOCTYPE html>
 <html lang="es" style="height: 100%; position: relative;" height="100%">
@@ -105,7 +105,7 @@ def send_restore_password(user_data):
                                             <p style="margin-bottom: 0; margin-top: 0;"><a
                                                     href="https://www.buyfrescapp.com" target="_blank"
                                                     style="font-weight: normal; color: #97d700; display: block; text-decoration: none;"><img
-                                                        src="http://3.23.102.32:5000/api/shared/banner1.png"
+                                                        src="http://app.buyfrescapp.com:5000/api/shared/banner1.png"
                                                         alt="Frescapp" width="600"
                                                         style="border: none; display: inline; font-weight: bold; height: auto; outline: none; text-decoration: none; text-transform: capitalize; font-size: 14px; line-height: 24px; max-width: 100%; width: 600px;"></a>
                                             </p>

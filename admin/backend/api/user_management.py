@@ -8,7 +8,7 @@ from bson import ObjectId
 from functools import wraps
 import utils.email_utils as emails
 user_api = Blueprint('user', __name__)
-client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
+client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
 db = client['frescapp']
 customers_collection = db['customers']  
 

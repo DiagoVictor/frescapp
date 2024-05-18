@@ -4,7 +4,7 @@ from pymongo import MongoClient
 configOrder_api = Blueprint('config_order', __name__)
 
 # Conexión a la base de datos MongoDB
-client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp')
+client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
 config_collection = db['orderConfig']
 

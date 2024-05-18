@@ -24,7 +24,7 @@ import locale
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 report_api = Blueprint('report', __name__)
-client = MongoClient('mongodb://admin:Caremonda@3.23.102.32:27017/frescapp') 
+client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
 db = client['frescapp']
 orders_collection = db['orders']  
 products_collection = db['orders']  
@@ -33,7 +33,7 @@ def get_picking(date):
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
-    image_path = 'http://3.23.102.32:5000/api/shared/banner1.png'
+    image_path = 'app.buyfrescapp.com/api/shared/banner1.png'
     logo = Image(image_path, width=200, height=70)
     centered_style = ParagraphStyle(
             name='Centered',
@@ -174,7 +174,7 @@ def get_compras(date):
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
-    image_path = 'http://3.23.102.32:5000/api/shared/banner1.png'
+    image_path = 'http://app.buyfrescapp.com:5000/api/shared/banner1.png'
     logo = Image(image_path, width=200, height=70)
     centered_style = ParagraphStyle(
             name='Centered',

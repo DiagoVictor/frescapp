@@ -153,7 +153,7 @@ export class OrdenesComponent implements OnInit {
       );
   }
   openPdfModal(order: any): void {
-    this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('http://3.23.102.32:5000/api/order/generate_pdf/' + order);
+    this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('app.buyfrescapp.com/api/order/generate_pdf/' + order);
 
   }
 
