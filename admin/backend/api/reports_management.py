@@ -131,8 +131,8 @@ def get_picking(date):
     response.headers['Content-Disposition'] = 'inline; filename=ordenes_{}.pdf'.format(date)
     return response
 
-@report_api.route('/compras/<string:date>', methods=['GET'])
-def get_compras(date):
+@report_api.route('/compras/<string:date>/<string:supplier>', methods=['GET'])
+def get_compras(date,supplier):
     pipeline = [
         {
             "$match": {
@@ -170,6 +170,13 @@ def get_compras(date):
             }
         }
     ]
+    if supplier != '':
+        pipeline[0]["$match"]["supplier"] = supplier
+        pipeline.append({
+            "$match": {
+                "proveedor": supplier
+            }
+        })
     products = list(orders_collection.aggregate(pipeline))
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)

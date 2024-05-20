@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class ClientesService {
-  private baseUrl = 'app.buyfrescapp.com/';
+  private baseUrl = 'http://app.buyfrescapp.com:5000/';
   constructor(private httpClient: HttpClient) { }
 
   getClientes() {

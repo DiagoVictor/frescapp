@@ -30,7 +30,8 @@ import { ComprasComponent } from './reports/compras/compras.component'; // Impor
     RestorePasswordComponent,
     DeleteAccountComponent,
     PickingComponent,
-    ComprasComponent
+    ComprasComponent,
+
   ],
   imports: [
     BrowserModule,

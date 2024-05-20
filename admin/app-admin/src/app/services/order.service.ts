@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class OrderService {
-  private baseUrl = 'app.buyfrescapp.com/';
+  private baseUrl = 'http://app.buyfrescapp.com:5000/';
 
   constructor(private http: HttpClient) { }
 
@@ -26,10 +26,4 @@ export class OrderService {
   getConfig(): Observable<any> {
       return this.http.get<any>(this.baseUrl+ 'api/config/configOrder');
   }
-  getPicking(fecha:string) {
-    return this.http.get<any>(this.baseUrl+ 'api/resports/picking/'+fecha);
-  }
-  getCompras(fecha:string) {
-    return this.http.get<any>(this.baseUrl+ 'api/reports/compras/'+fecha);
-}
 }

@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ProductService {
-  private baseUrl = 'app.buyfrescapp.com/';
+  private baseUrl = 'http://app.buyfrescapp.com:5000/';
 
   constructor(private httpClient: HttpClient) { }
 

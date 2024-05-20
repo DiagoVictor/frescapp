@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { OrderService } from '../../services/order.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-compras',
@@ -8,11 +8,10 @@ import { OrderService } from '../../services/order.service';
 })
 export class ComprasComponent {
   fecha: string = '';
-  pfdPicking: any = '';
-  constructor(private orderService: OrderService){
-
-  }
+  pdfPicking: any = '';
+  supplier  :any = 'Todos';
+  constructor(private sanitizer: DomSanitizer) {}
   generarPDF(): void {
-    this.pfdPicking = this.orderService.getCompras(this.fecha);
+    this.pdfPicking = this.sanitizer.bypassSecurityTrustResourceUrl('http://app.buyfrescapp.com:5000/api/reports/compras/' + this.fecha + "/" + this.supplier ) ;
   }
 }

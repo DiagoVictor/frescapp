@@ -1,19 +1,19 @@
 import { Component } from '@angular/core';
-import { OrderService } from '../../services/order.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-picking',
   templateUrl: './picking.component.html',
   styleUrls: ['./picking.component.css']
 })
+
 export class PickingComponent {
   fecha: string = '';
-  pfdPicking: any = '';
-  constructor(private orderService: OrderService){
+  pdfPicking: any = '';
+  constructor(private sanitizer: DomSanitizer) {}
 
-  }
+
   generarPDF(): void {
-    console.log(this.fecha)
-    this.pfdPicking = this.orderService.getPicking(this.fecha);
+    this.pdfPicking = this.sanitizer.bypassSecurityTrustResourceUrl('http://app.buyfrescapp.com:5000/api/reports/picking/' + this.fecha);
   }
 }
