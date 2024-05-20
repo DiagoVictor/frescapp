@@ -170,13 +170,13 @@ def get_compras(date,supplier):
             }
         }
     ]
-    if supplier != '':
-        pipeline[0]["$match"]["supplier"] = supplier
+    if supplier != 'Todos':
         pipeline.append({
             "$match": {
                 "proveedor": supplier
             }
         })
+    
     products = list(orders_collection.aggregate(pipeline))
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
