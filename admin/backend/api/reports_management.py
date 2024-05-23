@@ -166,7 +166,8 @@ def get_compras(date,supplier):
                 "name": "$product_info.name",
                 "total_quantity_ordered": 1,
                 "price_purchase": "$product_info.price_purchase",
-                "proveedor": "$product_info.proveedor"
+                "proveedor": "$product_info.proveedor",
+                "category": "$product_info.category"
             }
         }
     ]
@@ -176,7 +177,11 @@ def get_compras(date,supplier):
                 "proveedor": supplier
             }
         })
-    
+    pipeline.append({
+        "$sort": {
+            "category": 1  # Orden ascendente por categoría
+        }
+    })
     products = list(orders_collection.aggregate(pipeline))
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
@@ -199,7 +204,7 @@ def get_compras(date,supplier):
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
     table_width = 500
     product_data = [
-        ['sku', 'Nombre', 'Cantidad', 'Precio Unitario', 'Proveedor'],  # Encabezado
+        ['sku', 'Nombre', 'Categoria', 'Cantidad', 'Precio Unitario', 'Proveedor'],  # Encabezado
     ]
     word_wrap_style = styles["Normal"]
     word_wrap_style.wordWrap = 'CJK'
@@ -210,13 +215,13 @@ def get_compras(date,supplier):
         price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
         proveedor = product['proveedor']
         name_paragraph = Paragraph(name, word_wrap_style)
-        product_row = [sku, name_paragraph, quantity, price, proveedor]
+        product_row = [sku, name_paragraph, product.get('category'), quantity, price, proveedor]
         product_data.append(product_row)
     total = locale.format_string('%.2f',sum(round(float(product['total_quantity_ordered']) * float(product['price_purchase']),0) for product in products), grouping=True)
     product_data.extend([['','','','',''],
             ['', '', 'Total', total, '']
         ])
-    product_table = Table(product_data, colWidths=[table_width / 5] * 5)
+    product_table = Table(product_data, colWidths=[table_width / 6] * 6)
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
