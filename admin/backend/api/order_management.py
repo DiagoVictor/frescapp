@@ -158,7 +158,7 @@ def generate_remision(id_order):
     styles = getSampleStyleSheet()
 
     # Agregar imagen en la parte superior
-    image_path = 'app.buyfrescapp.com/api/shared/banner1.png'  # Ruta de la imagen
+    image_path = 'http://app.buyfrescapp.com:5000/api/shared/banner1.png'
     logo = Image(image_path, width=500, height=170)
     pdf_content = [logo]
     centered_style = ParagraphStyle(

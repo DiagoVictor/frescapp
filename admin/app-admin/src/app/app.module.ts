@@ -14,7 +14,8 @@ import { ReportsComponent } from './reports/reports.component';
 import { RestorePasswordComponent } from './restore-password/restore-password.component';
 import { DeleteAccountComponent } from './delete-account/delete-account.component';
 import { PickingComponent } from './reports/picking/picking.component';
-import { ComprasComponent } from './reports/compras/compras.component'; // Importa FormsModule
+import { ComprasComponent } from './reports/compras/compras.component';
+import { CotizarComponent } from './reports/cotizar/cotizar.component'; // Importa FormsModule
 
 
 @NgModule({
@@ -31,6 +32,7 @@ import { ComprasComponent } from './reports/compras/compras.component'; // Impor
     DeleteAccountComponent,
     PickingComponent,
     ComprasComponent,
+    CotizarComponent,
 
   ],
   imports: [
