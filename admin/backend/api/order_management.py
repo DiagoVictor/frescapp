@@ -205,7 +205,7 @@ def generate_remision(id_order):
         name = product.get('name')
         quantity = product.get('quantity')
         price_sale = locale.format_string('%.2f', round(product.get('price_sale'),0), grouping=True)
-        total = locale.format_string('%.2f', round(float(price_sale) * float(quantity),0), grouping=True)
+        total = locale.format_string('%.2f', round(float(product.get('price_sale')) * float(quantity),0), grouping=True)
         
         # Crear un párrafo con el nombre del producto y aplicar el estilo WordWrap
         name_paragraph = Paragraph(name, word_wrap_style)
