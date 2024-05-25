@@ -168,70 +168,82 @@ def generate_remision(id_order):
         textColor=colors.white,  # Color del texto blanco
         leading=50  # Espaciado entre líneas para centrar verticalmente
     )
-
-    # Crear el párrafo con el nuevo estilo
-    remision_number = order.order_number
+    remision_number = order['order_number']
     remision_paragraph = Paragraph('<font>Remisión de la orden # {}</font>'.format(remision_number), centered_style)
+    green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
 
-    # Crear la tabla con el párrafo centrado y con el tamaño de letra aumentado
-    green_box = Table([[remision_paragraph]], colWidths=[500], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
-    pdf_content.append(green_box)
-
-    # Espacio entre la caja verde y la tabla
+    # Tabla contenedora de la imagen y la caja verde
+    content_table = Table([
+        [logo, green_box]
+    ], colWidths=[200, 250])
+    pdf_content.append(content_table)
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
-
     table_width = 500
+
+
+
+        # Aplicar estilos de WordWrap a las celdas de la tabla
+    word_wrap_style = getSampleStyleSheet()["Normal"]
+    word_wrap_style.wordWrap = 'CJK'
+
+    # Datos de la orden
     order_data = [
-        ['Número de Orden', 'Email del Cliente', 'Teléfono del Cliente'],  # Encabezado
-        [order.order_number, order.customer_email, order.customer_phone]  # Datos de la orden
+        ['Nombre', Paragraph(order['customer_name'], word_wrap_style), 'Teléfono del Cliente', Paragraph(order['customer_phone'], word_wrap_style)],
+        ['Método de pago', Paragraph(order['paymentMethod'], word_wrap_style), 'Horario de entrega', Paragraph(order['deliverySlot'], word_wrap_style)],
+        ['Dirección de entrega', Paragraph(order['deliveryAddress'], word_wrap_style), 'Detalle de entrega', Paragraph(order['deliveryAddressDetails'], word_wrap_style)]
     ]
-    order_table = Table(order_data, colWidths=[table_width / 3] * 3)  # Dividir el ancho en 3 columnas iguales
+
+    # Crear la tabla con cuatro columnas
+    order_table = Table(order_data, colWidths=[table_width / 4] * 4)
+
+    # Aplicar estilos a la tabla
     order_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
+        ('BACKGROUND', (0, 0), (-1, -1), colors.white),  # Color de fondo de las celdas
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),  # Color del texto
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Alinear texto a la izquierda
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # Alinear verticalmente al centro
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
     ]))
+
+    # Agregar la tabla al contenido del PDF
     pdf_content.append(order_table)
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
-    styles = getSampleStyleSheet()
+
+    # Aplicar estilos de WordWrap
     word_wrap_style = styles["Normal"]
     word_wrap_style.wordWrap = 'CJK'
 
-    # Crear tabla con los datos de los productos
     product_data = [
         ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
     ]
-    for product in order.products:
-        sku = product.get('sku')
-        name = product.get('name')
-        quantity = product.get('quantity')
+    for product in list(order['products']):
+        sku = product['sku']
+        name = product['name']
+        quantity = product['quantity']
         price_sale = locale.format_string('%.2f', round(product.get('price_sale'),0), grouping=True)
         total = locale.format_string('%.2f', round(float(product.get('price_sale')) * float(quantity),0), grouping=True)
-        
-        # Crear un párrafo con el nombre del producto y aplicar el estilo WordWrap
         name_paragraph = Paragraph(name, word_wrap_style)
-
         product_row = [sku, name_paragraph, quantity, price_sale, total]
         product_data.append(product_row)
 
-    # Agregar líneas adicionales para subtotal, descuentos y total
-    subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in order.products)
-    descuentos = 0  # Ajusta esto según corresponda
+    subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order['products']))
+    descuentos = 0
     total = subtotal - descuentos
     subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
     descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
     total_formatted = locale.format_string('%.2f', total, grouping=True)
-    # Añadir líneas adicionales al producto_data
-    product_data.extend([
+    product_data.extend([['','','','',''],
         ['', '', '', 'Subtotal', subtotal_formatted],
         ['', '', '', 'Descuentos', descuentos_formatted],
         ['', '', '', 'Total', total_formatted]
     ])
-
-    # Crear la tabla de productos
     product_table = Table(product_data, colWidths=[table_width / 5] * 5)
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white)   # Color del texto del encabezado
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
     ]))
     pdf_content.append(product_table)
 
@@ -243,8 +255,7 @@ def generate_remision(id_order):
 
     # Crear una respuesta con el archivo PDF y establecer el encabezado Content-Disposition
     response = Response(buffer, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = 'inline; filename=orden_{}.pdf'.format(order.order_number)
-
+    response.headers['Content-Disposition'] = 'inline; filename=Orden_{}.pdf'.format(remision_number)
     return response
 
 @order_api.route('/orders_customer/<string:email>', methods=['GET'])

@@ -128,7 +128,7 @@ def get_picking(date):
     pdf.build(pdf_content)
     buffer.seek(0)
     response = Response(buffer, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = 'inline; filename=ordenes_{}.pdf'.format(date)
+    response.headers['Content-Disposition'] = 'inline; filename=remisiones_{}_{}.pdf'.format(date,date)
     return response
 
 @report_api.route('/compras/<string:date>/<string:supplier>', methods=['GET'])
