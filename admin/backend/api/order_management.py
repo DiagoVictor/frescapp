@@ -168,7 +168,7 @@ def generate_remision(id_order):
         textColor=colors.white,  # Color del texto blanco
         leading=50  # Espaciado entre líneas para centrar verticalmente
     )
-    remision_number = order['order_number']
+    remision_number = order.order_number
     remision_paragraph = Paragraph('<font>Remisión de la orden # {}</font>'.format(remision_number), centered_style)
     green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
 
@@ -188,9 +188,9 @@ def generate_remision(id_order):
 
     # Datos de la orden
     order_data = [
-        ['Nombre', Paragraph(order['customer_name'], word_wrap_style), 'Teléfono del Cliente', Paragraph(order['customer_phone'], word_wrap_style)],
-        ['Método de pago', Paragraph(order['paymentMethod'], word_wrap_style), 'Horario de entrega', Paragraph(order['deliverySlot'], word_wrap_style)],
-        ['Dirección de entrega', Paragraph(order['deliveryAddress'], word_wrap_style), 'Detalle de entrega', Paragraph(order['deliveryAddressDetails'], word_wrap_style)]
+        ['Nombre', Paragraph(order.customer_name, word_wrap_style), 'Teléfono del Cliente', Paragraph(order.customer_phone, word_wrap_style)],
+        ['Método de pago', Paragraph(order.paymentMethod, word_wrap_style), 'Horario de entrega', Paragraph(order.deliverySlot, word_wrap_style)],
+        ['Dirección de entrega', Paragraph(order.deliveryAddress, word_wrap_style), 'Detalle de entrega', Paragraph(order.deliveryAddressDetails, word_wrap_style)]
     ]
 
     # Crear la tabla con cuatro columnas
@@ -217,7 +217,7 @@ def generate_remision(id_order):
     product_data = [
         ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
     ]
-    for product in list(order['products']):
+    for product in list(order.products):
         sku = product['sku']
         name = product['name']
         quantity = product['quantity']
@@ -227,7 +227,7 @@ def generate_remision(id_order):
         product_row = [sku, name_paragraph, quantity, price_sale, total]
         product_data.append(product_row)
 
-    subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order['products']))
+    subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order.products))
     descuentos = 0
     total = subtotal - descuentos
     subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
