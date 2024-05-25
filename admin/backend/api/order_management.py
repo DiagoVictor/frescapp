@@ -148,26 +148,19 @@ def generate_remision(id_order):
     if not order:
         return jsonify({'message': 'Order not found'}), 404
 
-    # Crear un objeto de tipo BytesIO para almacenar el PDF en memoria
     buffer = BytesIO()
-
-    # Crear un documento PDF
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
-
-    # Estilos de párrafo
     styles = getSampleStyleSheet()
-
-    # Agregar imagen en la parte superior
     image_path = 'http://app.buyfrescapp.com:5000/api/shared/banner1.png'
-    logo = Image(image_path, width=500, height=170)
-    pdf_content = []
+    logo = Image(image_path, width=200, height=70)
     centered_style = ParagraphStyle(
-        name='Centered',
-        fontSize=16,  # Tamaño de la letra aumentado a 16
-        alignment=TA_CENTER,  # Centrado horizontal
-        textColor=colors.white,  # Color del texto blanco
-        leading=50  # Espaciado entre líneas para centrar verticalmente
-    )
+            name='Centered',
+            fontSize=16,  # Tamaño de la letra aumentado a 16
+            alignment=TA_CENTER,  # Centrado horizontal
+            textColor=colors.white,  # Color del texto blanco
+            leading=50  # Espaciado entre líneas para centrar verticalmente
+        )
+    pdf_content = []
     remision_number = order.order_number
     remision_paragraph = Paragraph('<font>Remisión de la orden # {}</font>'.format(remision_number), centered_style)
     green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
@@ -180,9 +173,7 @@ def generate_remision(id_order):
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
     table_width = 500
 
-
-
-        # Aplicar estilos de WordWrap a las celdas de la tabla
+    # Aplicar estilos de WordWrap a las celdas de la tabla
     word_wrap_style = getSampleStyleSheet()["Normal"]
     word_wrap_style.wordWrap = 'CJK'
 
