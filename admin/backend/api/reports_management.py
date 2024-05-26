@@ -167,7 +167,8 @@ def get_compras(date,supplier):
                 "total_quantity_ordered": 1,
                 "price_purchase": "$product_info.price_purchase",
                 "proveedor": "$product_info.proveedor",
-                "category": "$product_info.category"
+                "category": "$product_info.category",
+                "unit": "$product_info.unit"
             }
         }
     ]
@@ -211,7 +212,7 @@ def get_compras(date,supplier):
     for product in products:
         sku = product['sku']
         name = product['name'] + " - ( "+sku+" )"
-        quantity = product.get('total_quantity_ordered')
+        quantity = product.get('total_quantity_ordered') + " "+ product.get('unit')
         price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
         proveedor = product['proveedor']
         name_paragraph = Paragraph(name, word_wrap_style)
