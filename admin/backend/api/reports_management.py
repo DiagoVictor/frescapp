@@ -212,7 +212,7 @@ def get_compras(date,supplier):
     for product in products:
         sku = product['sku']
         name = product['name'] + " - ( "+sku+" )"
-        quantity = product.get('total_quantity_ordered') + " "+ product.get('unit')
+        quantity = str(product.get('total_quantity_ordered')) + "  " + str(product.get('unit'))
         price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
         proveedor = product['proveedor']
         name_paragraph = Paragraph(name, word_wrap_style)
