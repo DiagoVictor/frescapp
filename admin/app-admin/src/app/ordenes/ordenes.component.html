@@ -197,6 +197,15 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let product of order.products">
+                    <ng-select
+                    [items]="products"
+                    bindLabel="name"
+                    bindValue="id"
+                    [searchable]="true"
+                    placeholder="Productos..."
+                    [(ngModel)]="product.id"
+                    (change)="onProductSelect(product)">
+                  </ng-select>
                     <td><input type="text" class="form-control" [(ngModel)]="product.sku"></td>
                     <td><input type="text" class="form-control" [(ngModel)]="product.name"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.price_sale"></td>

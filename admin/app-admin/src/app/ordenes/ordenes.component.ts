@@ -11,12 +11,12 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
   templateUrl: './ordenes.component.html',
   styleUrls: ['./ordenes.component.css']
 })
-
 export class OrdenesComponent implements OnInit {
   orders: any[] | [] | undefined;
   filteredOrders: any[] | undefined;
   searchText: string = '';
   order: any = {};
+  product: any = {};
   customers: any[]  = [];
   selectedCustomerId: number | undefined;
   actionType: any = '';
@@ -25,7 +25,8 @@ export class OrdenesComponent implements OnInit {
   paymentMethods: string[] = [];
   deliverySlots: string[] = [];
   orderStatus: string[] = ['Creada', 'Confirmada', 'Despachada', 'Entregada', 'Facturada', 'Archivada'];
-  productos: any[] = [];
+  products: any[] = [];
+  selectedProductId: number | undefined;
   selectedsku: string = '';
   pdfData: any;
   constructor(
@@ -157,7 +158,7 @@ export class OrdenesComponent implements OnInit {
     this.productService.getProducts()
       .subscribe(
         (data: any) => {
-          this.productos = data;
+          this.products = data;
         },
       );
   }
@@ -188,9 +189,17 @@ export class OrdenesComponent implements OnInit {
       this.order.customer_documentNumber = selectedCustomer.document;
       this.order.customer_documentType = selectedCustomer.document_type;
       this.order.deliveryAddress = selectedCustomer.address;
-
     }
   }
-
+  onProductSelect(product: { id: any; name: any; sku: any; price_sale: any; iva: any; iva_value: any; }): void {
+    const selectedProduct = this.products.find(p => p.id === product.id);
+    if (selectedProduct) {
+      product.name = selectedProduct.name;
+      product.sku = selectedProduct.sku;
+      product.price_sale = selectedProduct.price_sale;
+      product.iva = selectedProduct.iva;
+      product.iva_value = selectedProduct.iva_value;
+    }
+  }
 }
 
