@@ -204,24 +204,25 @@ def get_compras(date,supplier):
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
     table_width = 500
     product_data = [
-        ['sku', 'Nombre', 'Categoria', 'Cantidad', 'Precio Unitario', 'Proveedor'],  # Encabezado
+        [ 'Nombre', 'Categoria', 'Cantidad', 'Precio Unitario', 'Proveedor'],  # Encabezado
     ]
     word_wrap_style = styles["Normal"]
     word_wrap_style.wordWrap = 'CJK'
     for product in products:
         sku = product['sku']
-        name = product['name']
+        name = product['name'] + " - ( "+sku+" )"
         quantity = product.get('total_quantity_ordered')
         price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
         proveedor = product['proveedor']
         name_paragraph = Paragraph(name, word_wrap_style)
-        product_row = [sku, name_paragraph, product.get('category'), quantity, price, proveedor]
+        product_row = [ name_paragraph, product.get('category'), quantity, price, proveedor]
         product_data.append(product_row)
     total = locale.format_string('%.2f',sum(round(float(product['total_quantity_ordered']) * float(product['price_purchase']),0) for product in products), grouping=True)
     product_data.extend([['','','','',''],
             ['', '', 'Total', total, '']
         ])
-    product_table = Table(product_data, colWidths=[table_width / 6] * 6)
+    col_widths = [(2 / 6) * table_width] + [(1 / 6) * table_width] * 4
+    product_table = Table(product_data, colWidths=col_widths)
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
