@@ -23,7 +23,8 @@ class Order:
                  deliverySlot,
                  paymentMethod,
                  deliveryAddress,
-                 deliveryAddressDetails 
+                 deliveryAddressDetails,
+                 discount=None 
                  ):
         self.order_number = order_number
         self.customer_email = customer_email
@@ -41,6 +42,7 @@ class Order:
         self.paymentMethod = paymentMethod
         self.deliveryAddress = deliveryAddress
         self.deliveryAddressDetails = deliveryAddressDetails 
+        self.discount = discount if discount is not None else 0  
 
     def save(self):
         order_data = {
@@ -59,7 +61,8 @@ class Order:
             "deliverySlot" : self.deliverySlot,
             "paymentMethod" : self.paymentMethod,
             "deliveryAddress" : self.deliveryAddress,
-            "deliveryAddressDetails" : self.deliveryAddressDetails 
+            "deliveryAddressDetails" : self.deliveryAddressDetails,
+            "discount" : self.discount 
         }
         result = orders_collection.insert_one(order_data)
         return result.inserted_id
