@@ -66,7 +66,7 @@ def create_order():
         deliveryAddressDetails = deliveryAddressDetails 
     )
     order.save()
-    send_order_email(order_number, customer_email, delivery_date, products, total)
+    #send_order_email(order_number, customer_email, delivery_date, products, total)
     return jsonify({'message': 'Order created successfully'}), 201
 
 # Ruta para actualizar un usuario existente

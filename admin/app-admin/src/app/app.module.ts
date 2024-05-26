@@ -16,6 +16,7 @@ import { DeleteAccountComponent } from './delete-account/delete-account.componen
 import { PickingComponent } from './reports/picking/picking.component';
 import { ComprasComponent } from './reports/compras/compras.component';
 import { CotizarComponent } from './reports/cotizar/cotizar.component'; // Importa FormsModule
+import { NgSelectModule } from '@ng-select/ng-select';
 
 
 @NgModule({
@@ -41,7 +42,8 @@ import { CotizarComponent } from './reports/cotizar/cotizar.component'; // Impor
     HttpClientModule,
     FormsModule,
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    NgSelectModule
   ],
   providers: [],
   bootstrap: [AppComponent]

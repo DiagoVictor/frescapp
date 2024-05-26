@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit } from '@angular/core';
 import { OrderService } from '../services/order.service';
 import { Router } from '@angular/router';
 import { ProductService } from '../services/product.service';
+import { ClientesService } from '../services/clientes.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 
@@ -16,6 +17,8 @@ export class OrdenesComponent implements OnInit {
   filteredOrders: any[] | undefined;
   searchText: string = '';
   order: any = {};
+  customers: any[]  = [];
+  selectedCustomerId: number | undefined;
   actionType: any = '';
   successMessage: string = '';
   documentTypes: string[] = [];
@@ -25,8 +28,13 @@ export class OrdenesComponent implements OnInit {
   productos: any[] = [];
   selectedsku: string = '';
   pdfData: any;
-  constructor(private orderService: OrderService, private router: Router,
-    private productService: ProductService, private sanitizer: DomSanitizer) { }
+  constructor(
+    private orderService: OrderService
+    ,private router: Router
+    ,private productService: ProductService
+    ,private clienteService: ClientesService
+    ,private sanitizer: DomSanitizer
+  ) { }
 
   ngOnInit(): void {
     const isLoggedIn = this.checkIfLoggedIn();
@@ -41,6 +49,7 @@ export class OrdenesComponent implements OnInit {
         this.deliverySlots = config.delivery_slots;
       });
       this.obtenerProductos();
+      this.getCustomers();
 
     }
   }
@@ -156,5 +165,32 @@ export class OrdenesComponent implements OnInit {
     this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('http://app.buyfrescapp.com:5000/api/order/generate_pdf/' + order);
 
   }
+  getCustomers(){
+    this.clienteService.getClientes()
+      .subscribe(customers => {
+        this.customers = customers;
+      });
+  }
+  filteredCustomers() {
+    if (!this.searchText) {
+      return this.customers;
+    }
+    return this.customers.filter(customer =>
+      customer.name.toLowerCase().includes(this.searchText.toLowerCase())
+    );
+  }
+  onCustomerSelect() {
+    const selectedCustomer = this.customers.find(customer => customer.id === this.selectedCustomerId);
+    if (selectedCustomer) {
+      this.order.customer_name = selectedCustomer.name;
+      this.order.customer_email = selectedCustomer.email;
+      this.order.customer_phone = selectedCustomer.phone;
+      this.order.customer_documentNumber = selectedCustomer.document;
+      this.order.customer_documentType = selectedCustomer.document_type;
+      this.order.deliveryAddress = selectedCustomer.address;
+
+    }
+  }
 
 }
+
