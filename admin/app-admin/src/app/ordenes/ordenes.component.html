@@ -186,8 +186,9 @@
               <table class="table">
                 <thead>
                   <tr>
+                    <th class="col-4">Producto</th>
                     <th>SKU</th>
-                    <th>Nombre</th>
+                    <th  [hidden]="true">Nombre</th>
                     <th>Precio Venta</th>
                     <th>Cantidad</th>
                     <th>IVA</th>
@@ -207,7 +208,7 @@
                     (change)="onProductSelect(product)">
                   </ng-select>
                     <td><input type="text" class="form-control" [(ngModel)]="product.sku"></td>
-                    <td><input type="text" class="form-control" [(ngModel)]="product.name"></td>
+                    <td><input type="text" class="form-control" [(ngModel)]="product.name" [hidden]="true"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.price_sale"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.quantity"></td>
                     <td><input type="checkbox" [(ngModel)]="product.iva"></td>

@@ -219,7 +219,10 @@ def generate_remision(id_order):
         product_data.append(product_row)
 
     subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order.products))
-    descuentos = 0
+    if 'discount' in order:
+        descuentos = float(order.discount)
+    else:
+        descuentos = 0    
     total = subtotal - descuentos
     subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
     descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
