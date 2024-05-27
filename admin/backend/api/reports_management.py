@@ -180,7 +180,8 @@ def get_compras(date,supplier):
         })
     pipeline.append({
         "$sort": {
-            "category": 1  # Orden ascendente por categoría
+            "category": 1 ,
+            "name":1
         }
     })
     products = list(orders_collection.aggregate(pipeline))
