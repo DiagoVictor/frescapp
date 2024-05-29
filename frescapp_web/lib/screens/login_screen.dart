@@ -2,14 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:frescapp/api_routes.dart'; 
+import 'package:frescapp/api_routes.dart';
 import 'package:frescapp/screens/newOrder/home_screen.dart';
-import 'package:frescapp/screens/forgot_password_screen.dart'; // Importar la pantalla para olvidar la contraseña
+import 'package:frescapp/screens/forgot_password_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
 
-  // Controladores de texto para los campos de entrada de correo electrónico y contraseña
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -32,7 +31,6 @@ class LoginScreen extends StatelessWidget {
 
   Future<void> _login(BuildContext context, String email, String password) async {
     if (email.isEmpty || password.isEmpty) {
-      // Mostrar mensaje de error si falta correo electrónico o contraseña
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor, ingrese correo electrónico y contraseña'),
@@ -43,7 +41,7 @@ class LoginScreen extends StatelessWidget {
 
     try {
       final response = await http.post(
-        Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/login'), // Endpoint del login
+        Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/login'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8'
         },
@@ -55,7 +53,6 @@ class LoginScreen extends StatelessWidget {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        // Guardar el correo electrónico y la contraseña en las preferencias compartidas
         _saveUserInfo(responseData);
         Navigator.push(
           // ignore: use_build_context_synchronously
@@ -64,7 +61,6 @@ class LoginScreen extends StatelessWidget {
         );
 
       } else {
-        // Mostrar mensaje de error si el inicio de sesión falla
         // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -73,8 +69,6 @@ class LoginScreen extends StatelessWidget {
         );
       }
     } catch (e) {
-      // Mostrar mensaje de error si hay un error de red u otro error
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
@@ -87,77 +81,77 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Colors.grey[900], // Fondo gris oscuro
+        color: Colors.grey[900],
         child: Center(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'web/assets/images/start_icon.png', // Ruta de la imagen
-                  width: 300, // Ancho de la imagen
-                  height: 300, // Alto de la imagen
-                ),
-                const SizedBox(height: 40),
+          child: SingleChildScrollView(  // Uso de SingleChildScrollView para evitar problemas con el teclado
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'web/assets/images/start_icon.png',
+                    width: 300,
+                    height: 300,
+                  ),
+                  const SizedBox(height: 40),
 
-                TextField(
-                  controller: emailController, // Asignar el controlador de texto para el correo electrónico
-                  decoration: const InputDecoration(
-                    hintText: 'Correo o Teléfono',
-                    prefixIcon: Icon(Icons.person),
-                    hintStyle: TextStyle(color: Colors.white), // Color blanco para el texto de sugerencia
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      hintText: 'Correo o Teléfono',
+                      prefixIcon: Icon(Icons.person),
+                      hintStyle: TextStyle(color: Colors.white),
+                    ),
+                    style: const TextStyle(color: Colors.white),
                   ),
-                  style: const TextStyle(color: Colors.white), // Color blanco para el texto de entrada
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: passwordController, // Asignar el controlador de texto para la contraseña
-                  obscureText: true, // Ocultar texto
-                  decoration: const InputDecoration(
-                    hintText: 'Contraseña',
-                    prefixIcon: Icon(Icons.lock),
-                    hintStyle: TextStyle(color: Colors.white), // Color blanco para el texto de sugerencia
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Contraseña',
+                      prefixIcon: Icon(Icons.lock),
+                      hintStyle: TextStyle(color: Colors.white),
+                    ),
+                    style: const TextStyle(color: Colors.white),
                   ),
-                  style: const TextStyle(color: Colors.white), // Color blanco para el texto de entrada
-                ),
-                const SizedBox(height: 40),
-                ElevatedButton(
-                  onPressed: () {
-                    // Acción cuando se presiona el botón de inicio de sesión
-                    _login(context, emailController.text, passwordController.text);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green, // Fondo verde 
+                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: () {
+                      _login(context, emailController.text, passwordController.text);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                    ),
+                    child: const Text(
+                      'Iniciar sesión',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                  child: const Text(
-                    'Iniciar sesión',
-                    style: TextStyle(color: Colors.white), // Texto blanco
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/register');
+                    },
+                    child: const Text(
+                      '¿No tienes una cuenta? Regístrate aquí',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: () {
-                    // Navegar a la pantalla de registro
-                    Navigator.of(context).pushNamed('/register');
-                  },
-                  child: const Text(
-                    '¿No tienes una cuenta? Regístrate aquí',
-                    style: TextStyle(color: Colors.white), // Texto blanco
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => ForgotPasswordScreen())
+                      );
+                    },
+                    child: const Text(
+                      '¿Olvidaste tu contraseña?',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // Navegar a la pantalla para olvidar la contraseña
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ForgotPasswordScreen()));
-                  },
-                  child: const Text(
-                    '¿Olvidaste tu contraseña?',
-                    style: TextStyle(color: Colors.white), // Texto blanco
-                  ),
-                ),
-
-              ],
+                ],
+              ),
             ),
           ),
         ),

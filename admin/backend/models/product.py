@@ -20,7 +20,12 @@ class Product:
                  iva_value,
                  description,
                  image,
-                 status):
+                 status,
+                 root,
+                 child,
+                 step_unit,
+                 proveedor,
+                 rate_root):
         self.name = name
         self.unit = unit
         self.category = category
@@ -34,6 +39,11 @@ class Product:
         self.description = description
         self.image = image
         self.status = status
+        self.root = root
+        self.child = child
+        self.step_unit = step_unit
+        self.proveedor = proveedor
+        self.rate_root = rate_root
 
     def save(self):
         product_data = {
@@ -91,4 +101,4 @@ class Product:
             return None
     @staticmethod
     def find_by_sku(sku):
-        return Product(**products_collection.find_one({"sku": sku},  {'_id': 0}))
+        return products_collection.find_one({"sku": sku},  {'_id': 0})

@@ -17,6 +17,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from io import BytesIO
 from utils.email_utils import send_new_order  # Importa la función send_email que creamos antes
+from io import StringIO
+import csv
 
 
 order_api = Blueprint('order', __name__)
@@ -377,3 +379,182 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
     
     # Envía el correo
     send_new_order(subject, html_message, customer_email)
+
+import csv
+from flask import Blueprint, jsonify, request, Response
+from models.order import Order
+from models.product import Product  # Importa el modelo de producto
+import json
+from io import StringIO
+
+order_api = Blueprint('order', __name__)
+
+@order_api.route('/orders', methods=['GET'])
+def list_orders():
+    orders_cursor = Order.objects()
+    order_data = [
+        {
+         "id": str(order["_id"]), 
+         "order_number": order["order_number"] if order["order_number"] else order["orderNumber"], 
+         "customer_email": order["customer_email"] if order["customer_email"] else order["customerEmail"], 
+         "customer_phone": order["customer_phone"] if order["customer_phone"] else order["customerPhone"], 
+        "customer_documentNumber": order.get("customer_documentNumber", order.get("customerDocumentNumber", "N/A")),
+        "customer_documentType": order.get("customer_documentType", order.get("customerDocumentType", "N/A")),
+         "customer_name": order["customer_name"] if order["customer_name"] else order["customerName"], 
+         "delivery_date": order["delivery_date"] if order["delivery_date"] else order["deliveryDate"], 
+         "status": order["status"], 
+         "created_at": order["created_at"], 
+         "updated_at": order["updated_at"], 
+         "products": order["products"],
+         "total": order["total"], 
+         "deliverySlot": order["deliverySlot"], 
+         "paymentMethod": order["paymentMethod"],
+         "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
+         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
+         }
+        for order in orders_cursor
+    ]
+    orders_json = json.dumps(order_data)
+    return orders_json, 200
+
+@order_api.route('/orders/csv', methods=['GET'])
+def download_orders_csv():
+    # Obtener todas las órdenes
+    orders_cursor = Order.objects()
+
+    # Crear un objeto StringIO para escribir el CSV en memoria
+    csv_file = StringIO()
+    csv_writer = csv.writer(csv_file)
+
+    # Escribir la cabecera del CSV
+    csv_writer.writerow([
+        "Order ID"
+        , "Order Number"
+        , "Customer Email"
+        , "Customer Phone"
+        ,"Customer Document Number"
+        , "Customer Document Type"
+        , "Customer Name"
+        ,"Delivery Date"
+        , "Status"
+        , "Created At"
+        , "Updated At"
+        , "Total"
+        , "Delivery Slot"
+        , "Payment Method"
+       , "Delivery Address"
+        , "Delivery Address Details"
+        ,"Product SKU"
+        , "Product Name"
+        , "Product Description"
+        , "Product Quantity"
+        ,"Product Price Sale"
+        , "Product Price Purchase"
+        , "Product Category"
+        , "Product Root"
+        , "Product Child"
+        , "Product Discount"
+        , "Product Margen"
+        , "Product IVA"
+        , "Product IVA Value"
+        , "Product Status"
+        , "Product Proveedor"
+        , "Product Step Unit"
+    ])
+
+    # Escribir los datos de las órdenes y productos
+    for order in orders_cursor:
+        order_id = str(order["_id"])
+        order_number = order["order_number"] if order["order_number"] else order["orderNumber"]
+        customer_email = order["customer_email"] if order["customer_email"] else order["customerEmail"]
+        customer_phone = order["customer_phone"] if order["customer_phone"] else order["customerPhone"]
+        customer_document_number = order.get("customer_documentNumber", order.get("customerDocumentNumber", "N/A"))
+        customer_document_type = order.get("customer_documentType", order.get("customerDocumentType", "N/A"))
+        customer_name = order["customer_name"] if order["customer_name"] else order["customerName"]
+        delivery_date = order["delivery_date"] if order["delivery_date"] else order["deliveryDate"]
+        status = order["status"]
+        created_at = order["created_at"]
+        updated_at = order["updated_at"]
+        total = order["total"]
+        delivery_slot = order["deliverySlot"]
+        payment_method = order["paymentMethod"]
+        delivery_address = order["deliveryAddress"]
+        delivery_address_details = order["deliveryAddressDetails"]
+
+        for product in order["products"]:
+            product_sku = product.get("sku", "")
+            product_quantity = product.get("quantity", "")
+            product_price_sale = product.get("price_sale", "")
+            
+            # Buscar el producto en la colección de productos usando el SKU
+            product_data = Product.find_by_sku(sku=product_sku)
+            if product_data:
+                product_name = product_data["name"]
+                product_description = product_data["description"]
+                product_price_purchase = product_data["price_purchase"]
+                product_category = product_data["category"]
+                product_root = product_data["root"]
+                product_child = product_data["child"]
+                product_discount = product_data["discount"]
+                product_margen = product_data["margen"]
+                product_iva = product_data["iva"]
+                product_iva_value = product_data["iva_value"]
+                product_status = product_data["status"]
+                product_proveedor = product_data["proveedor"]
+                product_step_unit = product_data["step_unit"]
+            else:
+                product_name = "Unknown"
+                product_description = "Unknown"
+                product_price_purchase = "N/A"
+                product_category = "N/A"
+                product_root = "N/A"
+                product_child = "N/A"
+                product_discount = "N/A"
+                product_margen = "N/A"
+                product_iva = "N/A"
+                product_iva_value = "N/A"
+                product_status = "N/A"
+                product_proveedor = "N/A"
+                product_step_unit = "N/A"
+
+            csv_writer.writerow([
+                order_id
+                , order_number
+                , customer_email
+                , customer_phone
+                , customer_document_number
+                , customer_document_type
+                , customer_name
+                , delivery_date
+                , status
+                , created_at
+                , updated_at
+                , total
+                , delivery_slot
+                , payment_method
+                , delivery_address
+                , delivery_address_details
+                , product_sku
+                , product_name
+                , product_description
+                , product_quantity
+                , product_price_sale
+                , product_price_purchase
+                , product_category
+                , product_root
+                , product_child
+                , product_discount
+                , product_margen
+                , product_iva
+                , product_iva_value
+                , product_status
+                , product_proveedor
+                , product_step_unit                
+            ])
+
+    csv_file.seek(0)
+
+    # Crear una respuesta y añadir los headers adecuados
+    response = Response(csv_file.getvalue(), mimetype='text/csv')
+    response.headers['Content-Disposition'] = 'inline; filename=orders.csv'
+    return response
