@@ -380,43 +380,6 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
     # Envía el correo
     send_new_order(subject, html_message, customer_email)
 
-import csv
-from flask import Blueprint, jsonify, request, Response
-from models.order import Order
-from models.product import Product  # Importa el modelo de producto
-import json
-from io import StringIO
-
-order_api = Blueprint('order', __name__)
-
-@order_api.route('/orders', methods=['GET'])
-def list_orders():
-    orders_cursor = Order.objects()
-    order_data = [
-        {
-         "id": str(order["_id"]), 
-         "order_number": order["order_number"] if order["order_number"] else order["orderNumber"], 
-         "customer_email": order["customer_email"] if order["customer_email"] else order["customerEmail"], 
-         "customer_phone": order["customer_phone"] if order["customer_phone"] else order["customerPhone"], 
-        "customer_documentNumber": order.get("customer_documentNumber", order.get("customerDocumentNumber", "N/A")),
-        "customer_documentType": order.get("customer_documentType", order.get("customerDocumentType", "N/A")),
-         "customer_name": order["customer_name"] if order["customer_name"] else order["customerName"], 
-         "delivery_date": order["delivery_date"] if order["delivery_date"] else order["deliveryDate"], 
-         "status": order["status"], 
-         "created_at": order["created_at"], 
-         "updated_at": order["updated_at"], 
-         "products": order["products"],
-         "total": order["total"], 
-         "deliverySlot": order["deliverySlot"], 
-         "paymentMethod": order["paymentMethod"],
-         "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
-         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
-         }
-        for order in orders_cursor
-    ]
-    orders_json = json.dumps(order_data)
-    return orders_json, 200
-
 @order_api.route('/orders/csv', methods=['GET'])
 def download_orders_csv():
     # Obtener todas las órdenes

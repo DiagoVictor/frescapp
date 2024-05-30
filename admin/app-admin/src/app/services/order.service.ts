@@ -20,7 +20,6 @@ export class OrderService {
   }
 
   createOrder(orderData: any): Observable<any> {
-    console.log(orderData)
     return this.http.post(this.baseUrl+'api/order/order', orderData);
   }
   getConfig(): Observable<any> {
