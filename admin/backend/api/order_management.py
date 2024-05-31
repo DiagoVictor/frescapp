@@ -19,6 +19,7 @@ from io import BytesIO
 from utils.email_utils import send_new_order  # Importa la función send_email que creamos antes
 from io import StringIO
 import csv
+from models.product import Product
 
 
 order_api = Blueprint('order', __name__)
