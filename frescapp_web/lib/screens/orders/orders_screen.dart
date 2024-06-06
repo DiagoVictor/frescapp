@@ -4,9 +4,12 @@ import 'package:frescapp/screens/newOrder/home_screen.dart';
 import 'package:frescapp/screens/profile/profile_screen.dart';
 import 'package:frescapp/services/order_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frescapp/models/order.dart';
+import 'package:frescapp/models/product.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:intl/intl.dart';
-import 'package:advance_pdf_viewer/advance_pdf_viewer.dart';
+import 'package:frescapp/screens/viewerPDF/viewerRemision.dart';
+
 
 
 class OrdersScreen extends StatefulWidget {
@@ -64,7 +67,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
       String userEmail = prefs.getString('user_email') ?? '';
       List<Order>? fetchedOrders = await orderService.getOrders(userEmail);
       if (fetchedOrders.isNotEmpty) {
-        fetchedOrders.sort((a, b) => b.deliveryDate.compareTo(a.deliveryDate));
+        print(orders);
+        fetchedOrders.sort((a, b) => b.deliveryDate!.compareTo(a.deliveryDate as String));
         setState(() {
           orders = fetchedOrders;
         });
@@ -95,18 +99,18 @@ void _viewPDF(BuildContext context, String url) {
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => PDFViewerScreen(url: url),
+      builder: (context) => const PDFViewerScreen(),
     ),
   );
 }
-  void _editOrder(BuildContext context, Order order) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditOrderScreen(order: order),
-      ),
-    );
-  }
+void _editOrder(BuildContext context, Order order) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => HomeScreen(order: order),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +215,7 @@ void _viewPDF(BuildContext context, String url) {
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               TextSpan(
-                                text: DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(order.createdAt)),
+                                text: DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(order.createdAt!)),
                               ),
                             ],
                           ),
@@ -224,7 +228,7 @@ void _viewPDF(BuildContext context, String url) {
                                 text: 'Cantidad de Productos: ',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              TextSpan(text: '${order.products.length}'),
+                              TextSpan(text: '${order.products?.length}'),
                             ],
                           ),
                         ),
@@ -277,20 +281,21 @@ void _viewPDF(BuildContext context, String url) {
                                       ListView.builder(
                                         shrinkWrap: true,
                                         physics: const NeverScrollableScrollPhysics(),
-                                        itemCount: order.products.length,
+                                        itemCount: order.products?.length,
                                         itemBuilder: (context, index) {
-                                          final List<Map> product = order.products.cast<Map>();
+                                          final List<Product> product = order.products!.cast<Product>();
                                           return ListTile(
                                             title: RichText(
                                               text: TextSpan(
                                                 children: [
                                                   TextSpan(
-                                                    text: '${product[index]["name"]}',
+                                                    text: '${product[index].name}',
                                                     style: const TextStyle(
                                                       fontWeight: FontWeight.normal,
                                                       color: Colors.black,
                                                     ),
                                                   ),
+
                                                   const TextSpan(
                                                     text: '\nPrecio: ',
                                                     style: TextStyle(
@@ -299,7 +304,7 @@ void _viewPDF(BuildContext context, String url) {
                                                     ),
                                                   ),
                                                   TextSpan(
-                                                    text: '\$ ${NumberFormat('#,###').format(product[index]["price_sale"])}',
+                                                    text: '\$ ${NumberFormat('#,###').format(product[index].priceSale)}',
                                                     style: const TextStyle(
                                                       fontWeight: FontWeight.normal,
                                                       color: Colors.black,
@@ -319,13 +324,13 @@ void _viewPDF(BuildContext context, String url) {
                                                     ),
                                                   ),
                                                   TextSpan(
-                                                    text: product[index]["quantity"].toString(),
+                                                    text: product[index].quantity.toString(),
                                                     style: const TextStyle(
                                                       color: Colors.black,
                                                     ),
                                                   ),
                                                   TextSpan(
-                                                    text: '\nSubtotal \$ ${NumberFormat('#,###').format((product[index]["price_sale"] ?? 0) * (product[index]["quantity"] ?? 0))}',
+                                                    text: '\nSubtotal \$ ${NumberFormat('#,###').format((product[index].priceSale ?? 0) * (product[index].quantity ?? 0))}',
                                                     style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)
                                                   ),
                                                 ],
@@ -347,19 +352,22 @@ void _viewPDF(BuildContext context, String url) {
                                 child: const Text('Cerrar'),
                               ),
                               IconButton(
-                                onPressed: () {
+                                onPressed: order.status == ''
+                                        ? () {
                                   _viewPDF(context,'http://app.buyfrescapp.com:5000/api/order/generate_pdf/${order.id}'
                                   ); // Llama a la función para ver el PDF de remisión
-                                },
-                                  icon: const Column(
+                                }
+                                : null,
+                                  icon: Column(
                                     children: [
-                                      Icon(Icons.receipt,color: Colors.green), // Icono para editar
-                                      Text('Remisión'), // Texto del botón
+                                      Icon(Icons.receipt,color: order.status == '' ? Colors.green : Colors.grey,
+), // Icono para editar
+                                      const Text('Remisión'), // Texto del botón
                                     ],
                                   ),
                               ),
                                   IconButton(
-                                    onPressed: order.status == 'creada'
+                                    onPressed: order.status == ''
                                         ? () {
                                             _editOrder(context, order); // Llama a la función para editar la orden
                                           }
@@ -368,14 +376,14 @@ void _viewPDF(BuildContext context, String url) {
                                       children: [
                                         Icon(
                                           Icons.description,
-                                          color: order.status == 'Facturada' ? Colors.green : Colors.grey,
+                                          color: order.status == '' ? Colors.green : Colors.grey,
                                         ), // Icono para editar
                                         const Text('Factura'), // Texto del botón
                                       ],
                                     ),
                                   ),
                                   IconButton(
-                                    onPressed: order.status == 'creada'
+                                    onPressed: order.status == 'Creada'
                                         ? () {
                                             _editOrder(context, order); // Llama a la función para editar la orden
                                           }
@@ -448,62 +456,6 @@ void _viewPDF(BuildContext context, String url) {
             }
           },
         ),
-      ),
-    );
-  }
-}
-
-class PDFViewerScreen extends StatelessWidget {
-  final String url;
-
-  // ignore: use_super_parameters
-  const PDFViewerScreen({Key? key, required this.url}) : super(key: key);
-
- @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Remisión Orden'),
-      ),
-      body: FutureBuilder<PDFDocument>(
-        future: PDFDocument.fromURL('http://app.buyfrescapp.com:5000/api/order/generate_pdf/6658fc32a5e68b3b66af5184'),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (snapshot.hasError) {
-            return const Center(
-              child: Text('Error al cargar el PDF'),
-            );
-          } else if (snapshot.hasData) {
-            return PDFViewer(document: snapshot.data!);
-          } else {
-            return const Center(
-              child: Text('No se pudo cargar el PDF'),
-            );
-          }
-        },
-      ),
-    );
-  }
-}
-
-class EditOrderScreen extends StatelessWidget {
-  final Order order;
-
-  // ignore: use_super_parameters
-  const EditOrderScreen({Key? key, required this.order}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    // Aquí agregarías el código para editar la orden
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Editar Orden'),
-      ),
-      body: Center(
-        child: Text('Editar orden: ${order.orderNumber}'), // Placeholder para la edición de la orden
       ),
     );
   }

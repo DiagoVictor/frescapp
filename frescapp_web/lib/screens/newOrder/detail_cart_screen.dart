@@ -1,18 +1,23 @@
+import 'dart:ffi';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frescapp/screens/newOrder/home_screen.dart';
 import 'package:frescapp/screens/newOrder/order_confirmation_screen.dart';
 import 'package:frescapp/screens/orders/orders_screen.dart';
 import 'package:frescapp/screens/profile/profile_screen.dart';
-import 'package:frescapp/services/product_service.dart';
+import 'package:frescapp/models/order.dart';
+import 'package:frescapp/models/product.dart';
+import 'package:frescapp/services/order_service.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final List<Product> productsInCart;
+  final Order order;
 
-  const OrderDetailScreen({super.key, required this.productsInCart});
+  const OrderDetailScreen({super.key, required this.productsInCart,required  this.order});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -25,7 +30,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   String? selectedPaymentMethod;
   late List<String> paymentMethods = [];
   late List<String> deliverySlots = [];
-
+  final OrderService orderService = OrderService();
   @override
   void initState() {
     super.initState();
@@ -33,59 +38,58 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     selectedDeliverySlot = 'Horario de entrega';
     selectedPaymentMethod = 'Método de pago';
     getOrderDetailsFromSharedPreferences();
-
   }
-void getOrderDetailsFromSharedPreferences() async {
-  try {
+
+  void getOrderDetailsFromSharedPreferences() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        // Actualiza las listas después de obtener las preferencias compartidas
+        deliverySlots = prefs.getStringList('delivery_slots') ?? [];
+        paymentMethods = prefs.getStringList('payments_method') ?? [];
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error al obtener preferencias compartidas: $e');
+      }
+    }
+  }
+
+  void _openWhatsApp(BuildContext context) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      // Actualiza las listas después de obtener las preferencias compartidas
-      deliverySlots = prefs.getStringList('delivery_slots') ?? [];
-      paymentMethods = prefs.getStringList('payments_method') ?? [];
-    });
-  } catch (e) {
-    if (kDebugMode) {
-      print('Error al obtener preferencias compartidas: $e');
+    try {
+      String name = prefs.getString('user_name') ?? '';
+      String email = prefs.getString('user_email') ?? '';
+      String phone = prefs.getString('user_phone') ?? '';
+      String contactPhone = prefs.getString('contact_phone') ?? '';
+
+      String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
+
+      // Codificar el mensaje para que se pueda enviar correctamente en la URL
+      String encodedMessage = Uri.encodeComponent(message);
+
+      // Construir la URL para abrir WhatsApp con el mensaje predefinido
+      String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
+
+      // Lanzar la URL para abrir WhatsApp
+      await launchUrlString(url);
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error opening WhatsApp: $error');
+      }
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al abrir WhatsApp.'),
+        ),
+      );
     }
   }
-}
-
-void _openWhatsApp(BuildContext context) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  try {
-    String name = prefs.getString('user_name') ?? '';
-    String email = prefs.getString('user_email') ?? '';
-    String phone = prefs.getString('user_phone') ?? '';
-    String contactPhone = prefs.getString('contact_phone') ?? '';
-
-    String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
-
-    // Codificar el mensaje para que se pueda enviar correctamente en la URL
-    String encodedMessage = Uri.encodeComponent(message);
-
-    // Construir la URL para abrir WhatsApp con el mensaje predefinido
-    String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
-
-    // Lanzar la URL para abrir WhatsApp
-    await launchUrlString(url);
-  } catch (error) {
-    if (kDebugMode) {
-      print('Error opening WhatsApp: $error');
-    }
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Error al abrir WhatsApp.'),
-      ),
-    );
-  }
-}
-
 
   @override
   Widget build(BuildContext context) {
     double total = widget.productsInCart.fold(
-        0, (sum, product) => sum + (product.price_sale * product.quantity!));
+        0, (sum, product) => sum + ((product.priceSale ?? 0) * (product.quantity ?? 0)));
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalle del Pedido'),
@@ -259,49 +263,39 @@ void _openWhatsApp(BuildContext context) async {
     if (day.weekday == DateTime.sunday) {
       return false;
     }
-
     return true;
   }
 
-void _confirmOrder(BuildContext context) {
-  // Verificar que se hayan seleccionado la fecha de entrega, el horario de entrega y el medio de pago
-  if (selectedDeliverySlot == 'Horario de entrega' || selectedPaymentMethod == 'Método de pago') {
-    // Mostrar un mensaje de advertencia si no se han seleccionado todos los campos
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Por favor, seleccione fecha, horario de entrega y medio de pago.'),
-      ),
-    );
-    return; // Salir del método sin continuar con la confirmación del pedido
+  void _confirmOrder(BuildContext context) {
+    // Verificar que se hayan seleccionado la fecha de entrega, el horario de entrega y el medio de pago
+    if (selectedDeliverySlot == 'Horario de entrega' || selectedPaymentMethod == 'Método de pago') {
+      // Mostrar un mensaje de advertencia si no se han seleccionado todos los campos
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, seleccione fecha, horario de entrega y medio de pago.'),
+        ),
+      );
+      return; // Salir del método sin continuar con la confirmación del pedido
+    }
+    widget.order.products = widget.productsInCart;
+    widget.order.discount = 0;
+    widget.order.total = widget.productsInCart.fold(
+          0.0, (sum, product) => sum! + ((product.priceSale ?? 0) * (product.quantity ?? 0)));
+    widget.order.deliverySlot = selectedDeliverySlot!;
+    widget.order.paymentMethod = selectedPaymentMethod!;
+    widget.order.deliveryDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+    // Enviar el objeto Order al servicio
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                OrderConfirmationScreen(orderDetails: widget.order)),
+      ).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al confirmar el pedido: $error'),
+        ),
+      );
+    });
   }
-
-  List<Map<String, dynamic>> productList =
-      widget.productsInCart.map((product) {
-    return {
-      'sku': product.sku,
-      'name': product.name,
-      'price_sale': product.price_sale,
-      'quantity': product.quantity,
-      'iva': product.iva,
-      'iva_value': product.iva_value
-    };
-  }).toList();
-
-  Map<String, dynamic> orderDetails = {
-    'products': productList,
-    'total': widget.productsInCart.fold(
-        0.0 , (sum, product) => sum + (product.price_sale * product.quantity!)),
-    'deliverySlot': selectedDeliverySlot,
-    'paymentMethod': selectedPaymentMethod,
-    'deliveryDate': DateFormat('yyyy-MM-dd').format(selectedDate),
-  };
-
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-        builder: (context) =>
-            OrderConfirmationScreen(orderDetails: orderDetails)),
-  );
-}
-
 }

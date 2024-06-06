@@ -1,18 +1,79 @@
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:frescapp/models/order.dart';
 import 'package:frescapp/screens/newOrder/home_screen.dart';
 import 'package:frescapp/screens/orders/orders_screen.dart';
 import 'package:frescapp/screens/profile/profile_screen.dart';
+import 'package:frescapp/services/order_service.dart';
+import 'package:frescapp/api_routes.dart';
+import 'package:frescapp/services/discount_service.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-class OrderConfirmationScreen extends StatelessWidget {
-  final Map<String, dynamic> orderDetails;
+// ignore: must_be_immutable
+class OrderConfirmationScreen extends StatefulWidget {
+  static List<DropdownMenuItem<String>> listDocumentType = [];
+  final Order orderDetails;
+
   const OrderConfirmationScreen({super.key, required this.orderDetails});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _OrderConfirmationScreenState createState() =>
+      _OrderConfirmationScreenState();
+}
+
+class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
+  final TextEditingController _codeController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    getOrderDetailsFromSharedPreferences();
+  }
+
+  Future<Order> getOrderDetailsFromSharedPreferences() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      final String customerId = prefs.getString('user_id') ?? '';
+      final response = await http.get(Uri.parse(
+          '${ApiRoutes.baseUrl}${ApiRoutes.customers}/customer/$customerId'));
+      if (response.statusCode == 200) {
+        var userData = jsonDecode(response.body);
+        widget.orderDetails.customerName = userData['name'];
+        widget.orderDetails.customerPhone = userData['phone'];
+        widget.orderDetails.customerDocumentNumber = userData['document'];
+        widget.orderDetails.customerDocumentType = userData['document_type'];
+        widget.orderDetails.deliveryAddress = userData['address'];
+        widget.orderDetails.customerEmail = userData['email'];
+        widget.orderDetails.deliveryCost =
+            (prefs.getDouble('delivery_cost') ?? 0) as double?;
+      } else {
+        throw Exception('Failed to load user data');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching user data: $e');
+      }
+    }
+
+    return widget.orderDetails;
+  }
+
+  Future<bool> validateCode(String code, String email) async {
+    final DiscountService discountService = DiscountService();
+    double? descuento = await discountService.validateCode(code,email) as double?;
+    setState(() {
+        widget.orderDetails.discount = ((descuento!/100) * widget.orderDetails.total!);
+        widget.orderDetails.total = widget.orderDetails.total! - widget.orderDetails.discount!;
+    });
+    return widget.orderDetails.discount as double > 0.0;
+  }
 
   String generateOrderNumber() {
     Random random = Random();
@@ -25,76 +86,57 @@ class OrderConfirmationScreen extends StatelessWidget {
     return now.toIso8601String();
   }
 
-
-void _openWhatsApp(BuildContext context) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  try {
-    String name = prefs.getString('user_name') ?? '';
-    String email = prefs.getString('user_email') ?? '';
-    String phone = prefs.getString('user_phone') ?? '';
-    String contactPhone = prefs.getString('contact_phone') ?? '';
-
-    String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
-
-    // Codificar el mensaje para que se pueda enviar correctamente en la URL
-    String encodedMessage = Uri.encodeComponent(message);
-
-    // Construir la URL para abrir WhatsApp con el mensaje predefinido
-    String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
-
-    // Lanzar la URL para abrir WhatsApp
-    await launchUrlString(url);
-  } catch (error) {
-    if (kDebugMode) {
-      print('Error opening WhatsApp: $error');
-    }
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Error al abrir WhatsApp.'),
-      ),
-    );
-  }
-}
-
-  Future<void> sendOrderDetailsToService(
-      Map<String, dynamic> orderDetails) async {
+  void _openWhatsApp(BuildContext context) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    orderDetails['order_number'] = generateOrderNumber();
-    orderDetails['created_at'] = getCurrentDateTimeString();
-    orderDetails['updated_at'] = getCurrentDateTimeString();
-    final String baseUrl = prefs.getString('server_ip') ?? '';
-    final String url = '$baseUrl/api/order/order';
-    await http.post(
-      Uri.parse(url),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(orderDetails),
-    );
+    try {
+      String name = prefs.getString('user_name') ?? '';
+      String email = prefs.getString('user_email') ?? '';
+      String phone = prefs.getString('user_phone') ?? '';
+      String contactPhone = prefs.getString('contact_phone') ?? '';
+
+      String message =
+          'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
+
+      String encodedMessage = Uri.encodeComponent(message);
+      String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
+
+      await launchUrlString(url);
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error opening WhatsApp: $error');
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al abrir WhatsApp.'),
+        ),
+      );
+    }
+  }
+  Future<void> sendOrderDetailsToService(Order orderDetails) async {
+    if (orderDetails.orderNumber == null ||
+        orderDetails.orderNumber!.isEmpty ||
+        orderDetails.orderNumber == '') {
+      orderDetails.orderNumber = generateOrderNumber();
+      orderDetails.createdAt = getCurrentDateTimeString();
+      orderDetails.updatedAt = getCurrentDateTimeString();
+    }
+    final OrderService orderService = OrderService();
+    try {
+      await orderService.createOrder(
+          orderDetails.orderNumber ?? '', orderDetails);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error al enviar detalles del pedido al servicio: $e');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: getOrderDetailsFromSharedPreferences(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          Map<String, dynamic> orderDetailsFromSharedPreferences =
-              snapshot.data ?? {};
-          return _buildOrderConfirmationScreen(
-              context, orderDetailsFromSharedPreferences);
-        }
-      },
-    );
+    return _buildOrderConfirmationScreen(context);
   }
 
-  Widget _buildOrderConfirmationScreen(BuildContext context,
-      Map<String, dynamic> orderDetailsFromSharedPreferences) {
+  Widget _buildOrderConfirmationScreen(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Confirmar Pedido'),
@@ -111,36 +153,44 @@ void _openWhatsApp(BuildContext context) async {
               ),
               const SizedBox(height: 32),
               Text(
-                'Fecha de Entrega: ${orderDetailsFromSharedPreferences['deliveryDate'] ?? ''}',
+                'Fecha de Entrega: ${widget.orderDetails.deliveryDate ?? ''}',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 16),
               Text(
-                'Horario de Entrega: ${orderDetailsFromSharedPreferences['deliverySlot'] ?? ''}',
+                'Horario de Entrega: ${widget.orderDetails.deliverySlot ?? ''}',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 8),
               Text(
-                'Medio de Pago: ${orderDetailsFromSharedPreferences['paymentMethod'] ?? ''}',
+                'Medio de Pago: ${widget.orderDetails.paymentMethod ?? ''}',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 8),
               Text(
-                'Costo de envio: \$ ${orderDetailsFromSharedPreferences['deliveryCost']}',
+                'Costo de envío: \$ ${widget.orderDetails.deliveryCost ?? 0}',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 8),
               Text(
-                'Total: \$ ${NumberFormat('#,###').format(orderDetailsFromSharedPreferences['total'] ?? 0)}',
+                'Descuento: \$ ${(NumberFormat('#,###').format(widget.orderDetails.discount as double))}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Total: \$ ${NumberFormat('#,###').format(widget.orderDetails.total!)}',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 24),
-              _buildCustomerInfoForm(orderDetailsFromSharedPreferences),
-              const SizedBox(height: 8),
+              _buildCustomerInfoForm(),
+              const SizedBox(height: 16),
+              _buildValidationSection(),
+              const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
-                  sendOrderDetailsToService(orderDetailsFromSharedPreferences);
+                onPressed: () async {
+                  await sendOrderDetailsToService(widget.orderDetails);
                   Navigator.push(
+                    // ignore: use_build_context_synchronously
                     context,
                     MaterialPageRoute(builder: (context) => const HomeScreen()),
                   );
@@ -205,114 +255,157 @@ void _openWhatsApp(BuildContext context) async {
     );
   }
 
-  Widget _buildCustomerInfoForm(Map<String, dynamic> orderDetails) {
+  Widget _buildCustomerInfoForm() {
+    return FutureBuilder<Order>(
+      future: getOrderDetailsFromSharedPreferences(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return const Text('No se encontraron datos de facturación.');
+        } else {
+          Order orderDetails = snapshot.data!;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Información de Facturación',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: orderDetails.customerName ?? '',
+                decoration: const InputDecoration(
+                  labelText: 'Nombre',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  orderDetails.customerName = value;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: orderDetails.customerDocumentType ?? '',
+                decoration: const InputDecoration(
+                  labelText: 'Tipo de Documento',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (String? newValue) {
+                  orderDetails.customerDocumentType = newValue;
+                },
+                items: <String>['', 'CC', 'NIT', 'PA', 'TI']
+                    .map<DropdownMenuItem<String>>(
+                      (String value) => DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: orderDetails.customerDocumentNumber ?? '',
+                decoration: const InputDecoration(
+                  labelText: 'Número de Documento',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  orderDetails.customerDocumentNumber = value;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: orderDetails.customerPhone ?? '',
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: 'Número de Teléfono',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  orderDetails.customerPhone = value;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: orderDetails.customerEmail ?? '',
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Correo Electrónico',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  orderDetails.customerEmail = value;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: orderDetails.deliveryAddress ?? '',
+                decoration: const InputDecoration(
+                  labelText: 'Dirección de Entrega',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  orderDetails.deliveryAddress = value;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: orderDetails.deliveryAddressDetails ?? '',
+                decoration: const InputDecoration(
+                  labelText: 'Detalle de Dirección',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  orderDetails.deliveryAddressDetails = value;
+                },
+              ),
+            ],
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildValidationSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Información de Facturación',
+          'Validar Código',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        TextFormField(
-          initialValue: orderDetails['customerName'] ?? '',
-          decoration: const InputDecoration(
-            labelText: 'Nombre',
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            orderDetails['customerName'] = value;
-          },
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          value: orderDetails['documentType'] ?? '',
-          decoration: const InputDecoration(
-            labelText: 'Tipo de Documento',
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (String? newValue) {
-            orderDetails['documentType'] = newValue;
-          },
-          items: orderDetails["listdocumentType"].map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          initialValue: orderDetails['documentNumber'] ?? '',
-          decoration: const InputDecoration(
-            labelText: 'Número de Documento',
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            orderDetails['documentNumber'] = value;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          initialValue: orderDetails['phoneNumber'] ?? '',
-          keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
-            labelText: 'Número de Teléfono',
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            orderDetails['phoneNumber'] = value;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          initialValue: orderDetails['email'] ?? '',
-          keyboardType: TextInputType.emailAddress,
-          decoration: const InputDecoration(
-            labelText: 'Correo Electrónico',
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            orderDetails['email'] = value;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          initialValue: orderDetails['deliveryAddress'] ?? '',
-          decoration: const InputDecoration(
-            labelText: 'Dirección de Entrega',
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            orderDetails['deliveryAddress'] = value;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          initialValue: orderDetails['deliveryAddressDetails'] ?? '',
-          decoration: const InputDecoration(
-            labelText: 'Detalle de Dirección',
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            orderDetails['deliveryAddressDetails'] = value;
-          },
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _codeController,
+                decoration: const InputDecoration(
+                  labelText: 'Código',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () async {
+                String code = _codeController.text;
+                String email = widget.orderDetails.customerEmail ?? '';
+                bool isValid = await validateCode(code, email);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        isValid ? 'Código válido' : 'Código no válido'),
+                  ),
+                );
+              },
+              child: const Icon(Icons.search),
+            ),
+          ],
         ),
       ],
     );
-  }
-
-  Future<Map<String, dynamic>> getOrderDetailsFromSharedPreferences() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    orderDetails['customerName'] = prefs.getString('user_name') ?? '';
-    orderDetails['email'] = prefs.getString('user_email') ?? '';
-    orderDetails['documentType'] = prefs.getString('user_document_type') ?? '';
-    orderDetails['documentNumber'] = prefs.getString('user_document') ?? '';
-    orderDetails['phoneNumber'] = prefs.getString('user_phone') ?? '';
-    orderDetails['deliveryCost'] = prefs.getString('delivery_cost') ?? '';
-    orderDetails["listdocumentType"] = prefs.getStringList('document_type') ?? [];
-    orderDetails["deliveryAddress"] =  prefs.getString('user_address') ?? '';
-    orderDetails["deliveryAddressDetails"] = '';
-    return orderDetails;
   }
 }

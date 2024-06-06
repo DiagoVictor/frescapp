@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:frescapp/api_routes.dart';
+import 'package:frescapp/models/order.dart';
+import 'package:frescapp/models/product.dart';
 import 'package:frescapp/services/product_service.dart';
 import 'package:frescapp/screens/newOrder/cart_screen.dart';
 import 'package:frescapp/screens/orders/orders_screen.dart';
@@ -10,9 +15,10 @@ import 'package:frescapp/services/config_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher_string.dart';
 
+// ignore: must_be_immutable
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
+  final Order? order;
+  const HomeScreen({super.key, this.order});
   @override
   // ignore: library_private_types_in_public_api
   _HomeScreenState createState() => _HomeScreenState();
@@ -20,90 +26,79 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ProductService productService = ProductService();
-  late List<Product> displayedProducts = [];
-  late List<Product> allProducts =
-      []; // Mantener una lista de todos los productos
-  late List<Product> productsInCart = []; // Lista de productos en el carrito
-  late String userAddress = ''; // Correo electrónico del usuario
-  late int productCounter = 0; // Contador de productos
-
+  List<Product> displayedProducts = [];
+  List<Product> allProducts = [];
+  List<Product> productsInCart = [];
+  late String userAddress = '';
+  late num productCounter = 0;
+  late Order order;
+  ConfigService configService = ConfigService(http.Client());
   @override
   void initState() {
     super.initState();
+    order = widget.order ?? Order(products: []);
     getUserInfo();
     getInitialProducts();
   }
 
-ConfigService configService = ConfigService(http.Client());
-
-Future<void> getUserInfo() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  try {
-    // Obtiene los datos de configuración
-    final Map<String, dynamic> configData = await configService.getConfigData();
-    // Guarda los datos de configuración en SharedPreferences
-    prefs.setString('delivery_cost', configData['delivery_cost'] ?? '0');
-    prefs.setStringList('delivery_slots', List<String>.from(configData['delivery_slots'] ?? []));
-    prefs.setStringList('payments_method', List<String>.from(configData['payments_method'] ?? []));
-    prefs.setStringList('document_type', List<String>.from(configData['document_type'] ?? []));
-    prefs.setString('contact_phone', configData['contact_phone'] ?? '');
-    prefs.setString('server_ip', configData['server_ip'] ?? '');
-    setState(() {
-      userAddress = prefs.getString('user_address') ?? '';
-    });
-  } catch (e) {
-    if (kDebugMode) {
-      print('Error al obtener los datos de configuración: $e');
+  Future<void> getUserInfo() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      final Map<String, dynamic> configData = await configService.getConfigData();
+      prefs.setDouble('delivery_cost', configData['delivery_cost'] as double);
+      prefs.setStringList('delivery_slots', List<String>.from(configData['delivery_slots'] ?? []));
+      prefs.setStringList('payments_method', List<String>.from(configData['payments_method'] ?? []));
+      prefs.setStringList('document_type', List<String>.from(configData['document_type'] ?? []));
+      prefs.setString('contact_phone', configData['contact_phone'] ?? '');
+      prefs.setString('server_ip', configData['server_ip'] ?? '');
+      setState(() {
+        userAddress = prefs.getString('user_address') ?? '';
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error al obtener los datos de configuración: $e');
+      }
     }
   }
-}
 
   Future<void> getInitialProducts() async {
-    allProducts =
-        await productService.getProducts(); // Obtener todos los productos
-    for (var product in allProducts) {
-      product.quantity = 0;
-    }
+    allProducts = await productService.getProducts(widget.order?.customerEmail);
     setState(() {
-      displayedProducts =
-          allProducts.toList(); // Mostrar todos los productos inicialmente
+      displayedProducts = allProducts.toList();
+    });
+    loadOrder(widget.order ?? Order());
+  }
+
+  void filterProducts(String query) {
+    final normalizedQuery = removeDiacritics(query.toLowerCase());
+    setState(() {
+      if (query.isEmpty) {
+        displayedProducts = allProducts.toList();
+      } else {
+        displayedProducts = allProducts.where((Product product) {
+          final productName = removeDiacritics((product.name as String).toLowerCase());
+          final productCategory = removeDiacritics((product.category as String).toLowerCase());
+          return productName.contains(normalizedQuery) || productCategory.contains(normalizedQuery);
+        }).toList();
+      }
     });
   }
 
-void filterProducts(String query) {
-  setState(() {
-    if (query.isEmpty) {
-      displayedProducts = allProducts
-          .toList(); // Mostrar todos los productos si la consulta está vacía
-    } else {
-      displayedProducts = allProducts
-          .where((product) =>
-              removeDiacritics(product.name.toLowerCase())
-                  .contains(removeDiacritics(query.toLowerCase())) ||
-              removeDiacritics(product.category.toLowerCase())
-                  .contains(removeDiacritics(query.toLowerCase())))
-          .toList();
-    }
-  });
-}
-
-String removeDiacritics(String str) {
-  return str
-      .replaceAll('á', 'a')
-      .replaceAll('é', 'e')
-      .replaceAll('í', 'i')
-      .replaceAll('ó', 'o')
-      .replaceAll('ú', 'u');
-}
-
+  String removeDiacritics(String str) {
+    return str
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u');
+  }
 
   void increaseQuantity(Product product) {
     setState(() {
       product.quantity = (product.quantity! + 1);
       productCounter++;
       if (!productsInCart.contains(product)) {
-        productsInCart
-            .add(product); // Agregar el producto al carrito si no está presente
+        productsInCart.add(product);
       }
     });
   }
@@ -111,11 +106,10 @@ String removeDiacritics(String str) {
   void decreaseQuantity(Product product) {
     setState(() {
       if (product.quantity! > 0) {
-        product.quantity = product.quantity! - 1;
+        product.quantity = (product.quantity! - 1);
         productCounter--;
         if (product.quantity == 0) {
-          productsInCart.remove(
-              product); // Eliminar el producto del carrito si la cantidad es cero
+          productsInCart.remove(product);
         }
       }
     });
@@ -127,43 +121,72 @@ String removeDiacritics(String str) {
     });
   }
 
-void _openWhatsApp(BuildContext context) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  try {
-    String name = prefs.getString('user_name') ?? '';
-    String email = prefs.getString('user_email') ?? '';
-    String phone = prefs.getString('user_phone') ?? '';
-    String contactPhone = prefs.getString('contact_phone') ?? '';
-
-    String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
-
-    // Codificar el mensaje para que se pueda enviar correctamente en la URL
-    String encodedMessage = Uri.encodeComponent(message);
-
-    // Construir la URL para abrir WhatsApp con el mensaje predefinido
-    String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
-
-    // Lanzar la URL para abrir WhatsApp
-    await launchUrlString(url);
-  } catch (error) {
-    if (kDebugMode) {
-      print('Error opening WhatsApp: $error');
+  Future<void> loadOrder(Order order) async {
+    if (widget.order == null) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final customerId = prefs.getString('user_id') ?? '';
+      final response = await http.get(Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.customers}/customer/$customerId'));
+      if (response.statusCode == 200) {
+        final userData = jsonDecode(response.body);
+        setState(() {
+          widget.order?.customerName = userData['name'] as String;
+          widget.order?.customerPhone = userData['phone']  as String;
+          widget.order?.customerDocumentNumber = userData['document']  as String;
+          widget.order?.customerDocumentType = userData['document_type']  as String;
+          widget.order?.deliveryAddress = userData['address']  as String;
+          widget.order?.customerEmail = userData['email'] as String;
+        });
+      }
+    }else{
+    for (var product in allProducts) {
+      var matchingProduct = order.products!.firstWhere(
+        (orderProduct) => orderProduct.sku == product.sku,
+        orElse: () => Product(sku: product.sku, name: product.name, category: product.category, quantity: 0, priceSale: product.priceSale, image: product.image),
+      );
+      if (matchingProduct.quantity != null) {
+        product.quantity = matchingProduct.quantity;
+      }
     }
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Error al abrir WhatsApp.'),
-      ),
-    );
+    
+    setState(() {
+      productsInCart = order.products!;
+      productCounter = productsInCart.fold(0, (sum, item) => sum + (item.quantity as int));
+      userAddress = order.deliveryAddress ?? '';
+      displayedProducts = allProducts.toList();
+    });
+    }
   }
-}
 
+  void _openWhatsApp(BuildContext context) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      String name = prefs.getString('user_name') ?? '';
+      String email = prefs.getString('user_email') ?? '';
+      String phone = prefs.getString('user_phone') ?? '';
+      String contactPhone = prefs.getString('contact_phone') ?? '';
+
+      String message = 'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
+      String encodedMessage = Uri.encodeComponent(message);
+      String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
+
+      await launchUrlString(url);
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error opening WhatsApp: $error');
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al abrir WhatsApp.'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(userAddress), // Usar el nombre dinámico del app bar
+        title: Text(userAddress),
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart),
@@ -172,8 +195,10 @@ void _openWhatsApp(BuildContext context) async {
                 context,
                 MaterialPageRoute(
                   builder: (context) => CartScreen(
-                      productsInCart: productsInCart,
-                      updateCounter: updateCounter),
+                    productsInCart: productsInCart,
+                    updateCounter: updateCounter,
+                    order: order,
+                  ),
                 ),
               );
             },
@@ -199,11 +224,11 @@ void _openWhatsApp(BuildContext context) async {
               child: ListView.builder(
                 itemCount: displayedProducts.length,
                 itemBuilder: (context, index) {
-                  final product = displayedProducts[index];
+                  Product product = displayedProducts[index];
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundColor: Colors.white,
-                      backgroundImage: NetworkImage(product.image),
+                      backgroundImage: NetworkImage(product.image as String),
                     ),
                     title: RichText(
                       text: TextSpan(
@@ -212,20 +237,20 @@ void _openWhatsApp(BuildContext context) async {
                             text: '${product.name} - ',
                             style: const TextStyle(
                               fontWeight: FontWeight.normal,
-                              color: Colors.black, // Cambia el color del texto a negro
+                              color: Colors.black,
                             ),
                           ),
                           TextSpan(
-                            text: '\n \$ ${NumberFormat('#,###').format(product.price_sale)}',
+                            text: '\n \$ ${NumberFormat('#,###').format(product.priceSale)}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.black, // Cambia el color del texto a negro
+                              color: Colors.black,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    subtitle: Text(product.category),
+                    subtitle: Text(product.category as String),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -253,10 +278,9 @@ void _openWhatsApp(BuildContext context) async {
                         context: context,
                         builder: (context) {
                           return StatefulBuilder(
-                            builder:
-                                (BuildContext context, StateSetter setState) {
+                            builder: (BuildContext context, StateSetter setState) {
                               return AlertDialog(
-                                title: Text(product.name,
+                                title: Text(product.name as String,
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18),
@@ -265,29 +289,27 @@ void _openWhatsApp(BuildContext context) async {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Image.network(
-                                      product.image,
+                                      product.image as String,
                                       height: 200,
                                       width: 200,
                                     ),
                                     const SizedBox(height: 20),
-                                    Text(product.name,
+                                    Text(product.name as String,
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold),
                                         textAlign: TextAlign.center),
                                     Text(
-                                      ' \$  ${NumberFormat('#,###').format(product.price_sale)}',
+                                      ' \$  ${NumberFormat('#,###').format(product.priceSale)}',
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold),
                                       textAlign: TextAlign.center,
                                     ),
-                                    Text(product.category,
+                                    Text(product.category as String,
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold),
                                         textAlign: TextAlign.center),
-
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         IconButton(
                                           icon: const Icon(Icons.remove),
@@ -308,7 +330,6 @@ void _openWhatsApp(BuildContext context) async {
                                         ),
                                       ],
                                     ),
-                                    // Agregar más atributos aquí según sea necesario
                                   ],
                                 ),
                                 actions: [
@@ -335,10 +356,8 @@ void _openWhatsApp(BuildContext context) async {
       bottomNavigationBar: SafeArea(
         child: BottomNavigationBar(
           currentIndex: 0,
-          selectedItemColor:
-              Colors.lightGreen.shade900, // Color de los iconos seleccionados
-          unselectedItemColor:
-              Colors.grey, // Color de los iconos no seleccionados
+          selectedItemColor: Colors.lightGreen.shade900,
+          unselectedItemColor: Colors.grey,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -353,8 +372,8 @@ void _openWhatsApp(BuildContext context) async {
               label: 'Perfil',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.message_rounded), // Icono de WhatsApp
-              label: 'WhatsApp', // Etiqueta para el botón
+              icon: Icon(Icons.message_rounded),
+              label: 'WhatsApp',
             ),
           ],
           onTap: (int index) {
@@ -362,7 +381,7 @@ void _openWhatsApp(BuildContext context) async {
               case 0:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  MaterialPageRoute(builder: (context) => HomeScreen(order: widget.order)),
                 );
                 break;
               case 1:
@@ -379,7 +398,7 @@ void _openWhatsApp(BuildContext context) async {
                 );
                 break;
               case 3:
-                _openWhatsApp(context); // Función para abrir WhatsApp
+                _openWhatsApp(context);
                 break;
             }
           },

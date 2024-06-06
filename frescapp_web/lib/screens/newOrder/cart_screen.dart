@@ -3,19 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:frescapp/screens/newOrder/home_screen.dart';
 import 'package:frescapp/screens/orders/orders_screen.dart';
 import 'package:frescapp/screens/profile/profile_screen.dart';
-import 'package:frescapp/services/product_service.dart';
+import 'package:frescapp/models/product.dart' ;
 import 'package:frescapp/screens/newOrder/detail_cart_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:frescapp/models/order.dart' as orden;
 
 class CartScreen extends StatefulWidget {
   final List<Product> productsInCart;
+  final orden.Order order;
 
   const CartScreen(
       {super.key,
       required this.productsInCart,
-      required void Function(int value) updateCounter});
+      required void Function(int value) updateCounter, required this.order}
+      );
 
   @override
   // ignore: library_private_types_in_public_api
@@ -58,19 +61,16 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     // Filtra los productos con una cantidad mayor a cero
-    final List<Product> productsWithQuantity = widget.productsInCart
-        .where((product) => product.quantity! > 0)
+    final List<Product> productsWithQuantity = widget.productsInCart 
+        .where((product) => product.quantity! > 0).cast<Product>()
         .toList();
 
     // Calcula el total del pedido
     double total = 0;
     for (var product in productsWithQuantity) {
       total += product.quantity! *
-          product
-              .price_sale; // Multiplica la cantidad por el precio de venta y lo suma al total
-    }
-
-    return Scaffold(
+          product.priceSale!; // Multiplica la cantidad por el precio de venta y lo suma al total
+    }    return Scaffold(
       appBar: AppBar(
         title: const Text('Tu Pedido'),
       ),
@@ -88,41 +88,41 @@ class _CartScreenState extends State<CartScreen> {
                   leading: CircleAvatar(
                     backgroundColor: Colors.white,
                     backgroundImage: NetworkImage(
-                        product.image), // Ejemplo: imagen del producto
+                        product.image ?? ''), // Ejemplo: imagen del producto
                   ),
                   title: RichText(
                     text: TextSpan(
                       children: [
                         TextSpan(
-                            text: '${product.name} - ',
+                            text: '${product.name ?? ''} - ',
                             style: const TextStyle(
                                 fontWeight: FontWeight.normal,
                                 color: Colors.black)),
                         TextSpan(
                             text:
-                                '\nPrecio \$ ${NumberFormat('#,###').format(product.price_sale ?? 0)}',
+                                '\nPrecio \$ ${NumberFormat('#,###').format(product.priceSale ?? 0)}',
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black)),
                         TextSpan(
                             text:
-                                '\nSubtotal \$ ${NumberFormat('#,###').format((product.price_sale ?? 0) * (product.quantity ?? 0))}',
+                                '\nSubtotal \$ ${NumberFormat('#,###').format((product.priceSale ?? 0) * (product.quantity ?? 0))}',
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black))
                       ],
                     ),
                   ),
-                  subtitle: Text(product.category),
+                  subtitle: Text(product.category ?? ''),
                   onTap: () {
                     showDialog(
-                      context: context,
+                     context: context,
                       builder: (context) {
                         return StatefulBuilder(
                           builder:
                               (BuildContext context, StateSetter setState) {
                             return AlertDialog(
-                              title: Text(product.name,
+                              title: Text(product.name as String,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18),
@@ -131,22 +131,22 @@ class _CartScreenState extends State<CartScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Image.network(
-                                    product.image,
+                                    product.image as String,
                                     height: 200,
                                     width: 200,
                                   ),
                                   const SizedBox(height: 20),
-                                  Text(product.name,
+                                  Text(product.name as String,
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold),
                                       textAlign: TextAlign.center),
                                   Text(
-                                    ' \$  ${NumberFormat('#,###').format(product.price_sale)}',
+                                    ' \$  ${NumberFormat('#,###').format(product.priceSale)}',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold),
                                     textAlign: TextAlign.center,
                                   ),
-                                  Text(product.category,
+                                  Text(product.category as String,
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold),
                                       textAlign: TextAlign.center),
@@ -215,7 +215,8 @@ class _CartScreenState extends State<CartScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => OrderDetailScreen(
-                          productsInCart: productsWithQuantity),
+                          productsInCart: productsWithQuantity,
+                          order : widget.order),
                     ),
                   );
                 },

@@ -24,6 +24,7 @@ def create_product():
     description = data.get('description')
     image = data.get('image')
     status = data.get('status')
+    quantity = data.get('quantity')
     if not sku or not name:
         return jsonify({'message': 'Missing required fields'}), 400
 
@@ -43,7 +44,8 @@ def create_product():
         iva_value = iva_value,
         description = description,
         image = image,
-        status = status
+        status = status,
+        quantity = quantity
     )
     product.save()
     return jsonify({'message': 'Product created successfully'}), 201
@@ -65,6 +67,7 @@ def update_product(product_id):
     description = data.get('description')
     image = data.get('image')
     status = data.get('status')
+    quantity = data.get('quantity')
 
     product = Product.object(product_id)
     if not product:
@@ -84,6 +87,7 @@ def update_product(product_id):
     product.description = description or product.description
     product.image = image or product.image
     product.status = status or product.status
+    product.quantity = quantity or product.quantity
     product.updated()
 
     return jsonify({'message': 'Product updated successfully'}), 200
@@ -110,7 +114,41 @@ def list_product():
             "iva_value": product["iva_value"], 
             "description": product["description"], 
             "image": product["image"], 
-            "status": product["status"]
+            "status": product["status"],
+            "quantity" : product["quantity"]
+        }
+        for product in products_cursor
+    ]
+
+    # Convertir los datos del producto a formato JSON
+    products_json = json.dumps(product_data)
+
+    # Devolver la respuesta JSON con el código de estado 200 (OK)
+    return products_json, 200
+
+@product_api.route('/products_customer/<string:customer_email>', methods=['GET'])
+def list_product_customer(customer_email):
+    # Filtrar solo los productos con status "active"
+    products_cursor = Product.objects_customer(status="active",customer_email=customer_email)
+
+    # Construir los datos del producto para la respuesta JSON
+    product_data = [
+        {
+            "id": str(product["_id"]), 
+            "name": product["name"], 
+            "unit": product["unit"], 
+            "category": product["category"], 
+            "sku": product["sku"], 
+            "price_sale": product["price_sale"], 
+            "price_purchase": product["price_purchase"], 
+            "discount": product["discount"], 
+            "margen": product["margen"], 
+            "iva": product["iva"], 
+            "iva_value": product["iva_value"], 
+            "description": product["description"], 
+            "image": product["image"], 
+            "status": product["status"],
+            "quantity" : product["quantity"]
         }
         for product in products_cursor
     ]
