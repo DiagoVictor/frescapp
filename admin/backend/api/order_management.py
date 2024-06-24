@@ -27,25 +27,25 @@ order_api = Blueprint('order', __name__)
 @order_api.route('/order/<string:order_number>', methods=['POST'])
 def create_order(order_number):
     data = request.get_json()
-    id = data.get('id')
-    order_number = data.get('order_number')
-    customer_email = data.get('email') if data.get('email') else data.get('customer_email')
-    customer_phone = data.get('phoneNumber') if data.get('phoneNumber') else data.get('customer_phone')
-    customer_documentNumber = data.get('documentNumber') if data.get('documentNumber') else data.get('customer_documentNumber')
-    customer_documentType = data.get('documentType') if data.get('documentType') else data.get('customer_documentType')
-    customer_name = data.get('customerName') if data.get('customerName') else data.get('customer_name')
-    delivery_date = data.get('deliveryDate') if data.get('deliveryDate') else data.get('delivery_date')
+    id = data.get('id', None)
+    order_number = data.get('order_number', order_number)
+    customer_email = data.get('email') or data.get('customer_email') or 'default_email@example.com'
+    customer_phone = data.get('phoneNumber') or data.get('customer_phone') or '0000000000'
+    customer_documentNumber = data.get('documentNumber') or data.get('customer_documentNumber') or '00000000'
+    customer_documentType = data.get('documentType') or data.get('customer_documentType') or 'DNI'
+    customer_name = data.get('customerName') or data.get('customer_name') or 'John Doe'
+    delivery_date = data.get('deliveryDate') or data.get('delivery_date') or '2024-01-01'
     status = data.get('status') or 'Creada'
-    created_at = data.get('created_at')  
-    updated_at = data.get('updated_at')  
-    products = data.get('products')
-    total = data.get('total')
-    deliverySlot = data.get('deliverySlot')
-    paymentMethod = data.get('paymentMethod')
-    deliveryAddress = data.get('deliveryAddress') # Nuevo campo: Dirección de entrega
-    deliveryAddressDetails = data.get('deliveryAddressDetails') # Nuevo campo: Detalle dirección
-    deliveryCost = data.get('deliveryCost') 
-    discount = data.get("discount")
+    created_at = data.get('created_at', None)
+    updated_at = data.get('updated_at', None)
+    products = data.get('products', [])
+    total = data.get('total', 0.0)
+    deliverySlot = data.get('deliverySlot', '09:00-12:00')
+    paymentMethod = data.get('paymentMethod', 'Cash')
+    deliveryAddress = data.get('deliveryAddress', 'Default Address')
+    deliveryAddressDetails = data.get('deliveryAddressDetails', 'Default Address Details')
+    deliveryCost = data.get('deliveryCost', 0.0)
+    discount = data.get("discount", 0.0)
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
 
