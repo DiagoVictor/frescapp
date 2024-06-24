@@ -16,7 +16,7 @@ export class OrderService {
 
   updateOrder(orderId: number, orderData: any): Observable<any> {
     const url = this.baseUrl + 'api/order/order/' + orderId;
-    return this.http.put(url, orderData);
+    return this.http.post(url, orderData);
   }
 
   createOrder(orderData: any): Observable<any> {
