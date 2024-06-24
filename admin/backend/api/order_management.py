@@ -27,6 +27,7 @@ order_api = Blueprint('order', __name__)
 @order_api.route('/order/<string:order_number>', methods=['POST'])
 def create_order(order_number):
     data = request.get_json()
+    print(data)
     id = data.get('id', None)
     order_number = data.get('order_number', order_number)
     customer_email = data.get('email') or data.get('customer_email') or 'default_email@example.com'
