@@ -33,3 +33,4 @@ client_secret.json
 # Android Profiling
 *.hprof
 *.pyc
+admin/backend/models/__pycache__/order.cpython-310.pyc

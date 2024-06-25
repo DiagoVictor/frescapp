@@ -206,14 +206,15 @@ def get_compras(date,supplier):
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
     table_width = 500
     product_data = [
-        [ 'Nombre', 'Categoria', 'Cantidad', 'Precio Unitario', 'Proveedor'],  # Encabezado
+        [ 'Nombre', 'Categoria', 'Cantidad', 'Precio Unitario', 'Proveedor','Proveedor Final', 'Precio Final'],  # Encabezado
     ]
     word_wrap_style = styles["Normal"]
     word_wrap_style.wordWrap = 'CJK'
+
     for product in products:
         sku = product['sku']
         name = product['name'] + " - ( "+sku+" )"
-        quantity = str(product.get('total_quantity_ordered')) + "  " + str(product.get('unit'))
+        quantity = Paragraph(str(product.get('total_quantity_ordered')) + "  " + str(product.get('unit')),word_wrap_style)
         price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
         proveedor = product['proveedor']
         name_paragraph = Paragraph(name, word_wrap_style)
@@ -223,7 +224,7 @@ def get_compras(date,supplier):
     product_data.extend([['','','','',''],
             ['', '', 'Total', total, '']
         ])
-    col_widths = [(2 / 6) * table_width] + [(1 / 6) * table_width] * 4
+    col_widths = [(2 / 8) * table_width] + [(1 / 8) * table_width] * 4
     product_table = Table(product_data, colWidths=col_widths)
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado

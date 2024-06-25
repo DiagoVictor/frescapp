@@ -127,8 +127,9 @@ class Order:
 
     @staticmethod
     def object(id):
-        order_data = orders_collection.find_one({'_id': ObjectId(id) }, {'_id': 0})
+        order_data = orders_collection.find_one({'_id': ObjectId(id) })
         if order_data:
+            order_data['id'] = str(order_data.pop('_id'))
             return Order(**order_data)
         else:
             return None
