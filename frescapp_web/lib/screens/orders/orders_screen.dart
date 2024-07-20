@@ -67,7 +67,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
       String userEmail = prefs.getString('user_email') ?? '';
       List<Order>? fetchedOrders = await orderService.getOrders(userEmail);
       if (fetchedOrders.isNotEmpty) {
-        print(orders);
         fetchedOrders.sort((a, b) => b.deliveryDate!.compareTo(a.deliveryDate as String));
         setState(() {
           orders = fetchedOrders;

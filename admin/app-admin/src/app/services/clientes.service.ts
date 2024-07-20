@@ -6,9 +6,19 @@ import { HttpClient } from '@angular/common/http';
 })
 export class ClientesService {
   private baseUrl = 'http://app.buyfrescapp.com:5000/';
-  constructor(private httpClient: HttpClient) { }
-
+  constructor(private http: HttpClient) { }
   getClientes() {
-    return this.httpClient.get<any[]>(this.baseUrl+'api/customer/customers');
+    return this.http.get<any[]>(this.baseUrl+'api/customer/customers');
+  }
+  createCliente(cliente: any)  {
+    return this.http.post(`${this.baseUrl}`, cliente);
+  }
+
+  updateCliente(cliente: any)  {
+    return this.http.put(`${this.baseUrl}/${cliente._id}`, cliente);
+  }
+
+  deleteCliente(id: string) {
+    return this.http.delete(`${this.baseUrl}/${id}`);
   }
 }

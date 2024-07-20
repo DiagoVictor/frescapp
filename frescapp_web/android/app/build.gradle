@@ -13,16 +13,16 @@ if (localPropertiesFile.exists()) {
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
-    flutterVersionCode = '4'
+    flutterVersionCode = '6'
 
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
-    flutterVersionName = '4'
+    flutterVersionName = '6'
 
 
 android {
-    namespace "app.frescapp"
-    compileSdk flutter.compileSdkVersion
+    namespace "app.frescapp3"
+    compileSdkVersion 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -41,11 +41,11 @@ android {
     defaultConfig {
         minSdkVersion 21
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "app.frescapp"
+        applicationId "app.frescapp3"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         //minSdkVersion flutter.minSdkVersion
-        targetSdkVersion flutter.targetSdkVersion
+        targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
@@ -55,9 +55,9 @@ android {
         release {
             signingConfigs {
                 release {
-                    keyAlias 'frescapp_key'
+                    keyAlias 'Frescapp'
                     keyPassword 'Manuel2712*'
-                    storeFile file('frescapp_key.jks')
+                    storeFile file('frescapp3_key.jks')
                     storePassword 'Manuel2712*'
                 }
             }

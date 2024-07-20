@@ -8,6 +8,9 @@ from api.user_management import user_api
 from api.config_order import configOrder_api
 from api.reports_management import report_api
 from api.discount_management import discount_api
+from api.alegra_management import alegra_api
+from api.woo_management import woo_api
+
 if __name__ == '__main__':
     app = Flask(__name__)
     # Configura la aplicación utilizando el archivo config.py
@@ -23,7 +26,8 @@ if __name__ == '__main__':
     app.register_blueprint(configOrder_api, url_prefix='/api/config')
     app.register_blueprint(report_api, url_prefix='/api/reports')
     app.register_blueprint(discount_api, url_prefix='/api/discount')
-
+    app.register_blueprint(alegra_api, url_prefix='/api/alegra')
+    app.register_blueprint(woo_api, url_prefix='/api/woo')
 
     @app.route('/api/shared/<path:filename>')
     def serve_static(filename):

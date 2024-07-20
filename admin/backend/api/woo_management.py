@@ -1,18 +1,20 @@
+from flask import Blueprint, jsonify, request
+from models.customer import Customer
+import json, dump
+from flask_bcrypt import Bcrypt
+from datetime import datetime
+import utils.email_utils as emails
 import requests
-import json
 from datetime import datetime
 from pymongo import MongoClient
 
 consumer_key = 'ck_203177d4d7a291000f60cd669ab7cb98976b3620'
 consumer_secret = 'cs_d660a52cd323666cad9b600a9d61ed6c577cd6f9'
 url = f'https://www.buyfrescapp.com/wp-json/wc/v3/orders?consumer_key={consumer_key}&consumer_secret={consumer_secret}'
-
-# Conexión a la base de datos MongoDB
-client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
+woo_api = Blueprint('woo', __name__)
+client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
 collection = db['orders']
-
-# Función para transformar una orden
 def transform_order(order):
     transformed_order = {
         "order_number": order["number"],
@@ -50,22 +52,20 @@ def process_orders(order_numbers):
     for order_number in order_numbers:
         # Verificar si la orden ya existe en la base de datos
         if not collection.find_one({"order_number": order_number}):
-            # Obtener la orden desde el API
             response = requests.get(f'{url}&number={order_number}')
             if response.status_code == 200:
                 orders = response.json()
                 for order in orders:
                     transformed_order = transform_order(order)
                     collection.insert_one(transformed_order)
-                print(f"Orden {order_number} procesada y guardada en MongoDB")
+                return jsonify({"message" : f"Orden {order_number} procesada y guardada en MongoDB"}),200
             else:
-                print(f"Error al obtener la orden {order_number}: {response.status_code}")
+                return jsonify({"message" : f"Error al obtener la orden {order_number}: {response.status_code}"}),400
         else:
-            print(f"La orden {order_number} ya existe en la base de datos.")
+            return jsonify({"message" : f"La orden {order_number} ya existe en la base de datos."}),200
 
 
-order_numbers = ["8659"]  # Ejemplo de números de orden
-
-
-# Procesar y guardar las órdenes en MongoDB
-process_orders(order_numbers)
+@woo_api.route('/get_order/<string:order_number>', methods=['GET'])
+def get_order(order_number):
+    order_numbers = [order_number]
+    return process_orders(order_numbers)

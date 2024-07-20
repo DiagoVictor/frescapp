@@ -15,7 +15,8 @@ import { RestorePasswordComponent } from './restore-password/restore-password.co
 import { DeleteAccountComponent } from './delete-account/delete-account.component';
 import { PickingComponent } from './reports/picking/picking.component';
 import { ComprasComponent } from './reports/compras/compras.component';
-import { CotizarComponent } from './reports/cotizar/cotizar.component'; // Importa FormsModule
+import { CotizarComponent  } from './reports/cotizar/cotizar.component';
+import { IntegrarComponent } from './reports/integrar/integrar.component';
 import { NgSelectModule } from '@ng-select/ng-select';
 
 @NgModule({
@@ -33,6 +34,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
     PickingComponent,
     ComprasComponent,
     CotizarComponent,
+    IntegrarComponent
   ],
   bootstrap: [AppComponent],
   imports: [

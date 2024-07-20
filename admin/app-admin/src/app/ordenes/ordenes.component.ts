@@ -1,9 +1,10 @@
-import { Component, ElementRef, OnInit } from '@angular/core';
+import { Component,  OnInit } from '@angular/core';
 import { OrderService } from '../services/order.service';
 import { Router } from '@angular/router';
 import { ProductService } from '../services/product.service';
 import { ClientesService } from '../services/clientes.service';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
+import { AlegraService } from '../services/alegra.service';
 
 
 @Component({
@@ -21,6 +22,7 @@ export class OrdenesComponent implements OnInit {
   selectedCustomerId: number | undefined;
   actionType: any = '';
   successMessage: string = '';
+  failedMessage: any = '';
   documentTypes: string[] = [];
   paymentMethods: string[] = [];
   deliverySlots: string[] = [];
@@ -29,12 +31,16 @@ export class OrdenesComponent implements OnInit {
   selectedProductId: number | undefined;
   selectedsku: string = '';
   pdfData: any;
+  facturaData: any;
+  messageAlegra = '';
+  statusCodeAlegra = '';
   constructor(
     private orderService: OrderService
     ,private router: Router
     ,private productService: ProductService
     ,private clienteService: ClientesService
     ,private sanitizer: DomSanitizer
+    ,private alegraService: AlegraService
   ) { }
 
   ngOnInit(): void {
@@ -200,6 +206,30 @@ export class OrdenesComponent implements OnInit {
       product.iva = selectedProduct.iva;
       product.iva_value = selectedProduct.iva_value;
     }
+  }
+  sync_allegra(order_number: any) {
+    this.alegraService.send_invoice(order_number).subscribe(
+      (res: any) => {
+        // Manejar la respuesta exitosa
+        this.statusCodeAlegra = res.status.toString();
+        this.messageAlegra = res.message || 'Operación exitosa'; // Ajusta este mensaje según lo que devuelva la API
+        console.log('Response:', res);
+      },
+      (error) => {
+        this.statusCodeAlegra = error.status.toString(); // Obtiene el código de estado del error
+        this.messageAlegra = error.error?.message || 'Ocurrió un error'; // Ajusta el mensaje de error según sea necesario
+        console.error('Error:', error);
+      }
+    );
+  }
+  get_invoice(id: any){
+    this.alegraService.get_invoice('215').subscribe(
+      (res: any) => {
+        console.log(res.text)
+
+      }
+    );
+    //this.facturaData =
   }
 }
 

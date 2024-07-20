@@ -10,8 +10,10 @@ export class ClientesComponent implements OnInit {
   customers: any[] = [];
   filteredCustomers: any[] = [];
   searchText: string = '';
+  selectedCustomer: any = {};
+  isNewCustomer: boolean = true;
 
-  constructor(private clientesService: ClientesService) { }
+  constructor(private clientesService: ClientesService) {}
 
   ngOnInit(): void {
     this.getClientes();
@@ -40,5 +42,34 @@ export class ClientesComponent implements OnInit {
       customer.status.toLowerCase().includes(this.searchText.toLowerCase()) ||
       customer.category.toLowerCase().includes(this.searchText.toLowerCase())
     );
+  }
+
+  openEditModal(customer: any, type: string): void {
+    this.isNewCustomer = type === 'new';
+    this.selectedCustomer = type === 'new' ? {} : { ...customer };
+  }
+
+  edit_customer(customer: any) {
+    this.openEditModal(customer, 'edit');
+  }
+
+  saveCustomer() {
+
+  }
+
+
+  delete_customer(customer: any) {
+    if (confirm('¿Está seguro de que desea eliminar este cliente?')) {
+      this.clientesService.deleteCliente(customer._id).subscribe(
+        () => {
+          this.customers = this.customers.filter(c => c._id !== customer._id);
+          this.filterCustomers();
+        },
+        (error) => {
+          console.error('Error al eliminar cliente:', error);
+          // Manejo de errores
+        }
+      );
+    }
   }
 }
