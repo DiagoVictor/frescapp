@@ -192,10 +192,19 @@ def send_invoice(order_number):
         items = get_all_items()
         client = find_client_by_identification(clients, order["customer_documentNumber"])
         if client:
+            # Transformar y enviar la factura
             transform_and_send_invoice(order, client, items)
-            return jsonify({"message" : f"Orden sincronizada {order_number}"}), 200
+            
+            # Actualizar el estado de la orden a 'Facturada'
+            collection.update_one(
+                {"order_number": order_number},
+                {"$set": {"status": "Facturada"}}
+            )
+            
+            return jsonify({"message": f"Orden sincronizada {order_number}"}), 200
         else:
-            return jsonify({"message" :f"No se encontró un cliente con identificación {order['customer_documentNumber']}"}), 400
+            return jsonify({"message": f"No se encontró un cliente con identificación {order['customer_documentNumber']}"}), 400
 
     else:
-        return jsonify({"message" : f"No se encontró la orden con número {order_number}"}), 400
+        return jsonify({"message": f"No se encontró la orden con número {order_number}"}), 400
+
