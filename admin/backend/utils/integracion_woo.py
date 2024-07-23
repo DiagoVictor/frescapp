@@ -64,7 +64,7 @@ def process_orders(order_numbers):
             print(f"La orden {order_number} ya existe en la base de datos.")
 
 
-order_numbers = ["8659"]  # Ejemplo de números de orden
+order_numbers = ["8895"]  # Ejemplo de números de orden
 
 
 # Procesar y guardar las órdenes en MongoDB
