@@ -18,6 +18,7 @@ import { ComprasComponent } from './reports/compras/compras.component';
 import { CotizarComponent  } from './reports/cotizar/cotizar.component';
 import { IntegrarComponent } from './reports/integrar/integrar.component';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { CommonModule, DatePipe } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -45,6 +46,6 @@ import { NgSelectModule } from '@ng-select/ng-select';
     HttpClientModule,
     ReactiveFormsModule
   ],
-  providers: []
+  providers: [DatePipe],
 })
 export class AppModule { }

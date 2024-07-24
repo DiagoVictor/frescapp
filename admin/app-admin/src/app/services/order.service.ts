@@ -6,12 +6,12 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class OrderService {
-  private baseUrl = 'http://app.buyfrescapp.com:5000/';
+ private baseUrl = 'http://app.buyfrescapp.com:5000/';
 
   constructor(private http: HttpClient) { }
 
-  getOrders(): Observable<any[]> {
-    return this.http.get<any[]>(this.baseUrl+'api/order/orders');
+  getOrders(dateOrders:any): Observable<any[]> {
+    return this.http.get<any[]>(this.baseUrl+'api/order/orders/'+dateOrders);
   }
 
   updateOrder(orderId: number, orderData: any): Observable<any> {
@@ -24,5 +24,9 @@ export class OrderService {
   }
   getConfig(): Observable<any> {
       return this.http.get<any>(this.baseUrl+ 'api/config/configOrder');
+  }
+  deleteOrder(orderId: number){
+    const url = this.baseUrl + 'api/order/order/' + orderId;
+    return this.http.delete(url);
   }
 }

@@ -6,6 +6,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 })
 export class AlegraService {
   private baseUrl = 'http://app.buyfrescapp.com:5000/';
+
   constructor(private http: HttpClient) { }
   send_invoice(order_number:any) {
     return this.http.get(this.baseUrl+'api/alegra/send_invoice/'+order_number);

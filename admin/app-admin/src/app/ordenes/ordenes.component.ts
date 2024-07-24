@@ -5,7 +5,7 @@ import { ProductService } from '../services/product.service';
 import { ClientesService } from '../services/clientes.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AlegraService } from '../services/alegra.service';
-
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-orders',
@@ -16,6 +16,7 @@ export class OrdenesComponent implements OnInit {
   orders: any[] | [] | undefined;
   filteredOrders: any[] | undefined;
   searchText: string = '';
+  searchDate: string | undefined;
   order: any = {};
   product: any = {};
   customers: any[]  = [];
@@ -34,6 +35,8 @@ export class OrdenesComponent implements OnInit {
   facturaData: any;
   messageAlegra = '';
   statusCodeAlegra = '';
+  sortColumn: string = '';
+  sortDirection: string = 'asc';
   constructor(
     private orderService: OrderService
     ,private router: Router
@@ -41,6 +44,7 @@ export class OrdenesComponent implements OnInit {
     ,private clienteService: ClientesService
     ,private sanitizer: DomSanitizer
     ,private alegraService: AlegraService
+    ,private datePipe: DatePipe
   ) { }
 
   ngOnInit(): void {
@@ -66,8 +70,7 @@ export class OrdenesComponent implements OnInit {
   }
   getOrders(): void {
     this.orders = [];
-    this.filteredOrders = [];
-    this.orderService.getOrders()
+    this.orderService.getOrders(this.datePipe.transform(this.searchDate, 'yyyy-MM-dd') || 'all')
       .subscribe(orders => {
         this.orders = orders;
         this.filteredOrders = orders;
@@ -133,8 +136,10 @@ export class OrdenesComponent implements OnInit {
   saveOrder() {
     if (this.actionType === 'update') {
       this.updated_order();
+      this.getOrders()
     } else if (this.actionType === 'new') {
       this.created_order();
+      this.getOrders()
     }
   }
   camposCompletos(): boolean {
@@ -170,7 +175,6 @@ export class OrdenesComponent implements OnInit {
   }
   openPdfModal(order: any): void {
     this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('http://app.buyfrescapp.com:5000/api/order/generate_pdf/' + order);
-
   }
   getCustomers(){
     this.clienteService.getClientes()
@@ -211,14 +215,14 @@ export class OrdenesComponent implements OnInit {
     this.alegraService.send_invoice(order_number).subscribe(
       (res: any) => {
         // Manejar la respuesta exitosa
-        this.statusCodeAlegra = res.status.toString();
-        this.messageAlegra = res.message || 'Operación exitosa'; // Ajusta este mensaje según lo que devuelva la API
-        console.log('Response:', res);
+        this.statusCodeAlegra = '200';
+        this.messageAlegra = res.message || 'Factura creada exitosamente.'; // Ajusta este mensaje según lo que devuelva la API
+        this.getOrders()
       },
       (error) => {
         this.statusCodeAlegra = error.status.toString(); // Obtiene el código de estado del error
         this.messageAlegra = error.error?.message || 'Ocurrió un error'; // Ajusta el mensaje de error según sea necesario
-        console.error('Error:', error);
+        this.getOrders()
       }
     );
   }
@@ -230,6 +234,41 @@ export class OrdenesComponent implements OnInit {
       }
     );
     //this.facturaData =
+  }
+  delete_order(id: any){
+    this.orderService.deleteOrder(id).subscribe(
+      (res: any) => {
+        this.getOrders()
+      }
+    );
+  }
+  sort(column: string) {
+    console.log(column)
+    if (!this.filteredOrders || this.filteredOrders.length === 0) {
+      return; // No hacer nada si filteredOrders es indefinido o está vacío
+    }
+
+    if (this.sortColumn === column) {
+      // Si ya está ordenado por esta columna, invertir la dirección
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      // Si se selecciona una nueva columna, ordenar por ella en orden ascendente
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    // Ordenar filteredOrders según la columna y dirección
+    this.filteredOrders.sort((a, b) => {
+      const valueA = a[this.sortColumn];
+      const valueB = b[this.sortColumn];
+
+      if (valueA == null) return this.sortDirection === 'asc' ? 1 : -1;
+      if (valueB == null) return this.sortDirection === 'asc' ? -1 : 1;
+
+      if (valueA < valueB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valueA > valueB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
   }
 }
 

@@ -120,6 +120,13 @@ class Order:
             "deliveryCost": self.deliveryCost
         }
         return json.dumps(order_data)
+    
+    def delete_order(self):
+        result = orders_collection.delete_one({"_id": ObjectId(self.id)})
+        if result.deleted_count > 0:
+            print("Order deleted successfully.")
+        else:
+            print("Order not found.")
 
     @staticmethod
     def objects():
@@ -141,3 +148,6 @@ class Order:
     @staticmethod
     def find_by_customer(customer_email):
         return orders_collection.find({"customer_email": customer_email})
+    @staticmethod
+    def find_by_date(dateOrder):
+        return orders_collection.find({"delivery_date": dateOrder})

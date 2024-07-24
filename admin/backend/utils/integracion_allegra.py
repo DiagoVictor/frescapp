@@ -176,12 +176,12 @@ def transform_and_send_invoice(order, client, items):
         print(f"Error al crear la factura: {response.status_code} - {response.text}")
 
 # Consultar una orden específica en MongoDB
-order_number = "8648"  # Ejemplo de número de orden
+order_number = "8897"  # Ejemplo de número de orden
 order = collection.find_one({"order_number": order_number})
 
 if order:
     clients = get_all_clients()
-    items = get_all_items()
+    items = get_all_items() 
     client = find_client_by_identification(clients, order["customer_documentNumber"])
     
     if client:

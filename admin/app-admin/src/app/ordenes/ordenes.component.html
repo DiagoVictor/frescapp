@@ -4,9 +4,12 @@
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal"
         data-bs-dismiss="modal" (click)="openEditModal({}, 'new')">Nueva Orden</button>
     </div>
-    <div class="col-6">
+    <div class="col-5">
       <input type="text" class="form-control" placeholder="Buscar orden..." [(ngModel)]="searchText"
         (keyup)="filterOrders()">
+    </div>
+    <div class="col-auto">
+      <input type="date" class="form-control" [(ngModel)]="searchDate" (change)="getOrders()">
     </div>
   </div>
   <br *ngIf="successMessage">
@@ -27,13 +30,13 @@
   <table class="table">
     <thead>
       <tr>
-        <th>Número de Orden</th>
-        <th>Email del Cliente</th>
-        <th>Teléfono del Cliente</th>
-        <th>Documento del Cliente</th>
-        <th>Nombre del Cliente</th>
-        <th>Fecha de Entrega</th>
-        <th>Estado</th>
+        <th (click)="sort('order_number')">Número de Orden <span *ngIf="sortColumn === 'order_number'">{{ sortDirection }}</span></th>
+        <th (click)="sort('customer_email')">Email del Cliente <span *ngIf="sortColumn === 'customer_email'">{{ sortDirection }}</span></th>
+        <th (click)="sort('customer_phone')">Teléfono del Cliente <span *ngIf="sortColumn === 'customer_phone'">{{ sortDirection }}</span></th>
+        <th (click)="sort('customer_documentNumber')">Documento del Cliente <span *ngIf="sortColumn === 'customer_documentNumber'">{{ sortDirection }}</span></th>
+        <th (click)="sort('customer_name')">Nombre del Cliente <span *ngIf="sortColumn === 'customer_name'">{{ sortDirection }}</span></th>
+        <th (click)="sort('delivery_date')">Fecha de Entrega <span *ngIf="sortColumn === 'delivery_date'">{{ sortDirection }}</span></th>
+        <th (click)="sort('status')">Estado <span *ngIf="sortColumn === 'status'">{{ sortDirection }}</span></th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -44,7 +47,7 @@
         <td>{{ order.customer_phone }}</td>
         <td>{{ order.customer_documentNumber }}</td>
         <td>{{ order.customer_name }}</td>
-        <td>{{ order.delivery_date }}</td>
+        <td>{{ order.delivery_date | date: 'yyyy-MM-dd' }}</td>
         <td>{{ order.status }}</td>
         <td>
           <div class="row">
@@ -54,21 +57,26 @@
                 <i class="fas fa-pencil-alt fa-lg text-primary"></i>
               </span>
             </div>
-            <div class="col-auto" >
+            <div class="col-auto">
               <span (click)="openPdfModal(order.id)" style="cursor: pointer;" data-bs-toggle="modal"
                 data-bs-target="#pdfModal" data-bs-dismiss="modal">
                 <i class="fas fa-file-pdf fa-lg text-danger"></i>
               </span>
             </div>
-            <div class="col-auto" *ngIf="order.status == 'Facturada'">
+            <div class="col-auto" *ngIf="order.status === 'Facturada'">
               <span (click)="get_invoice(order.id)" style="cursor: pointer;" data-bs-toggle="modal"
                 data-bs-target="#facturaModal" data-bs-dismiss="modal">
                 <i class="fas fa-file-pdf fa-lg text-primary"></i>
               </span>
             </div>
-            <div class="col-auto" *ngIf="order.status != 'Facturada' && order.status != 'Cancelada' ">
+            <div class="col-auto" *ngIf="order.status !== 'Facturada' && order.status !== 'Cancelada'">
               <span (click)="sync_allegra(order.order_number)" style="cursor: pointer;">
                 <img src="assets/alegra.png" alt="icono" style="width: 24px; height: 24px;" />
+              </span>
+            </div>
+            <div class="col-auto" *ngIf="order.status === 'Creada'">
+              <span (click)="delete_order(order.id)" style="cursor: pointer;">
+                <i class="fas fa-trash fa-lg text-danger"></i>
               </span>
             </div>
           </div>
@@ -76,17 +84,18 @@
       </tr>
     </tbody>
   </table>
+
 </div>
 
 <!-- Agrega esto al final de tu archivo HTML -->
 <div class="modal fade bd-example-modal-lg" id="editOrderModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-xl" role="document">
+  <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 80%;">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Editar Orden</h5>
       </div>
       <div class="modal-body">
-        <div class="container">
+        <div class="container-fluid">
           <div class="row">
             <div class="col-6">
               <div class="form-group">
@@ -208,8 +217,7 @@
                 <thead>
                   <tr>
                     <th class="col-4">Producto</th>
-                    <th>SKU</th>
-                    <th  [hidden]="true">Nombre</th>
+                    <th>sku</th>
                     <th>Precio Venta</th>
                     <th>Cantidad</th>
                     <th>IVA</th>
@@ -224,12 +232,11 @@
                     bindLabel="name"
                     bindValue="id"
                     [searchable]="true"
-                    placeholder="Productos..."
+                    placeholder="{{product.name}}"
                     [(ngModel)]="product.id"
                     (change)="onProductSelect(product)">
                   </ng-select>
                     <td><input type="text" class="form-control" [(ngModel)]="product.sku"></td>
-                    <td><input type="text" class="form-control" [(ngModel)]="product.name" [hidden]="true"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.price_sale"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.quantity"></td>
                     <td><input type="checkbox" [(ngModel)]="product.iva"></td>

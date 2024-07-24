@@ -27,9 +27,7 @@ order_api = Blueprint('order', __name__)
 @order_api.route('/order', methods=['POST'])
 @order_api.route('/order/<string:order_number>', methods=['POST'])
 def create_order(order_number=None):
-    print(request.get_json())
     data = request.get_json()
-    print(data)
     id = data.get('id', None)
     order_number = data.get('order_number', order_number)
     customer_email = data.get('email') or data.get('customer_email') or 'default_email@example.com'
@@ -81,9 +79,19 @@ def create_order(order_number=None):
     #send_order_email(order_number, customer_email, delivery_date, products, total)
     return jsonify({'message': 'Order created successfully'}), 201
 
-@order_api.route('/orders', methods=['GET'])
-def list_orders():
-    orders_cursor = Order.objects()
+@order_api.route('/order/<string:id>', methods=['DELETE'])
+def delete_order(id=None):
+    finded_order = Order.object(id)
+    finded_order.delete_order()
+    return jsonify({'message': 'Order created successfully'}), 201
+
+
+@order_api.route('/orders/<string:dateOrders>', methods=['GET'])
+def list_orders(dateOrders):
+    if dateOrders == 'all':
+        orders_cursor = Order.objects()
+    else:
+        orders_cursor = Order.find_by_date(dateOrders)
     order_data = [
         {
          "id": str(order["_id"]), 
@@ -489,3 +497,4 @@ def download_orders_csv():
     response = Response(csv_file.getvalue(), mimetype='text/csv')
     response.headers['Content-Disposition'] = 'inline; filename=orders.csv'
     return response
+
