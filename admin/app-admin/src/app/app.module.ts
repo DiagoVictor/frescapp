@@ -21,6 +21,7 @@ import { CotizarComponent  } from './reports/cotizar/cotizar.component';
 import { IntegrarComponent } from './reports/integrar/integrar.component';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CommonModule, DatePipe } from '@angular/common';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -48,7 +49,8 @@ import { CommonModule, DatePipe } from '@angular/common';
     FormsModule,
     NgSelectModule,
     HttpClientModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgbModule
   ],
   providers: [DatePipe],
 })

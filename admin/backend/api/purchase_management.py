@@ -7,7 +7,7 @@ db = client['frescapp']
 orders_collection = db['orders']
 purchase_collection = db['purchases']
 
-@purchase_api.route('/purchase/<string:date>', methods=['POST'])
+@purchase_api.route('/create/<string:date>', methods=['GET'])
 def create_purchase(date):
     pipeline = [
         {
@@ -20,8 +20,23 @@ def create_purchase(date):
         },
         {
             "$group": {
-                "_id": "$products.sku",
+                "_id": {
+                    "sku": "$products.sku",
+                    "client_name": "$customer_name"  # Asume que hay un campo client_name en la orden
+                },
                 "total_quantity_ordered": {"$sum": "$products.quantity"}
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id.sku",
+                "total_quantity_ordered": {"$sum": "$total_quantity_ordered"},
+                "clients": {
+                    "$push": {
+                        "client_name": "$_id.client_name",
+                        "quantity": "$total_quantity_ordered"
+                    }
+                }
             }
         },
         {
@@ -48,9 +63,11 @@ def create_purchase(date):
                 "status": "Creada",
                 "link_document_support": "",
                 "final_price_purchase": {"$literal": 0.0},
+                "clients": 1
             }
         }
     ]
+
     products = list(orders_collection.aggregate(pipeline))
     if products:
         purchase_number = db['counters'].find_one_and_update(
@@ -61,7 +78,7 @@ def create_purchase(date):
         )["sequence_value"]
         purchase_document = {
             "date": date,
-            "purchase_number": purchase_number,
+            "purchase_number": str(purchase_number),
             "status": "Creada",
             "products": products
         }
@@ -97,5 +114,35 @@ def delete_purchase(purchase_number):
     result = purchase_collection.delete_one({"purchase_number": purchase_number})
     if result.deleted_count:
         return jsonify({"status": "success", "message": "Purchase deleted successfully."}), 200
+    else:
+        return jsonify({"status": "failure", "message": "Purchase not found."}), 404
+
+@purchase_api.route('/update_price', methods=['POST'])
+def update_price():
+    data = request.json
+    purchase_number = data.get("purchase_number")
+    sku = data.get("sku")
+    new_price = data.get("final_price_purchase")
+    new_proveedor = data.get("proveedor")
+    purchase = purchase_collection.find_one({"purchase_number": purchase_number})
+
+    if purchase:
+        updated = False
+        for product in purchase['products']:
+            if product['sku'] == sku:
+                # Actualiza el precio del producto
+                product['final_price_purchase'] = new_price
+                product['proveedor'] = new_proveedor
+                updated = True
+                break
+
+        if updated:
+            purchase_collection.update_one(
+                {"purchase_number": purchase_number},
+                {"$set": {"products": purchase['products']}}
+            )
+            return jsonify({"status": "success", "message": "Price updated successfully."}), 200
+        else:
+            return jsonify({"status": "failure", "message": "SKU not found."}), 404
     else:
         return jsonify({"status": "failure", "message": "Purchase not found."}), 404

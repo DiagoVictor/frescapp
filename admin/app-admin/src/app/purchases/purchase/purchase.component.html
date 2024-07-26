@@ -18,7 +18,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let product of filteredProducts" (click)="openEditModal(productModal, product)">
+      <tr *ngFor="let product of filteredProducts" (click)="openEditModal(productModal, product)" [ngClass]="{'table-success': product.final_price_purchase > 0}">
         <td>{{ product.name + ' (' + product.sku + ')' }}</td>
         <td>{{ product.total_quantity_ordered +' '+ product.unit}}</td>
       </tr>
@@ -29,13 +29,41 @@
 <!-- Modal -->
 <ng-template #productModal let-modal>
   <div class="modal-header">
-    <h5 class="modal-title">Editar Precio de Compra</h5>
+    <h5 class="modal-title">{{ this.selectedProduct.name }}</h5>
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
   </div>
   <div class="modal-body">
+    <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+    <div>
+      <label>Precio de Compra sugerido:</label>
+      <span class="form-control">{{ this.selectedProduct.price_purchase }}</span>
+    </div>
     <div>
       <label>Precio de Compra:</label>
-      <input type="number" [(ngModel)]="editedPrice" class="form-control"/>
+      <input type="number" [(ngModel)]="this.selectedProduct.final_price_purchase" class="form-control"/>
+    </div>
+    <div>
+      <label>Proveedor:</label>
+      <input type="text" [(ngModel)]="this.selectedProduct.proveedor" class="form-control"/>
+    </div>
+    <div *ngIf="selectedProduct.clients?.length">
+      <h6 class="mt-3">Clientes que pidieron este producto:</h6>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Cantidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of selectedProduct.clients">
+            <td>{{ client.client_name }}</td>
+            <td>{{ client.quantity }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
   <div class="modal-footer">
@@ -43,3 +71,4 @@
     <button type="button" class="btn btn-primary" (click)="savePrice(); modal.close('Save click')">Guardar</button>
   </div>
 </ng-template>
+

@@ -25,4 +25,7 @@ export class PurchaseService {
   createPurchase(date:any){
     return this.http.get<any[]>(this.baseUrl+'api/purchase/purchase/'+date);
   }
+  updatePrice(data:any): Observable<any[]> {
+    return this.http.post<any[]>(`${this.baseUrl}api/purchase/update_price`, data);
+  }
 }
