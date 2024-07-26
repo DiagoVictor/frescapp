@@ -5,15 +5,12 @@ import 'package:frescapp/models/product.dart';
 
 class ProductService {
 
-  Future<List<Product>> getProducts(customer_email) async {
+  Future<List<Product>> getProducts(customerEmail) async {
     // ignore: prefer_interpolation_to_compose_strings
-    final response = await http.get(Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.products}/products_customer/'+customer_email));
-    if (response.statusCode == 200) {
+    final response = await http.get(Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.products}/products_customer/'+customerEmail));
       List<dynamic> jsonResponse = jsonDecode(response.body);
       List<Product> products = jsonResponse.map((data) => Product.fromJson(data)).toList();
       return products;
-    } else {
-      throw Exception('Failed to load products');
-    }
+
   }
 }

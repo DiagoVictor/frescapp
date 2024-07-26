@@ -95,29 +95,18 @@ class Product:
         return products_collection.find({"status": status})
     @staticmethod
     def objects_customer(status, customer_email):
-        # Obtener la lista de productos del cliente
         customer = customers_collection.find_one({"email": customer_email})
         if not customer:
             raise ValueError("Customer not found")
-
         customer_products = customer.get('list_products', [])
-
-        # Obtener todos los productos activos
         all_active_products = list(products_collection.find({"status": status}))
-
-        # Crear un diccionario de productos para facilitar el acceso
         product_dict = {product['_id']: product for product in all_active_products}
-
-        # Filtrar y ordenar los productos según la lista del cliente
         ordered_products = []
         for product_id in customer_products:
             if product_id in product_dict:
                 ordered_products.append(product_dict.pop(product_id))
-
-        # Agregar los productos restantes al final de la lista
         remaining_products = [product for product_id, product in product_dict.items()]
         ordered_products.extend(remaining_products)
-
         return ordered_products
     @staticmethod
     def object(id):

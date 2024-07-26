@@ -148,7 +148,12 @@ def list_product_customer(customer_email):
             "description": product["description"], 
             "image": product["image"], 
             "status": product["status"],
-            "quantity" : product["quantity"]
+            "quantity" : product["quantity"],
+            "root" : product["root"],
+            "child" : product["child"],
+            "proveedor" : product["proveedor"],
+            "step_unit" : product["step_unit"],
+            "rate_root" : product["rate_root"],
         }
         for product in products_cursor
     ]

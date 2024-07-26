@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 import { NavigationBarComponent } from './navigation-bar/navigation-bar.component';
 import { ProductsComponent } from './products/products.component';
 import { ClientesComponent } from './clientes/clientes.component';
+import { PurchasesComponent } from './purchases/purchases.component';
 import { OrdenesComponent } from './ordenes/ordenes.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LoginComponent } from './login/login.component';
@@ -35,7 +36,8 @@ import { CommonModule, DatePipe } from '@angular/common';
     PickingComponent,
     ComprasComponent,
     CotizarComponent,
-    IntegrarComponent
+    IntegrarComponent,
+    PurchasesComponent
   ],
   bootstrap: [AppComponent],
   imports: [

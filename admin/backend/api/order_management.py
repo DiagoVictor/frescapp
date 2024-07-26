@@ -78,14 +78,11 @@ def create_order(order_number=None):
         order.save()
     #send_order_email(order_number, customer_email, delivery_date, products, total)
     return jsonify({'message': 'Order created successfully'}), 201
-
 @order_api.route('/order/<string:id>', methods=['DELETE'])
 def delete_order(id=None):
     finded_order = Order.object(id)
     finded_order.delete_order()
     return jsonify({'message': 'Order created successfully'}), 201
-
-
 @order_api.route('/orders/<string:dateOrders>', methods=['GET'])
 def list_orders(dateOrders):
     if dateOrders == 'all':

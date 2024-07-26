@@ -12,6 +12,8 @@ import { PickingComponent } from './reports/picking/picking.component';
 import { ComprasComponent } from './reports/compras/compras.component';
 import { CotizarComponent } from './reports/cotizar/cotizar.component';
 import { IntegrarComponent } from './reports/integrar/integrar.component';
+import { PurchasesComponent } from './purchases/purchases.component';
+import { PurchaseComponent } from './purchases/purchase/purchase.component';
 
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent },
@@ -26,6 +28,8 @@ const routes: Routes = [
   { path: 'reports/integrar', component: IntegrarComponent },
   { path: 'delete-account', component: DeleteAccountComponent },
   { path: 'restore/:user_id', component: RestorePasswordComponent },
+  { path: 'purchases', component: PurchasesComponent },
+  { path: 'purchase/:purchaseNumber', component: PurchaseComponent },
   { path: '', component: HomeComponent }
 ];
 

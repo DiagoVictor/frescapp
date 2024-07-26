@@ -1,1 +1,20 @@
-<p>purchases works!</p>
+<div class="container-fluid mt-5">
+  <table class="table">
+    <thead>
+      <tr>
+        <th >Número de Compra </th>
+        <th > Fecha </th>
+        <th > Cantidad sku</th>
+        <th >Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let purchase of this.purchases"  (click)="navigateToPurchase(purchase.purchase_number)">
+        <td>{{ purchase.purchase_number }}</td>
+        <td>{{ purchase.date }}</td>
+        <td>{{  purchase.products.length  }}</td>
+        <td>{{ purchase.status }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

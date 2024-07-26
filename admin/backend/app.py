@@ -10,6 +10,7 @@ from api.reports_management import report_api
 from api.discount_management import discount_api
 from api.alegra_management import alegra_api
 from api.woo_management import woo_api
+from api.purchase_management import purchase_api
 
 if __name__ == '__main__':
     app = Flask(__name__)
@@ -28,6 +29,7 @@ if __name__ == '__main__':
     app.register_blueprint(discount_api, url_prefix='/api/discount')
     app.register_blueprint(alegra_api, url_prefix='/api/alegra')
     app.register_blueprint(woo_api, url_prefix='/api/woo')
+    app.register_blueprint(purchase_api, url_prefix='/api/purchase')
 
     @app.route('/api/shared/<path:filename>')
     def serve_static(filename):
