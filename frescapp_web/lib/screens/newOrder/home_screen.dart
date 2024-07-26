@@ -62,7 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> getInitialProducts() async {
-    allProducts = await productService.getProducts(widget.order?.customerEmail);
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    allProducts = await productService.getProducts(prefs.getString('user_email'));
     setState(() {
       displayedProducts = allProducts.toList();
     });

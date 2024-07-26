@@ -98,16 +98,22 @@ class Product:
         customer = customers_collection.find_one({"email": customer_email})
         if not customer:
             raise ValueError("Customer not found")
-        customer_products = customer.get('list_products', [])
+        customer_product_skus = customer.get('list_products', [])
+        
         all_active_products = list(products_collection.find({"status": status}))
-        product_dict = {product['_id']: product for product in all_active_products}
+        
+        product_dict = {product['sku']: product for product in all_active_products}
+        
         ordered_products = []
-        for product_id in customer_products:
-            if product_id in product_dict:
-                ordered_products.append(product_dict.pop(product_id))
-        remaining_products = [product for product_id, product in product_dict.items()]
+        for product_sku in customer_product_skus:
+            if product_sku in product_dict:
+                ordered_products.append(product_dict.pop(product_sku))
+        
+        remaining_products = list(product_dict.values())
         ordered_products.extend(remaining_products)
+        
         return ordered_products
+
     @staticmethod
     def object(id):
         product_data = products_collection.find_one({'_id': ObjectId(id) }, {'_id': 0})

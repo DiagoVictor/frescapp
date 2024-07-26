@@ -17,7 +17,7 @@ class Product {
   final String? proveedor;
   final double? stepUnit;
   final double? rateRoot;
-  double? quantity; // Atributo quantity permitido nulo
+  double? quantity; 
 
   Product({
     this.name,
