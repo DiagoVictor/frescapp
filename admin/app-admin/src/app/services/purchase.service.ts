@@ -12,6 +12,9 @@ export class PurchaseService {
   getPurchases():Observable<any> {
     return this.http.get<any[]>(this.baseUrl+'api/purchase/purchases');
   }
+  getPurchase(purchaseNumber:any):Observable<any> {
+    return this.http.get<any[]>(this.baseUrl+'api/purchase/purchase/'+purchaseNumber);
+  }
   updatePurchase(cliente: any)  {
     return this.http.put(`${this.baseUrl}/${cliente._id}`, cliente);
   }

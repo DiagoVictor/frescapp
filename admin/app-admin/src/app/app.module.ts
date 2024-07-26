@@ -8,6 +8,7 @@ import { ProductsComponent } from './products/products.component';
 import { ClientesComponent } from './clientes/clientes.component';
 import { PurchasesComponent } from './purchases/purchases.component';
 import { OrdenesComponent } from './ordenes/ordenes.component';
+import { PurchaseComponent } from './purchases/purchase/purchase.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
@@ -37,7 +38,8 @@ import { CommonModule, DatePipe } from '@angular/common';
     ComprasComponent,
     CotizarComponent,
     IntegrarComponent,
-    PurchasesComponent
+    PurchasesComponent,
+    PurchaseComponent
   ],
   bootstrap: [AppComponent],
   imports: [

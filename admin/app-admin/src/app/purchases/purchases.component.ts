@@ -19,7 +19,6 @@ export class PurchasesComponent {
     this.purchaseService.getPurchases().subscribe(
       (res: any) => {
         this.purchases = res;
-        console.log(this.purchases)
       }
       )
   }

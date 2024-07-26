@@ -75,6 +75,11 @@ def list_purchases():
     purchases = list(purchase_collection.find({}, {'_id': 0}))
     return jsonify(purchases), 200
 
+@purchase_api.route('/purchase/<string:purchaseNumber>', methods=['GET'])
+def get_purchase(purchaseNumber):
+    purchase = purchase_collection.find_one({"purchase_number" : purchaseNumber}, {'_id': 0})
+    return jsonify(purchase), 200
+
 @purchase_api.route('/purchase/<int:purchase_number>', methods=['PUT'])
 def edit_purchase(purchase_number):
     data = request.json

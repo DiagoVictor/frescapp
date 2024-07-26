@@ -1,44 +1,45 @@
 <div class="container-fluid mt-5">
+  <!-- Cuadro de búsqueda -->
+  <div class="mb-3">
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Buscar producto..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="filterProducts()"
+    />
+  </div>
+
   <table class="table">
     <thead>
       <tr>
-        <th>SKU</th>
-        <th>Nombre</th>
-        <th>Precio de Compra</th>
-        <th>Acciones</th>
+        <th (click)="sortBy('name')">Producto</th>
+        <th (click)="sortBy('total_quantity_ordered')">Cantidad</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let product of purchase.products">
-        <td>{{ product.sku }}</td>
-        <td>{{ product.name }}</td>
-        <td>{{ product.price_purchase | currency: 'COP' }}</td>
-        <td>
-          <button class="btn btn-primary" (click)="openEditModal(editModal, product)">
-            Editar Precio
-          </button>
-        </td>
+      <tr *ngFor="let product of filteredProducts" (click)="openEditModal(productModal, product)">
+        <td>{{ product.name + ' (' + product.sku + ')' }}</td>
+        <td>{{ product.total_quantity_ordered +' '+ product.unit}}</td>
       </tr>
     </tbody>
   </table>
-
-  <ng-template #editModal let-modal>
-    <div class="modal-header">
-      <h4 class="modal-title" id="modal-basic-title">Editar Precio</h4>
-      <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
-    </div>
-    <div class="modal-body">
-      <div *ngIf="selectedProduct">
-        <h5>{{ selectedProduct.name }}</h5>
-        <div class="mb-3">
-          <label for="price" class="form-label">Precio de Compra</label>
-          <input type="number" class="form-control" id="price" [(ngModel)]="editedPrice" />
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" (click)="modal.close()">Cerrar</button>
-      <button type="button" class="btn btn-primary" (click)="savePrice()">Guardar Cambios</button>
-    </div>
-  </ng-template>
 </div>
+
+<!-- Modal -->
+<ng-template #productModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Editar Precio de Compra</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <div>
+      <label>Precio de Compra:</label>
+      <input type="number" [(ngModel)]="editedPrice" class="form-control"/>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss('Cancel')">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="savePrice(); modal.close('Save click')">Guardar</button>
+  </div>
+</ng-template>
