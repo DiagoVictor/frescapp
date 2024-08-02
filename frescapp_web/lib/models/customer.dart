@@ -11,6 +11,7 @@ class Customer {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String category;
+  final List<String> listProducts;
 
   Customer({
     required this.id,
@@ -25,6 +26,7 @@ class Customer {
     required this.createdAt,
     required this.updatedAt,
     required this.category,
+    required this.listProducts,
   });
 
   factory Customer.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class Customer {
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       category: json['category'],
+      listProducts : json['list_products']
     );
   }
 
@@ -58,6 +61,7 @@ class Customer {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'category': category,
+      'list_products' : listProducts
     };
   }
 }

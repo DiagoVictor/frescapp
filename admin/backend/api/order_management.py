@@ -278,8 +278,8 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
         style="height: 100%; position: relative; background-color: #f7f7f7; margin: 0; padding: 0;" height="100%"
         backgound-color="#f7f7f7">
         <div id="wrapper" dir="ltr"
-            style="background-color: #f7f7f7; margin: 0; padding: 70px 0 70px 0; width: 100%; padding-top: 70px; padding-bottom: px; -webkit-text-size-adjust: none;"
-            backgound-color="#f7f7f7" width="100%">
+            style="background-color: #f7f7f7; margin: 0; padding: 70px 0 70px 0; width: 100%; padding-top: 70px; padding-bottom: px; -webkit-text-size-adjust: none; "
+            backgound-color="#f7f7f7" width="100%" text-align="center">
             <table cellpadding="0" cellspacing="0" height="100%" width="100%">
                 <tr>
                     <td text-align="center" vtext-align="top">
@@ -294,7 +294,7 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                                 <p style="margin-bottom: 0; margin-top: 0;"><a
                                                         href="https://www.buyfrescapp.com" target="_blank"
                                                         style="font-weight: normal; color: #97d700; display: block; text-decoration: none;"><img
-                                                            src="https://www.buyfrescapp.com/wp-content/uploads/2024/03/cropped-Captura-de-pantalla-2024-03-14-132748-1.png"
+                                                            src="http://app.buyfrescapp.com:5000/api/shared/banner1.png"
                                                             alt="Frescapp" width="600"
                                                             style="border: none; display: inline; font-weight: bold; height: auto; outline: none; text-decoration: none; text-transform: capitalize; font-size: 14px; line-height: 24px; max-width: 100%; width: 600px;"></a>
                                                 </p>
