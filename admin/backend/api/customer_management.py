@@ -196,7 +196,8 @@ def customer(customer_id):
             "status": customer_object.status,
             "created_at": str(customer_object.created_at),
             "updated_at": str(customer_object.updated_at),
-            "category": customer_object.category
+            "category": customer_object.category,
+            "list_products" : customer_object.list_products
         }
         return jsonify(customer_json), 200
     else:
