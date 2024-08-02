@@ -18,6 +18,7 @@ def login():
     # Obtener datos del cuerpo de la solicitud
     data = request.json
     user = data.get('user')
+    user = user.lower()
     password = data.get('password')
     if not password or not user:
         return jsonify({'message': 'Missing required fields'}), 400
