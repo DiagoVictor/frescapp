@@ -185,3 +185,8 @@ def update_product_prices():
         product.id = sku_price.get('id')
         product.updated()
     return jsonify({'message': 'Prices updated successfully'}), 200
+
+@product_api.route('/products/syncsheet', methods=['GET'])
+def syncsheet():
+    return jsonify({'message': 'Productos actuaizados.'}), 200
+

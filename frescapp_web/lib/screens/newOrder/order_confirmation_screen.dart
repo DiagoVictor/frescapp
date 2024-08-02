@@ -105,6 +105,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
       if (kDebugMode) {
         print('Error opening WhatsApp: $error');
       }
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error al abrir WhatsApp.'),
@@ -394,6 +395,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                 String code = _codeController.text;
                 String email = widget.orderDetails.customerEmail ?? '';
                 bool isValid = await validateCode(code, email);
+                // ignore: use_build_context_synchronously
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(

@@ -30,12 +30,12 @@ def create_order(order_number=None):
     data = request.get_json()
     id = data.get('id', None)
     order_number = data.get('order_number', order_number)
-    customer_email = data.get('email') or data.get('customer_email') or 'default_email@example.com'
-    customer_phone = data.get('phoneNumber') or data.get('customer_phone') or '0000000000'
-    customer_documentNumber = data.get('documentNumber') or data.get('customer_documentNumber') or '00000000'
-    customer_documentType = data.get('documentType') or data.get('customer_documentType') or 'DNI'
-    customer_name = data.get('customerName') or data.get('customer_name') or 'John Doe'
-    delivery_date = data.get('deliveryDate') or data.get('delivery_date') or '2024-01-01'
+    customer_email = data.get('email') or data.get('customer_email') or ''
+    customer_phone = data.get('phoneNumber') or data.get('customer_phone')  or ''
+    customer_documentNumber = data.get('documentNumber') or data.get('customer_documentNumber') or ''
+    customer_documentType = data.get('documentType') or data.get('customer_documentType') or ''
+    customer_name = data.get('customerName') or data.get('customer_name')  or ''
+    delivery_date = data.get('deliveryDate') or data.get('delivery_date') or ''
     status = data.get('status') or 'Creada'
     created_at = data.get('created_at', None)
     updated_at = data.get('updated_at', None)
@@ -44,7 +44,7 @@ def create_order(order_number=None):
     deliverySlot = data.get('deliverySlot', '09:00-12:00')
     paymentMethod = data.get('paymentMethod', 'Cash')
     deliveryAddress = data.get('deliveryAddress', 'Default Address')
-    deliveryAddressDetails = data.get('deliveryAddressDetails', 'Default Address Details')
+    deliveryAddressDetails = data.get('deliveryAddressDetails') or ''
     deliveryCost = data.get('deliveryCost', 0.0)
     discount = data.get("discount", 0.0)
     if not customer_email or not delivery_date:
@@ -76,7 +76,7 @@ def create_order(order_number=None):
         order.updated()
     else:
         order.save()
-    #send_order_email(order_number, customer_email, delivery_date, products, total)
+        send_order_email(order_number, customer_email, delivery_date, products, total)
     return jsonify({'message': 'Order created successfully'}), 201
 @order_api.route('/order/<string:id>', methods=['DELETE'])
 def delete_order(id=None):

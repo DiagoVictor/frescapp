@@ -14,6 +14,7 @@ export class ProductsComponent implements OnInit {
   product: any = {};
   actionTipo: any = '';
   successMessage: string = '';
+  errorMessage: string = '';
 
   constructor(private productService: ProductService, private router: Router) { }
 
@@ -95,7 +96,6 @@ export class ProductsComponent implements OnInit {
     // Convierte el campo iva a tipo boolean
     this.product.iva = this.product.iva === 'true' ? true : false;
     this.productService.createProduct(this.product).subscribe((data: any) => {
-      // Lógica después de crear un nuevo producto, si es necesario
     });
     this.getProducts(); // Actualiza la lista de productos después de crear uno
   }
@@ -121,5 +121,24 @@ export class ProductsComponent implements OnInit {
   camposCompletos(): boolean {
     const { name, unit, category, sku, price_sale, price_purchase, discount, margen, iva, iva_value, description, image, status } = this.product;
     return !!name && !!unit && !!category && !!sku && !!price_sale && !!image && !!status;
+  }
+  syncSheet(): void {
+    this.productService.syncSheet().subscribe(
+      response => {
+        if (response.status === 200) {
+          this.successMessage = '¡Sincronización exitosa!';
+        } else {
+          this.errorMessage = 'Error en la sincronización.';
+        }
+        setTimeout(() => {
+          this.successMessage = '';
+          this.errorMessage = '';
+        }, 3000);
+      },
+      error => {
+        this.errorMessage = 'Error en la sincronización.';
+        setTimeout(() => this.errorMessage = '', 3000);
+      }
+    );
   }
 }

@@ -175,6 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (kDebugMode) {
         print('Error opening WhatsApp: $error');
       }
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error al abrir WhatsApp.'),

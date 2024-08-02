@@ -1,16 +1,16 @@
 <div class="container-fluid mt-5">
   <div class="row justify-right">
-    <div class="col-auto">
-      <!-- Botón para actualizar precios -->
+    <!-- <div class="col-auto">
       <button type="button" class="btn btn-success" (click)="updatePrice()">Actualizar precios</button>
+     </div> -->
+    <div class="col-auto">
+      <button type="button" class="btn btn-primary" (click)="syncSheet()">Sincronizar sheet</button>
     </div>
     <div class="col-auto">
-      <!-- Botón para abrir el modal de nuevo producto -->
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal"
         data-bs-dismiss="modal" (click)="openEditModal({},'new')">Nuevo Producto</button>
     </div>
     <div class="col-6">
-      <!-- Buscador de productos -->
       <input type="text" class="form-control" placeholder="Buscar producto..." [(ngModel)]="searchText"
         (keyup)="filterProducts()">
     </div>
@@ -18,6 +18,9 @@
   <br *ngIf="successMessage">
   <div *ngIf="successMessage" class="alert alert-success" role="alert">
     {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+    {{ errorMessage }}
   </div>
   <br>
   <table class="table">

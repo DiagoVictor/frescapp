@@ -25,11 +25,12 @@ def create_customer():
     category = data.get('category')
     bcrypt = Bcrypt()
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    list_products = []
     if not phone or not email:
-        return jsonify({'message': 'Missing required fields'}), 400
+        return jsonify({'message': 'Faltan campos por diligenciar'}), 400
 
     if Customer.find_by_email(email=email):
-        return jsonify({'message': 'Customer already exists'}), 400
+        return jsonify({'message': 'Correo electrónico ya está asociado a otro cliente.'}), 400
 
     customer = Customer(        
         phone = phone,
@@ -43,7 +44,8 @@ def create_customer():
         created_at = created_at,
         updated_at = updated_at,
         password = hashed_password,
-        category = category
+        category = category,
+        list_products = list_products
     )
     customer.save()
     message = """
@@ -77,7 +79,7 @@ def create_customer():
                                                         <p style="margin-bottom: 0; margin-top: 0;"><a
                                                                 href="https://www.buyfrescapp.com" target="_blank"
                                                                 style="font-weight: normal; color: #97d700; display: block; text-decoration: none;"><img
-                                                                    src="https://www.buyfrescapp.com/wp-content/uploads/2024/03/cropped-Captura-de-pantalla-2024-03-14-132748-1.png"
+                                                                    src="http://app.buyfrescapp.com:5000/api/shared/banner1.png"
                                                                     alt="Frescapp" width="600"
                                                                     style="border: none; display: inline; font-weight: bold; height: auto; outline: none; text-decoration: none; text-transform: capitalize; font-size: 14px; line-height: 24px; max-width: 100%; width: 600px;"></a>
                                                         </p>

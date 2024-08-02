@@ -114,8 +114,6 @@ def forgot_password():
     
     if not user:
         return jsonify({'message': 'Missing user field'}), 400
-
-    # Buscar en la colección de clientes por correo electrónico o teléfono
     user_data = customers_collection.find_one({'$or': [{'email': user}, {'phone': user}]})
     
     if user_data:
@@ -129,13 +127,10 @@ def forgot_change_password():
     data = request.json
     new_password = data.get('password')
     user_id = data.get('user_id')
-    
     try:
-        # Actualizar la contraseña del usuario en la base de datos
         bcrypt = Bcrypt()
         new_hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         customers_collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'password': new_hashed_password}})
-
         return jsonify({'message': 'Password updated successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

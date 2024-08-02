@@ -78,16 +78,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Usuario creado exitosamente')),
+      );
       Navigator.push(
         // ignore: use_build_context_synchronously
         context,
         MaterialPageRoute(builder: (context) => LoginScreen()),
       );
     } else {
-        if (kDebugMode) {
-          print('Error al crear usuario: ${response.body}');
-        }
-
+      final Map<String, dynamic> responseBody = jsonDecode(response.body);
+      String errorMessage = responseBody['message'] ?? 'Error al crear usuario';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+      if (kDebugMode) {
+        print('Error al crear usuario: $responseBody');
+      }
     }
   }
 

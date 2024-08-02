@@ -8,7 +8,7 @@ import 'package:frescapp/models/order.dart';
 import 'package:frescapp/models/product.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:intl/intl.dart';
-import 'package:frescapp/screens/viewerPDF/viewerRemision.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 
@@ -72,7 +72,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
           orders = fetchedOrders;
         });
       } else {
-        // Si el servicio retorna null, mostrar mensaje y un ícono
         // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -93,15 +92,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
-  // ignore: unused_element
-void _viewPDF(BuildContext context, String url) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => const PDFViewerScreen(),
-    ),
-  );
-}
+  Future<void> _viewPDF(BuildContext context, String url) async {
+    // ignore: deprecated_member_use
+    if (await canLaunch(url)) {
+      // ignore: deprecated_member_use
+      await launch(url);
+    } else {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo abrir el PDF')),
+      );
+    }
+  }
 void _editOrder(BuildContext context, Order order) {
   Navigator.push(
     context,
@@ -284,6 +286,10 @@ void _editOrder(BuildContext context, Order order) {
                                         itemBuilder: (context, index) {
                                           final List<Product> product = order.products!.cast<Product>();
                                           return ListTile(
+                                            leading: CircleAvatar(
+                                                backgroundColor: Colors.white,
+                                                backgroundImage: NetworkImage('http://app.buyfrescapp.com:5000/api/shared/${product[index].sku}.png'),
+                                            ),
                                             title: RichText(
                                               text: TextSpan(
                                                 children: [
@@ -351,17 +357,14 @@ void _editOrder(BuildContext context, Order order) {
                                 child: const Text('Cerrar'),
                               ),
                               IconButton(
-                                onPressed: order.status == ''
-                                        ? () {
-                                  _viewPDF(context,'http://app.buyfrescapp.com:5000/api/order/generate_pdf/${order.id}'
-                                  ); // Llama a la función para ver el PDF de remisión
+                                onPressed: () {
+                                  _viewPDF(context,'http://app.buyfrescapp.com:5000/api/order/generate_pdf/${order.id}');
                                 }
-                                : null,
-                                  icon: Column(
+                                ,
+                                  icon: const Column(
                                     children: [
-                                      Icon(Icons.receipt,color: order.status == '' ? Colors.green : Colors.grey,
-), // Icono para editar
-                                      const Text('Remisión'), // Texto del botón
+                                      Icon(Icons.receipt,color: Colors.green),
+                                      Text('Remisión'), // Texto del botón
                                     ],
                                   ),
                               ),
