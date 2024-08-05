@@ -214,9 +214,13 @@ export class OrdenesComponent implements OnInit {
   sync_allegra(order_number: any) {
     this.alegraService.send_invoice(order_number).subscribe(
       (res: any) => {
-        // Manejar la respuesta exitosa
-        this.statusCodeAlegra = '200';
-        this.messageAlegra = res.message || 'Factura creada exitosamente.'; // Ajusta este mensaje según lo que devuelva la API
+          if (res.status == '201'){
+          this.statusCodeAlegra = '201';
+          this.messageAlegra = res.message || 'Factura creada exitosamente.'; // Ajusta este mensaje según lo que devuelva la API
+        }else{
+          this.statusCodeAlegra == '400';
+          this.messageAlegra = res.error?.message || 'Ocurrió un error'; // Ajusta el mensaje de error según sea necesario
+        }
         this.getOrders()
       },
       (error) => {

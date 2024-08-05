@@ -17,11 +17,11 @@
     {{ successMessage }}
   </div>
   <div *ngIf="statusCodeAlegra" class="position-fixed top-0 end-0 p-3" style="z-index: 11">
-    <div *ngIf="statusCodeAlegra === '200'" class="alert alert-success alert-dismissible fade show" role="alert">
+    <div *ngIf="statusCodeAlegra == '201'" class="alert alert-success alert-dismissible fade show" role="alert">
       {{ messageAlegra }}
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    <div *ngIf="statusCodeAlegra === '400'" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div *ngIf="statusCodeAlegra != '201'" class="alert alert-danger alert-dismissible fade show" role="alert">
       {{ messageAlegra }}
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
@@ -36,6 +36,7 @@
         <th (click)="sort('customer_documentNumber')">Documento del Cliente <span *ngIf="sortColumn === 'customer_documentNumber'">{{ sortDirection }}</span></th>
         <th (click)="sort('customer_name')">Nombre del Cliente <span *ngIf="sortColumn === 'customer_name'">{{ sortDirection }}</span></th>
         <th (click)="sort('delivery_date')">Fecha de Entrega <span *ngIf="sortColumn === 'delivery_date'">{{ sortDirection }}</span></th>
+        <th >total</th>
         <th (click)="sort('status')">Estado <span *ngIf="sortColumn === 'status'">{{ sortDirection }}</span></th>
         <th>Acciones</th>
       </tr>
@@ -48,6 +49,7 @@
         <td>{{ order.customer_documentNumber }}</td>
         <td>{{ order.customer_name }}</td>
         <td>{{ order.delivery_date | date: 'yyyy-MM-dd' }}</td>
+        <td>{{ order.total | currency}}</td>
         <td>{{ order.status }}</td>
         <td>
           <div class="row">

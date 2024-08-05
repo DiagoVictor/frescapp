@@ -127,8 +127,8 @@ def transform_and_send_invoice(order, client, items):
         "subtotal": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
         "discount": order["discount"],
         "tax": 0,
-        "total": order["total"],
-        "totalPaid": order["total"],
+        "total": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
+        "totalPaid": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
         "balance": 0,
         "decimalPrecision": "0",
         "warehouse": {
@@ -142,12 +142,12 @@ def transform_and_send_invoice(order, client, items):
         "paymentMethod": "CASH",
         "payments": [
         {
-            "amount": order["total"],
+            "amount": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
             "paymentMethod": "cash",
             "date": order["delivery_date"],
             "account": { "id": 1 },
         }
-    ],
+        ],
         "seller": None,
         "priceList": {
             "id": 1,
@@ -175,14 +175,10 @@ def transform_and_send_invoice(order, client, items):
             "pageSize": "letter"
         }
     }
-
     # URL y cabeceras para la API de Alegra
     url_invoice = "https://api.alegra.com/api/v1/invoices/"
     response = requests.post(url_invoice, headers=headers, json=invoice_data)
-    if response.status_code == 201:
-        print(f"Factura creada exitosamente")
-    else:
-        print(f"Error al crear la factura: {response.status_code} - {response.text}")
+    return response
 
 @alegra_api.route('/send_invoice/<string:order_number>', methods=['GET'])
 def send_invoice(order_number):
@@ -193,15 +189,15 @@ def send_invoice(order_number):
         client = find_client_by_identification(clients, order["customer_documentNumber"])
         if client:
             # Transformar y enviar la factura
-            transform_and_send_invoice(order, client, items)
-            
-            # Actualizar el estado de la orden a 'Facturada'
-            collection.update_one(
-                {"order_number": order_number},
-                {"$set": {"status": "Facturada"}}
-            )
-            
-            return jsonify({"message": f"Orden sincronizada {order_number}"}), 200
+            res = transform_and_send_invoice(order, client, items)
+            if str(res.status_code) == '201':
+                collection.update_one(
+                    {"order_number": order_number},
+                    {"$set": {"status": "Facturada"}}
+                )
+                return jsonify({"message": res.text}), res.status_code
+            else:
+                return jsonify({"message": res.text}), res.status_code
         else:
             return jsonify({"message": f"No se encontró un cliente con identificación {order['customer_documentNumber']}"}), 400
 
