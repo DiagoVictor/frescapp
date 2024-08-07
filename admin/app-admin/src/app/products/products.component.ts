@@ -123,22 +123,20 @@ export class ProductsComponent implements OnInit {
     return !!name && !!unit && !!category && !!sku && !!price_sale && !!image && !!status;
   }
   syncSheet(): void {
-    this.productService.syncSheet().subscribe(
-      response => {
-        if (response.status === 200) {
+    this.productService.syncSheet().subscribe((res:any) => {
+        if (res.status === 200 || res.status === undefined) {
           this.successMessage = '¡Sincronización exitosa!';
+          this.getProducts();
+          setTimeout(() => {
+            this.successMessage = ''; // Reiniciar el mensaje después de unos segundos
+          }, 3000); // Mostrar el mensaje durante 3 segundos
         } else {
           this.errorMessage = 'Error en la sincronización.';
+          setTimeout(() => {
+            this.errorMessage = ''; // Reiniciar el mensaje después de unos segundos
+          }, 3000); // Mostrar el mensaje durante 3 segundos
         }
-        setTimeout(() => {
-          this.successMessage = '';
-          this.errorMessage = '';
-        }, 3000);
-      },
-      error => {
-        this.errorMessage = 'Error en la sincronización.';
-        setTimeout(() => this.errorMessage = '', 3000);
-      }
-    );
-  }
+      })
+    }
+
 }

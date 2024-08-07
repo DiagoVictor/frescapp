@@ -7,6 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class ProductService {
   private baseUrl = 'http://app.buyfrescapp.com:5000/';
+  //private baseUrl = 'http://192.168.101.80:5000/';
 
   constructor(private httpClient: HttpClient) { }
 
@@ -23,6 +24,6 @@ export class ProductService {
     return this.httpClient.put<any[]>(`${this.baseUrl}api/product/products/update_prices`, { sku_price_list: skuPriceList });
   }
   syncSheet(): Observable<any>{
-    return this.httpClient.get<any[]>(this.baseUrl+'api/product/products/syncsheet');
+    return this.httpClient.post<any>(this.baseUrl+'api/product/products/syncsheet',{});
   }
 }
