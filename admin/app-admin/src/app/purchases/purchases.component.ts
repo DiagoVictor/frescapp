@@ -8,8 +8,9 @@ import { Router } from '@angular/router';
   styleUrl: './purchases.component.css'
 })
 export class PurchasesComponent {
-  purchases:  any[] | undefined  =[];
-
+  purchases:  any[]   =[];
+  filteredPurchases: any[] = [];
+  searchText: string = '';
   constructor(
     private purchaseService: PurchaseService,
     private router: Router
@@ -25,5 +26,17 @@ export class PurchasesComponent {
   navigateToPurchase(purchaseNumber: number) {
     this.router.navigate(['/purchase', purchaseNumber]);
   }
+  filterPurchases(){
+    if (this.searchText.trim() !== '') {
+      this.filteredPurchases = this.purchases.filter(purchase => {
+        return purchase.purchase_number.toLowerCase().includes(this.searchText.toLowerCase());
+      });
+    } else {
+      this.filteredPurchases = this.purchases;
+    }
+  }
+  newPurchase(){
 
+
+  }
 }

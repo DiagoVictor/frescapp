@@ -1,11 +1,23 @@
 <div class="container-fluid mt-5">
-  <table class="table">
+  <div class="row justify-right">
+    <div class="col-6">
+      <input type="text" class="form-control" placeholder="Buscar compra..." [(ngModel)]="searchText"
+        (keyup)="filterPurchases()">
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPurchase"
+        data-bs-dismiss="modal" (click)="newPurchase()">Nuevo compra</button>
+    </div>
+  </div>
+   <table class="table">
     <thead>
       <tr>
         <th >Número de Compra </th>
         <th > Fecha </th>
         <th > Cantidad sku</th>
-        <th >Estado</th>
+        <th > Estado</th>
+        <th > Acciones</th>
+
       </tr>
     </thead>
     <tbody>
@@ -17,4 +29,17 @@
       </tr>
     </tbody>
   </table>
+</div>
+<div class="modal fade" id="newPurchase" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newPurchase">Nueva compra</h5>
+      </div>
+      <div class="modal-body">
+        <div class="container">
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

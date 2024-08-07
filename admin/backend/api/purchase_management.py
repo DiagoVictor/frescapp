@@ -1,6 +1,22 @@
 from flask import Blueprint, jsonify, request
 from pymongo import MongoClient
-
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+import locale
+from flask import Response
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from io import BytesIO
+from utils.email_utils import send_new_order  # Importa la función send_email que creamos antes
+from pymongo import MongoClient
+from reportlab.lib.units import inch
+from reportlab.platypus import PageBreak
+import locale
 purchase_api = Blueprint('purchase', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
@@ -146,3 +162,108 @@ def update_price():
             return jsonify({"status": "failure", "message": "SKU not found."}), 404
     else:
         return jsonify({"status": "failure", "message": "Purchase not found."}), 404
+
+
+@purchase_api.route('/purchase/report/<int:purchase_number>', methods=['GET'])
+def get_compras(purchase_number):
+    pipeline = [
+        {
+            "$match": {
+                "delivery_date": date
+            }
+        },
+        {
+            "$unwind": "$products"
+        },
+        {
+            "$group": {
+                "_id": "$products.sku",
+                "total_quantity_ordered": {"$sum": "$products.quantity"}
+            }
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "_id",
+                "foreignField": "sku",
+                "as": "product_info"
+            }
+        },
+        {
+            "$unwind": "$product_info"
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "sku": "$_id",
+                "name": "$product_info.name",
+                "total_quantity_ordered": 1,
+                "price_purchase": "$product_info.price_purchase",
+                "proveedor": "$product_info.proveedor",
+                "category": "$product_info.category",
+                "unit": "$product_info.unit"
+            }
+        }
+    ]
+    pipeline.append({
+        "$sort": {
+            "category": 1 ,
+            "name":1
+        }
+    })
+    products = list(orders_collection.aggregate(pipeline))
+    buffer = BytesIO()
+    pdf = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    image_path = 'http://app.buyfrescapp.com:5000/api/shared/banner1.png'
+    logo = Image(image_path, width=200, height=70)
+    centered_style = ParagraphStyle(
+            name='Centered',
+            fontSize=16,  # Tamaño de la letra aumentado a 16
+            alignment=TA_CENTER,  # Centrado horizontal
+            textColor=colors.white,  # Color del texto blanco
+            leading=50  # Espaciado entre líneas para centrar verticalmente
+        )
+    pdf_content = []
+    compras_paragraph = Paragraph('<font>Compras para el {}</font>'.format(''), centered_style)
+    green_box = Table([[compras_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
+    content_table = Table([
+    [logo, green_box]], colWidths=[200, 250])
+    pdf_content.append(content_table)
+    pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
+    table_width = 500
+    product_data = [
+        [ 'Nombre', 'Categoria', 'Cantidad', 'Precio Unitario', 'Proveedor','Proveedor Final', 'Precio Final'],  # Encabezado
+    ]
+    word_wrap_style = styles["Normal"]
+    word_wrap_style.wordWrap = 'CJK'
+
+    for product in products:
+        sku = product['sku']
+        name = product['name'] + " - ( "+sku+" )"
+        quantity = Paragraph(str(product.get('total_quantity_ordered')) + "  " + str(product.get('unit')),word_wrap_style)
+        price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
+        proveedor = product['proveedor']
+        name_paragraph = Paragraph(name, word_wrap_style)
+        product_row = [ name_paragraph, product.get('category'), quantity, price, proveedor]
+        product_data.append(product_row)
+    total = locale.format_string('%.2f',sum(round(float(product['total_quantity_ordered']) * float(product['price_purchase']),0) for product in products), grouping=True)
+    product_data.extend([['','','','',''],
+            ['', '', 'Total', total, '']
+        ])
+    col_widths = [(2 / 8) * table_width] + [(1 / 8) * table_width] * 4
+    product_table = Table(product_data, colWidths=col_widths)
+    product_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
+    ]))
+    pdf_content.append(product_table)
+    pdf_content.append(PageBreak())
+
+    pdf.build(pdf_content)
+    buffer.seek(0)
+    response = Response(buffer, mimetype='application/pdf')
+    response.headers['Content-Disposition'] = 'inline; filename=ordenes_{}.pdf'.format('')
+    return response

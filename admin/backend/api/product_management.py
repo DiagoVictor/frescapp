@@ -172,7 +172,6 @@ def list_product_customer(customer_email):
 def update_product_prices():
     data = request.get_json()
     sku_price_list = data.get('sku_price_list')
-
     if not sku_price_list:
         return jsonify({'message': 'No SKU price list provided'}), 400
 
@@ -189,6 +188,7 @@ def update_product_prices():
         product.id = sku_price.get('id')
         product.updated()
     return jsonify({'message': 'Prices updated successfully'}), 200
+
 @product_api.route('/products/syncsheet', methods=['POST'])
 def syncsheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
