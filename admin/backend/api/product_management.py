@@ -219,7 +219,7 @@ def syncsheet():
     try:
         spreadsheet_id = "1efvIDyxsO0n2A4P_lZj1BUNy-SV_5d5zm9m8CMUI9mc"
         spreadsheet = client.open_by_key(spreadsheet_id)
-        worksheet = spreadsheet.sheet1  # Acceder a la primera hoja
+        worksheet = spreadsheet.get_worksheet(1)
         records = worksheet.get_all_records()
     except Exception as e:
         return jsonify({'error': f"Error al acceder a Google Sheets: {str(e)}"}), 500
