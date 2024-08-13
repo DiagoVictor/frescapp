@@ -12,7 +12,6 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from io import BytesIO
-from utils.email_utils import send_new_order  # Importa la función send_email que creamos antes
 from pymongo import MongoClient
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak
@@ -105,7 +104,7 @@ def create_purchase(date):
 
 @purchase_api.route('/purchases', methods=['GET'])
 def list_purchases():
-    purchases = list(purchase_collection.find({}, {'_id': 0}))
+    purchases = list(purchase_collection.find({}, {'_id': 0}).sort('date', -1))
     return jsonify(purchases), 200
 
 @purchase_api.route('/purchase/<string:purchaseNumber>', methods=['GET'])
@@ -125,7 +124,7 @@ def edit_purchase(purchase_number):
     else:
         return jsonify({"status": "failure", "message": "Purchase not found."}), 404
 
-@purchase_api.route('/purchase/<int:purchase_number>', methods=['DELETE'])
+@purchase_api.route('/purchase/<string:purchase_number>', methods=['DELETE'])
 def delete_purchase(purchase_number):
     result = purchase_collection.delete_one({"purchase_number": purchase_number})
     if result.deleted_count:
@@ -164,106 +163,137 @@ def update_price():
         return jsonify({"status": "failure", "message": "Purchase not found."}), 404
 
 
-@purchase_api.route('/purchase/report/<int:purchase_number>', methods=['GET'])
-def get_compras(purchase_number):
+@purchase_api.route('/purchase/report/<string:purchase_number>', methods=['GET'])
+def get_report_purchase(purchase_number):
     pipeline = [
         {
             "$match": {
-                "delivery_date": date
+                "purchase_number": str(purchase_number)  # Asegúrate de que `purchase_number` es una cadena
             }
         },
         {
             "$unwind": "$products"
         },
         {
+            "$unwind": "$products.clients"
+        },
+        {
             "$group": {
-                "_id": "$products.sku",
-                "total_quantity_ordered": {"$sum": "$products.quantity"}
+                "_id": {
+                    "sku": "$products.sku",
+                    "name": "$products.name",
+                    "price_purchase": "$products.price_purchase",
+                    "proveedor": "$products.proveedor",
+                    "category": "$products.category",
+                    "unit": "$products.unit"
+                },
+                "total_quantity_ordered": {"$sum": "$products.clients.quantity"},
+                "clients_quantities": {"$push": {"client_name": "$products.clients.client_name", "quantity": "$products.clients.quantity"}},
+                "date": {"$first": "$date"}
             }
-        },
-        {
-            "$lookup": {
-                "from": "products",
-                "localField": "_id",
-                "foreignField": "sku",
-                "as": "product_info"
-            }
-        },
-        {
-            "$unwind": "$product_info"
         },
         {
             "$project": {
                 "_id": 0,
-                "sku": "$_id",
-                "name": "$product_info.name",
+                "sku": "$_id.sku",
+                "name": "$_id.name",
                 "total_quantity_ordered": 1,
-                "price_purchase": "$product_info.price_purchase",
-                "proveedor": "$product_info.proveedor",
-                "category": "$product_info.category",
-                "unit": "$product_info.unit"
+                "price_purchase": "$_id.price_purchase",
+                "proveedor": "$_id.proveedor",
+                "category": "$_id.category",
+                "unit": "$_id.unit",
+                "date": 1,
+                "clients_quantities": {
+                    "$reduce": {
+                        "input": "$clients_quantities",
+                        "initialValue": "",
+                        "in": {
+                            "$concat": [
+                                "$$value",
+                                {
+                                    "$cond": {
+                                        "if": {"$eq": ["$$value", ""]},
+                                        "then": "",
+                                        "else": " - "
+                                    }
+                                },
+                                {"$concat": [ {"$toString": "$$this.quantity"}]}
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "$sort": {
+                "category": 1,
+                "name": 1
             }
         }
     ]
-    pipeline.append({
-        "$sort": {
-            "category": 1 ,
-            "name":1
-        }
-    })
-    products = list(orders_collection.aggregate(pipeline))
+
+    products = list(purchase_collection.aggregate(pipeline))
+
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     image_path = 'http://app.buyfrescapp.com:5000/api/shared/banner1.png'
     logo = Image(image_path, width=200, height=70)
     centered_style = ParagraphStyle(
-            name='Centered',
-            fontSize=16,  # Tamaño de la letra aumentado a 16
-            alignment=TA_CENTER,  # Centrado horizontal
-            textColor=colors.white,  # Color del texto blanco
-            leading=50  # Espaciado entre líneas para centrar verticalmente
-        )
+        name='Centered',
+        fontSize=16,
+        alignment=TA_CENTER,
+        textColor=colors.white,
+        leading=50
+    )
+
     pdf_content = []
-    compras_paragraph = Paragraph('<font>Compras para el {}</font>'.format(''), centered_style)
-    green_box = Table([[compras_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
+    header_paragraph = Paragraph(
+        '<font>Compras para el {}</font>'.format(str(products[0].get('date'))),
+        centered_style
+    )
+    green_box = Table([[header_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#97D700'))])
     content_table = Table([
-    [logo, green_box]], colWidths=[200, 250])
+        [logo, green_box]], colWidths=[200, 250])
     pdf_content.append(content_table)
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
+    
     table_width = 500
     product_data = [
-        [ 'Nombre', 'Categoria', 'Cantidad', 'Precio Unitario', 'Proveedor','Proveedor Final', 'Precio Final'],  # Encabezado
+        ['Nombre', 'Categoria', 'Cant. Total',  'Pick','Precio Unit.', 'Precio Real', 'Proveedor'],  # Encabezado
     ]
+
     word_wrap_style = styles["Normal"]
     word_wrap_style.wordWrap = 'CJK'
 
     for product in products:
-        sku = product['sku']
-        name = product['name'] + " - ( "+sku+" )"
-        quantity = Paragraph(str(product.get('total_quantity_ordered')) + "  " + str(product.get('unit')),word_wrap_style)
+        name = product['name'] + " - ( " + product['sku'] + " )"
+        clients_quantities = Paragraph(product['clients_quantities'], word_wrap_style)
+        quantity = Paragraph(str(product.get('total_quantity_ordered')) + "  " + str(product.get('unit')), word_wrap_style)
         price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
-        proveedor = product['proveedor']
+        proveedor =  Paragraph(product['proveedor'],word_wrap_style)
         name_paragraph = Paragraph(name, word_wrap_style)
-        product_row = [ name_paragraph, product.get('category'), quantity, price, proveedor]
+        product_row = [name_paragraph, product.get('category'), quantity, clients_quantities, price, '', proveedor]
         product_data.append(product_row)
+    
     total = locale.format_string('%.2f',sum(round(float(product['total_quantity_ordered']) * float(product['price_purchase']),0) for product in products), grouping=True)
-    product_data.extend([['','','','',''],
-            ['', '', 'Total', total, '']
-        ])
-    col_widths = [(2 / 8) * table_width] + [(1 / 8) * table_width] * 4
+    product_data.extend([['', '', '', '', '', ''],
+                         ['', '', '', 'Total', total, '']])
+    
+    col_widths = [(2 / 8) * table_width] + [(1 / 8) * table_width] * 5
     product_table = Table(product_data, colWidths=col_widths)
     product_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.black)
     ]))
+    
     pdf_content.append(product_table)
     pdf_content.append(PageBreak())
 
     pdf.build(pdf_content)
     buffer.seek(0)
     response = Response(buffer, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = 'inline; filename=ordenes_{}.pdf'.format('')
+    response.headers['Content-Disposition'] = 'inline; filename=compra_num_{}_{}.pdf'.format(purchase_number, purchase_number)
     return response

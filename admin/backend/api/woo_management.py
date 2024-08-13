@@ -3,7 +3,6 @@ from models.customer import Customer
 import json, dump
 from flask_bcrypt import Bcrypt
 from datetime import datetime
-import utils.email_utils as emails
 import requests
 from datetime import datetime
 from pymongo import MongoClient

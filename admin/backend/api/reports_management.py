@@ -16,7 +16,6 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from io import BytesIO
-from utils.email_utils import send_new_order  # Importa la función send_email que creamos antes
 from pymongo import MongoClient
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak

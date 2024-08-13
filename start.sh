@@ -27,9 +27,9 @@ cd /home/ubuntu/frescapp/admin/app-admin/dist/app-admin
 nohup sudo http-server --proxy http://localhost:80 -p 80 &
 
 # Iniciar la aplicación Angular en el puerto 8080 en la nueva ruta
-echo "Iniciando la aplicación en el puerto 8080..."
-cd /home/ubuntu/frescapp/frescapp_web/build/web
-nohup sudo http-server --proxy http://localhost:8080 -p 8080 &
+#echo "Iniciando la aplicación en el puerto 8080..."
+#cd /home/ubuntu/frescapp/frescapp_web/build/web
+#nohup sudo http-server --proxy http://localhost:8080 -p 8080 &
 
 # Iniciar la aplicación Python en el puerto 5000
 echo "Iniciando el backend en el puerto 5000..."

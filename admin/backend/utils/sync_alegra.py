@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request
-from models.customer import Customer
 import json, dump
 from flask_bcrypt import Bcrypt
 from datetime import datetime
@@ -139,14 +138,7 @@ def transform_and_send_invoice(order, client, items):
         "operationType": "STANDARD",
         "paymentForm": "CASH",
         "paymentMethod": "CASH",
-        "payments": [
-        {
-            "amount": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
-            "paymentMethod": "cash",
-            "date": order["delivery_date"],
-            "account": { "id": 1 },
-        }
-        ],
+
         "seller": None,
         "priceList": {
             "id": 1,
@@ -179,7 +171,6 @@ def transform_and_send_invoice(order, client, items):
     response = requests.post(url_invoice, headers=headers, json=invoice_data)
     return response
 
-@alegra_api.route('/send_invoice/<string:order_number>', methods=['GET'])
 def send_invoice(order_number):
     order = collection.find_one({"order_number": order_number})
     if order:
@@ -194,12 +185,13 @@ def send_invoice(order_number):
                     {"order_number": order_number},
                     {"$set": {"status": "Facturada"}}
                 )
-                return jsonify({"message": res.text}), res.status_code
+                print(res.text)
             else:
-                return jsonify({"message": res.text}), res.status_code
+                print(res.text)
         else:
-            return jsonify({"message": f"No se encontró un cliente con identificación {order['customer_documentNumber']}"}), 400
+            print(f"No se encontró un cliente con identificación {order['customer_documentNumber']}")
 
     else:
-        return jsonify({"message": f"No se encontró la orden con número {order_number}"}), 400
+        print(f"No se encontró la orden con número {order_number}")
 
+send_invoice("9390")
