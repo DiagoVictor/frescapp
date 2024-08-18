@@ -237,7 +237,7 @@ def get_report_purchase(purchase_number):
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
-    image_path = 'http://app.buyfrescapp.com:5000/api/shared/banner1.png'
+    image_path = 'https://app.buyfrescapp.com:5000/api/shared/banner1.png'
     logo = Image(image_path, width=200, height=70)
     centered_style = ParagraphStyle(
         name='Centered',

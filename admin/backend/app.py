@@ -11,8 +11,6 @@ from api.discount_management import discount_api
 from api.alegra_management import alegra_api
 from api.woo_management import woo_api
 from api.purchase_management import purchase_api
-import ssl
-import threading
 
 if __name__ == '__main__':
     app = Flask(__name__)
@@ -48,16 +46,5 @@ if __name__ == '__main__':
     # Configurar CORS para permitir solicitudes desde cualquier origen
     CORS(app, resources={"/*": {"origins": "*"}})
     context = ('/etc/ssl/certs/app_buyfrescapp_com.crt', '/etc/ssl/certs/app_buyfrescapp_com.key')
-def run_http():
-    app.run(host='0.0.0.0', port=5000, threaded=True)
 
-def run_https():
-    context = ('/etc/ssl/certs/app_buyfrescapp_com.crt', '/etc/ssl/certs/app_buyfrescapp_com.key')
-    app.run(host='0.0.0.0', port=5001, ssl_context=context, threaded=True)
-
-if __name__ == "__main__":
-    http_thread = threading.Thread(target=run_http)
-    https_thread = threading.Thread(target=run_https)
-    
-    http_thread.start()
-    https_thread.start()
+    app.run(host='0.0.0.0', port=5000, ssl_context=context)
