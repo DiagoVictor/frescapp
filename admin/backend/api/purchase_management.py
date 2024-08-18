@@ -16,6 +16,10 @@ from pymongo import MongoClient
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak
 import locale
+import certifi
+import urllib.request
+
+
 purchase_api = Blueprint('purchase', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
@@ -238,7 +242,16 @@ def get_report_purchase(purchase_number):
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     image_path = 'https://app.buyfrescapp.com:5000/api/shared/banner1.png'
-    logo = Image(image_path, width=200, height=70)
+    image_path = 'https://app.buyfrescapp.com:5000/api/shared/banner1.png'
+    try:
+        response = urllib.request.urlopen(image_path, cafile=certifi.where())
+        image_data = response.read()
+        with open('temp_banner.png', 'wb') as f:
+            f.write(image_data)
+        logo = Image('temp_banner.png', width=200, height=70)
+    except Exception as e:
+        print(f"Error al cargar la imagen: {e}")
+        logo = Image('default_banner.png', width=200, height=70)  # Imagen por defecto en caso de error
     centered_style = ParagraphStyle(
         name='Centered',
         fontSize=16,
