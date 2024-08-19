@@ -242,7 +242,11 @@ def get_report_purchase(purchase_number):
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     image_path = 'https://app.buyfrescapp.com:5000/api/shared/banner1.png'
-    logo = Image(image_path, width=200, height=70)
+    context = urllib.request.ssl.create_default_context(cafile=certifi.where())
+    with urllib.request.urlopen(image_path, context=context) as response:
+        image_data = response.read()
+    image_stream = BytesIO(image_data)
+    logo = Image(image_stream, width=200, height=70)
     centered_style = ParagraphStyle(
         name='Centered',
         fontSize=16,
