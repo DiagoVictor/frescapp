@@ -241,9 +241,9 @@ def get_report_purchase(purchase_number):
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
-    image_path = 'https://app.buyfrescapp.com:5000/api/shared/banner1.png'
+    image_url = 'https://localhost:5000/api/shared/banner1.png'
     context = urllib.request.ssl.create_default_context(cafile=certifi.where())
-    with urllib.request.urlopen(image_path, context=context) as response:
+    with urllib.request.urlopen(image_url, context=context) as response:
         image_data = response.read()
     image_stream = BytesIO(image_data)
     logo = Image(image_stream, width=200, height=70)
