@@ -242,16 +242,7 @@ def get_report_purchase(purchase_number):
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     image_path = 'https://app.buyfrescapp.com:5000/api/shared/banner1.png'
-    image_path = 'https://app.buyfrescapp.com:5000/api/shared/banner1.png'
-    try:
-        response = urllib.request.urlopen(image_path, cafile=certifi.where())
-        image_data = response.read()
-        with open('temp_banner.png', 'wb') as f:
-            f.write(image_data)
-        logo = Image('temp_banner.png', width=200, height=70)
-    except Exception as e:
-        print(f"Error al cargar la imagen: {e}")
-        logo = Image('default_banner.png', width=200, height=70)  # Imagen por defecto en caso de error
+    logo = Image(image_path, width=200, height=70)
     centered_style = ParagraphStyle(
         name='Centered',
         fontSize=16,
