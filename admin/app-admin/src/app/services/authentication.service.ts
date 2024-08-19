@@ -6,8 +6,8 @@ import { Observable, map } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthenticationService {
-  private baseUrl = 'http://app.buyfrescapp.com:5000/';
-  //private baseUrl = 'http://127.0.0.1:5000/';
+  private baseUrl = 'https://app.buyfrescapp.com:5000/';
+  //private baseUrl = 'https://127.0.0.1:5000/';
 
   constructor(private http: HttpClient) { }
 

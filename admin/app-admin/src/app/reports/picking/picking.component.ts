@@ -14,6 +14,6 @@ export class PickingComponent {
 
 
   generarPDF(): void {
-    this.pdfPicking = this.sanitizer.bypassSecurityTrustResourceUrl('http://app.buyfrescapp.com:5000/api/reports/picking/' + this.fecha);
+    this.pdfPicking = this.sanitizer.bypassSecurityTrustResourceUrl('https://app.buyfrescapp.com:5000/api/reports/picking/' + this.fecha);
   }
 }

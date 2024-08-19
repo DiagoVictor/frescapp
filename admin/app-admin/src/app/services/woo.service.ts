@@ -5,7 +5,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
   providedIn: 'root'
 })
 export class WooService {
-  private baseUrl = 'http://app.buyfrescapp.com:5000/';
+  private baseUrl = 'https://app.buyfrescapp.com:5000/';
   constructor(private http: HttpClient) { }
   get_order(order_number:any){
     console.log(order_number)
