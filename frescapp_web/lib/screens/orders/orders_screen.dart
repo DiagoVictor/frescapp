@@ -288,7 +288,7 @@ void _editOrder(BuildContext context, Order order) {
                                           return ListTile(
                                             leading: CircleAvatar(
                                                 backgroundColor: Colors.white,
-                                                backgroundImage: NetworkImage('http://app.buyfrescapp.com:5000/api/shared/${product[index].sku}.png'),
+                                                backgroundImage: NetworkImage('https://buyfrescapp.com/images/${product[index].sku}.png'),
                                             ),
                                             title: RichText(
                                               text: TextSpan(
@@ -358,7 +358,7 @@ void _editOrder(BuildContext context, Order order) {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  _viewPDF(context,'http://app.buyfrescapp.com:5000/api/order/generate_pdf/${order.id}');
+                                  _viewPDF(context,'https://.buyfrescapp.com:5000/api/order/generate_pdf/${order.id}');
                                 }
                                 ,
                                   icon: const Column(
