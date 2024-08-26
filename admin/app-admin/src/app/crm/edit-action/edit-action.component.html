@@ -1,0 +1,66 @@
+<br><br>
+<div class="container">
+    <h3 class="mb-4">Completar acción</h3>
+    <form>
+        <!-- Fecha de Ejecución -->
+        <div class="form-group mb-3">
+            <label for="dateAction">Fecha Ejecución:</label>
+            <input type="text" class="form-control" id="dateAction" name="dateAction" [(ngModel)]="actionObject.dateAction" readonly disabled>
+        </div>
+
+        <!-- Cliente ID (Modal) -->
+        <div class="form-group mb-3">
+            <label for="customer">Cliente:</label>
+            <input type="text" class="form-control" id="customer" name="customer" [(ngModel)]="actionObject.customer.name" readonly disabled>
+        </div>
+
+        <!-- Tipo de Acción -->
+        <div class="form-group mb-3">
+            <label for="type">Tipo de Acción:</label>
+            <input type="text" class="form-control" id="type" name="type" [(ngModel)]="actionObject.type" readonly disabled>
+        </div>
+
+        <!-- Número de Pedido (Cascada basado en Customer ID) -->
+        <div *ngIf="actionObject.orderNumber" class="form-group mb-3">
+            <label for="orderNumber">Número de Pedido:</label>
+            <input type="text" class="form-control" id="orderNumber" name="orderNumber" [(ngModel)]="actionObject.orderNumber" readonly disabled>
+        </div>
+
+        <!-- Manager -->
+        <div class="form-group mb-3">
+            <label for="manager">Manager:</label>
+            <input type="text" class="form-control" id="manager" name="manager" [(ngModel)]="actionObject.manager" readonly disabled>
+        </div>
+
+        <!-- Detalle -->
+        <div class="form-group mb-3">
+            <label for="actionComment">Detalle:</label>
+            <input type="text" class="form-control" id="actionComment" name="actionComment" [(ngModel)]="actionObject.actionComment" readonly disabled>
+        </div>
+
+        <!-- Estado -->
+        <div class="form-group mb-3">
+            <label for="status">Estado:</label>
+            <input type="text" class="form-control" id="status" name="status" [(ngModel)]="actionObject.status" readonly disabled>
+        </div>
+        <div class="form-group mb-3">
+            <label for="solution">Solución:</label>
+            <select class="form-control" id="solution" name="solution" [(ngModel)]="actionObject.solutionType" required>
+                <option value="" disabled selected>Seleccione una solución</option>
+                <option *ngFor="let solution of solutions" [value]="solution">{{ solution }}</option>
+            </select>
+        </div>
+        <div class="form-group mb-3">
+            <label for="solutionComment">Detalle Solución:</label>
+            <input type="text" class="form-control" id="solutionComment" name="solutionComment" [(ngModel)]="actionObject.solutionComment">
+        </div>
+        <div class="row">
+            <div class="col-auto">
+                <button type="button" class="btn btn-primary" (click)="completar()">Completar</button>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-secondary" (click)="backList()">Regresar</button>
+            </div>
+        </div>
+    </form>
+</div>

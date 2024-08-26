@@ -14,6 +14,9 @@ import { CotizarComponent } from './reports/cotizar/cotizar.component';
 import { IntegrarComponent } from './reports/integrar/integrar.component';
 import { PurchasesComponent } from './purchases/purchases.component';
 import { PurchaseComponent } from './purchases/purchase/purchase.component';
+import { ListActionnsCustomersComponent } from './crm/list-actionns-customers/list-actionns-customers.component';
+import { EditActionComponent } from './crm/edit-action/edit-action.component';
+import { NewActionComponent } from './crm/new-action/new-action.component';
 
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent },
@@ -30,6 +33,9 @@ const routes: Routes = [
   { path: 'restore/:user_id', component: RestorePasswordComponent },
   { path: 'purchases', component: PurchasesComponent },
   { path: 'purchase/:purchaseNumber', component: PurchaseComponent },
+  { path: 'crm', component: ListActionnsCustomersComponent },
+  { path: 'edit_action/:action', component: EditActionComponent },
+  { path: 'newAction', component: NewActionComponent },
   { path: '', component: HomeComponent }
 ];
 

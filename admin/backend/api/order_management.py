@@ -253,6 +253,38 @@ def list_orders_customer(email):
     orders_json = json.dumps(order_data)
     return orders_json, 200
 
+@order_api.route('/orders_latest_customer/<string:email>', methods=['GET'])
+def orders_latest_customer(email):
+    # Encuentra las órdenes del cliente por su correo electrónico y ordénalas por delivery_date en orden descendente
+    orders_cursor = Order.find_by_customer(email).sort("delivery_date", -1).limit(3)
+    
+    order_data = [
+        {
+            "id": str(order["_id"]), 
+            "order_number": order.get("order_number", order.get("orderNumber")), 
+            "customer_email": order.get("customer_email", order.get("customerEmail")), 
+            "customer_phone": order.get("customer_phone", order.get("customerPhone")), 
+            "customer_documentNumber": order.get("customer_documentNumber", order.get("customerDocumentNumber")), 
+            "customer_documentType": order.get("customer_documentType", order.get("customerDocumentType")), 
+            "customer_name": order.get("customer_name", order.get("customerName")), 
+            "delivery_date": order.get("delivery_date", order.get("deliveryDate")), 
+            "status": order["status"], 
+            "created_at": order["created_at"], 
+            "updated_at": order["updated_at"], 
+            "products": order["products"],
+            "total": order["total"], 
+            "deliverySlot": order["deliverySlot"], 
+            "paymentMethod": order["paymentMethod"], 
+            "deliveryAddress": order['deliveryAddress'],
+            "deliveryAddressDetails": order['deliveryAddressDetails']
+        }
+        for order in orders_cursor
+    ]
+    
+    orders_json = json.dumps(order_data)
+    return orders_json, 200
+
+
 def send_order_email(order_number, customer_email, delivery_date, products, total):
     subject = f'Orden confirmada - Orden #{order_number}'
     

@@ -19,6 +19,9 @@ import { PickingComponent } from './reports/picking/picking.component';
 import { ComprasComponent } from './reports/compras/compras.component';
 import { CotizarComponent  } from './reports/cotizar/cotizar.component';
 import { IntegrarComponent } from './reports/integrar/integrar.component';
+import { ListActionnsCustomersComponent } from './crm/list-actionns-customers/list-actionns-customers.component';
+import { NewActionComponent } from './crm/new-action/new-action.component';
+import { EditActionComponent } from './crm/edit-action/edit-action.component';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CommonModule, DatePipe } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -40,7 +43,10 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     CotizarComponent,
     IntegrarComponent,
     PurchasesComponent,
-    PurchaseComponent
+    PurchaseComponent,
+    ListActionnsCustomersComponent,
+    NewActionComponent,
+    EditActionComponent
   ],
   bootstrap: [AppComponent],
   imports: [

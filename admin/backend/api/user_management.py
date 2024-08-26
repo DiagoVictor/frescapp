@@ -45,7 +45,6 @@ def login():
         # Usuario no encontrado
         return jsonify({'message': 'User not found'}), 404
 
-
 @user_api.route('/check_token', methods=['POST'])
 def check_token():
     token = request.headers.get('Authorization', '').split('Bearer ')[-1]
@@ -63,7 +62,6 @@ def check_token():
     except JWTError:
         return jsonify({'message': 'Token has expired or Invalid'}), 401
 
-
 @user_api.route('/logout', methods=['POST'])
 def logout():
     token = request.headers.get('Authorization', '').split('Bearer ')[-1]
@@ -79,7 +77,6 @@ def logout():
         return jsonify({'message': 'Logout successful', 'invalidated_token': invalidated_token}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @user_api.route('/change_password', methods=['POST'])
 def change_password():
@@ -163,3 +160,23 @@ def delete_account():
     else:
         # Usuario no encontrado
         return jsonify({'message': 'User not found'}), 404
+
+@user_api.route('/change_password_admin', methods=['POST'])
+def change_password_admin():
+    data = request.json
+    new_password = data.get('password')
+    user_id = data.get('user_id')
+    try:
+        # Verificar que el usuario exista en la base de datos
+        user_data = customers_collection.find_one({'_id': ObjectId(user_id)})
+        if not user_data:
+            return jsonify({'message': 'User not found'}), 404
+
+        # Actualizar la contraseña del usuario en la base de datos
+        bcrypt = Bcrypt()
+        new_hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        customers_collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'password': new_hashed_password}})
+
+        return jsonify({'message': 'Password updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

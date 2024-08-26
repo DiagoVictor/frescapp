@@ -21,7 +21,6 @@
               <th>Dirección</th>
               <th>Nombre del Restaurante</th>
               <th>Email</th>
-              <th>Estado</th>
               <th>Categoría</th>
               <th>Acciones</th>
             </tr>
@@ -35,15 +34,14 @@
               <td>{{ customer.address }}</td>
               <td>{{ customer.restaurant_name }}</td>
               <td>{{ customer.email }}</td>
-              <td>{{ customer.status }}</td>
               <td>{{ customer.category }}</td>
               <td>
                 <div class="row justify-content-center">
                 <div class="col-auto">
-                  <button class="btn btn-primary ml-1" title="Edit" (click)="edit_customer(customer)"><i class="fa fa-pencil"></i></button>
+                  <button class="btn btn-primary" title="Edit" (click)="edit_customer(customer)"><i class="fa fa-pencil"></i></button>
                 </div>
                 <div class="col-auto">
-                  <button class="btn btn-danger ml-1"  title="Delete" (click)="delete_customer(customer)"><i class="fa fa-trash"></i></button>
+                  <button class="btn btn-danger"  title="Delete" (click)="delete_customer(customer)"><i class="fa fa-trash"></i></button>
                 </div>
                 </div>
               </td>
