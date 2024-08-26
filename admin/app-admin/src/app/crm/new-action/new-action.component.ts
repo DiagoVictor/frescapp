@@ -24,7 +24,7 @@ export class NewActionComponent implements OnInit {
   };
 
   customers: any[] = []; 
-  actionTypes: string[] = ['Faltante en Orden', 'Calidad en producto', 'Llegada tarde', 'Recordar realizar pedido', 'Visita presencial', 'Llamada seguimiento']; 
+  actionTypes: string[] = []; 
   orders: any[] = []; 
   managers: string[] = ['Wilmer', 'Cata', 'Diago'];
   searchText: string = '';
@@ -37,6 +37,11 @@ export class NewActionComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCustomers();
+    this.orderService.getConfig().subscribe(
+      (data) => {
+        this.actionTypes = data.actionsType;
+      }
+    )
   }
 
   loadCustomers() {

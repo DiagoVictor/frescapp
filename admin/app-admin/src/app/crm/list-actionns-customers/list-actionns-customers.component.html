@@ -33,7 +33,7 @@
                 <td (click)="navigateToaAction(action.actionNumber)">{{ action.type }}</td>
                 <td>
                     <div class="row">
-                        <div class="col-auto" *ngIf="action.status == 'Completada'">
+                        <div class="col-auto" *ngIf="action.status == 'Creada'">
                             <button type="button" class="btn btn-primary" (click)="resolver(action.actionNumber)">Completar</button>
                         </div>
                         <div class="col-auto" *ngIf="action.status == 'Creada'">
