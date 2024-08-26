@@ -78,7 +78,7 @@ export class NewActionComponent implements OnInit {
   }
 
   requiresOrderNumber(): boolean {
-    return this.newActionObject.type === 'Faltante en Orden' || this.newActionObject.type === 'Calidad en producto';
+    return this.newActionObject.type === 'Faltante en Orden' || this.newActionObject.type === 'Calidad en producto' || this.newActionObject.type === 'Llegada tarde' || this.newActionObject.type === 'Cobro Pedido entregado';
   }
 
   createAction() {
