@@ -23,12 +23,12 @@ done
 
 # Iniciar la aplicación Python en el puerto 5000
 echo "Iniciando el backend en el puerto 5000..."
-cd /home/ubuntu/frescapp/admin/backend
-nohup python3 app.py &
+cd /home/ubuntu/frescapp/admin/backend || exit
+nohup python3 app.py > backend.log 2>&1 &
 
 # Iniciar la aplicación Angular en el puerto 80
 echo "Iniciando admin en el puerto 80..."
-cd /home/ubuntu/frescapp/admin/app-admin/dist/app-admin
-nohup http-server --proxy http://localhost:80? -p 80 &
+cd /home/ubuntu/frescapp/admin/app-admin/dist/app-admin || exit
+nohup http-server -p 80 --proxy http://localhost:80? > admin.log 2>&1 &
 
 echo "Todas las aplicaciones han sido iniciadas."
