@@ -24,7 +24,7 @@ done
 # Iniciar la aplicación Angular en el puerto 80
 echo "Iniciando admin en el puerto 80..."
 cd /home/ubuntu/frescapp/admin/app-admin/dist/app-admin
-nohup sudo http-server --proxy http://localhost:80 -p 81 &
+nohup sudo http-server --proxy http://localhost:80? -p 80 &
 
 # Iniciar la aplicación Python en el puerto 5000
 echo "Iniciando el backend en el puerto 5000..."
