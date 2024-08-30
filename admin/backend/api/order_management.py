@@ -326,7 +326,7 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                                 <p style="margin-bottom: 0; margin-top: 0;"><a
                                                         href="https://www.buyfrescapp.com" target="_blank"
                                                         style="font-weight: normal; color: #97d700; display: block; text-decoration: none;"><img
-                                                            src="http://app.buyfrescapp.com:5000/api/shared/banner1.png"
+                                                            src="https://app.buyfrescapp.com:5000/api/shared/banner1.png"
                                                             alt="Frescapp" width="600"
                                                             style="border: none; display: inline; font-weight: bold; height: auto; outline: none; text-decoration: none; text-transform: capitalize; font-size: 14px; line-height: 24px; max-width: 100%; width: 600px;"></a>
                                                 </p>
