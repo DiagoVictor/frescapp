@@ -29,6 +29,6 @@ nohup python3 app.py > backend.log 2>&1 &
 # Iniciar la aplicación Angular en el puerto 80
 echo "Iniciando admin en el puerto 80..."
 cd /home/ubuntu/frescapp/admin/app-admin/dist/app-admin || exit
-nohup http-server -p 80 --proxy http://localhost:80? > admin.log 2>&1 &
+sudo nohup http-server -p 80 --proxy http://localhost:80? > admin.log 2>&1 &
 
 echo "Todas las aplicaciones han sido iniciadas."
