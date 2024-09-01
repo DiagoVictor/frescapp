@@ -1,13 +1,24 @@
 <div class="container-fluid mt-5">
     <div class="row justify-right">
-        <div class="col-6">
+        <!-- <div class="col-6">
             <input type="text" class="form-control" placeholder="Buscar acción..." [(ngModel)]="searchText"
                 (keyup)="filterActions()">
+        </div> -->
+        <div class="col-6">
+            <input type="date" class="form-control" [(ngModel)]="searchDate" (ngModelChange)="filterDateManager()">
         </div>
-        <div class="col-auto">
+        <!-- <div class="col-auto">
             <button type="button" class="btn btn-primary" (click)="newAction()">Nueva Acción</button>
-        </div>
+        </div> -->
     </div>
+    <div class="row justify-right">
+
+        <!-- <div class="col-6">
+            <select class="form-control" id="manager" name="manager" [(ngModel)]="selectedManager" (ngModelChange)="filterDateManager()">
+                <option *ngFor="let manager of managers" [value]="manager">{{ manager }}</option>
+            </select>
+        </div> -->
+    </div>    
     <div *ngIf="messageAction" class="alert alert-success alert-dismissible fade show" role="alert">
         {{ messageAction }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -16,39 +27,40 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Numero acción </th>
                 <th> Fecha </th>
                 <th> Cliente </th>
                 <th> Estado</th>
-                <th> Tipo</th>
-                <th> Opciones</th>
+                <!-- <th> Opciones</th> -->
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let action of this.actions">
-                <td (click)="navigateToaAction(action.actionNumber)">{{ action.actionNumber }}</td>
-                <td (click)="navigateToaAction(action.actionNumber)">{{ action.dateAction }}</td>
-                <td (click)="navigateToaAction(action.actionNumber)">{{ action.customer.name }}</td>
-                <td (click)="navigateToaAction(action.actionNumber)">{{ action.status }}</td>
-                <td (click)="navigateToaAction(action.actionNumber)">{{ action.type }}</td>
-                <td>
-                    <div class="row">
-                        <div class="col-auto" *ngIf="action.status == 'Creada'">
-                            <button type="button" class="btn btn-primary" (click)="resolver(action.actionNumber)">Completar</button>
-                        </div>
-                        <div class="col-auto" *ngIf="action.status == 'Creada'">
-                            <span (click)="delete_action(action.actionNumber)" style="cursor: pointer;">
-                                <i class="fas fa-trash fa-lg text-danger"></i>
-                            </span>
-                        </div>
-                        <div class="col-auto" *ngIf="action.status == 'Completada'" data-bs-toggle="modal" data-bs-target="#viewModal">
-                            <span  style="cursor: pointer;" (click)="viewAction(action)">
-                                <i class="fas fa-eye fa-lg text-info"></i>
-                            </span>
-                        </div>
+            <tr *ngFor="let action of filteredActions"
+            [attr.data-bs-toggle]="action.status !== 'Creada' ? 'modal' : null"
+            [attr.data-bs-target]="action.status !== 'Creada' ? '#viewModal' : null"
+            [ngClass]="{'table-success': action.status === 'Completada'}"
+            (click)="action.status === 'Creada' ? navigateToaAction(action.actionNumber) : viewAction(action)">
+            
+            <td>{{ action.dateAction }}</td>
+            <td>{{ action.customer.name }}</td>
+            <td>{{ action.customer.address }}</td>
+            <!-- <td>
+                <div class="row">
+                    <div class="col-auto" *ngIf="action.status == 'Creada'">
+                        <button type="button" class="btn btn-primary" (click)="resolver(action.actionNumber)">Completar</button>
                     </div>
-                </td>
-            </tr>
+                    <div class="col-auto" *ngIf="action.status == 'Creada'">
+                        <span (click)="delete_action(action.actionNumber)" style="cursor: pointer;">
+                            <i class="fas fa-trash fa-lg text-danger"></i>
+                        </span>
+                    </div>
+                    <div class="col-auto" *ngIf="action.status == 'Completada'" data-bs-toggle="modal" data-bs-target="#viewModal">
+                        <span  style="cursor: pointer;" (click)="viewAction(action)">
+                            <i class="fas fa-eye fa-lg text-info"></i>
+                        </span>
+                    </div>
+                </div>
+            </td> -->
+        </tr>        
         </tbody>
     </table>
 </div>
@@ -70,7 +82,7 @@
                 </div>
                 <div class="form-group mb-3">
                     <label>Tipo de Acción:</label>
-                    <p>{{ actionSelect.type }}</p>
+                    <p>{{ actionSelect.type.name }}</p>
                 </div>
                 <div *ngIf="actionSelect.orderNumber" class="form-group mb-3">
                     <label>Número de Pedido:</label>

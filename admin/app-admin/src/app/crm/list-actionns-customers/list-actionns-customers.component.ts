@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ActionService } from '../../services/action.service';
 import { Router } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { AuthenticationService } from '../../services/authentication.service';
 
 @Component({
   selector: 'app-list-actionns-customers',
@@ -14,14 +16,22 @@ export class ListActionnsCustomersComponent {
   messageAction: string ='';
   statusCodeAction : string = '' ;
   actionSelect :any;
+  managers: string[] = ['Ferney', 'Cata', 'Diago','Saco'];
+  searchDate: string | null = null;
+  selectedManager: string | null = null;
   constructor(
     private actionService: ActionService,
-    private router: Router  ){}
+    private router: Router,
+    private datePipe: DatePipe,
+    private authService: AuthenticationService
+  ){}
   ngOnInit(): void {
     this.getActions();
+    this.selectedManager = this.authService.getUsername();
+    this.filterDateManager();
   }
   navigateToaAction(actionNumber: number) {
-    this.router.navigate(['/action', actionNumber]);
+      this.router.navigate(['/edit_action', actionNumber]);
   }
   filterActions(){
     if (this.searchText.trim() !== '') {
@@ -32,13 +42,23 @@ export class ListActionnsCustomersComponent {
       this.filteredActions = this.actions;
     }
   }
+  filterDateManager(): void {
+    this.selectedManager = this.authService.getUsername();
+    this.filteredActions = this.actions.filter(action => {
+      const actionDate = this.datePipe.transform(action.dateAction, 'yyyy-MM-dd');
+      const matchesDate = !this.searchDate || actionDate === this.searchDate;
+      const matchesManager = !this.selectedManager || action.manager === this.selectedManager;
+      return matchesDate && matchesManager;
+    });
+  }
   newAction() {
     this.router.navigate(['/newAction']);
-}
+  }
   getActions(){
     this.actionService.getActions().subscribe(
       (res: any) => {
         this.actions = res;
+        this.filteredActions = this.actions;
       }
       )
   }

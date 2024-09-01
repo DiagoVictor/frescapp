@@ -13,20 +13,22 @@ export class NewActionComponent implements OnInit {
   newActionObject: any = {
     dateAction: '',
     dateSolution: '',
-    type: '',
-    customer: { },
+    type: {},
+    customer: {},
     orderNumber: '',
     manager: '',
     status: 'Creada',
     actionComment : '',
     solutionType : '',
-    solutionComment:''
+    solutionComment:'',
+    longituted:'',
+    latituted:''
   };
 
   customers: any[] = []; 
-  actionTypes: string[] = []; 
+  actionTypes: any[] = []; 
   orders: any[] = []; 
-  managers: string[] = ['Wilmer', 'Cata', 'Diago'];
+  managers: string[] = [];
   searchText: string = '';
   constructor(
     private actionService: ActionService,
@@ -38,8 +40,9 @@ export class NewActionComponent implements OnInit {
   ngOnInit(): void {
     this.loadCustomers();
     this.orderService.getConfig().subscribe(
-      (data) => {
+      (data) => {        
         this.actionTypes = data.actionsType;
+        this.managers = data.comercials;
       }
     )
   }
@@ -72,14 +75,11 @@ export class NewActionComponent implements OnInit {
   }
 
   onTypeChange() {
-    if (this.requiresOrderNumber() && this.newActionObject.customer.id) {
+    if (this.newActionObject.type.requiresOrder  && this.newActionObject.customer.id) {
       this.loadOrders(this.newActionObject.customer.email);
     }
   }
 
-  requiresOrderNumber(): boolean {
-    return this.newActionObject.type === 'Faltante en Orden' || this.newActionObject.type === 'Calidad en producto' || this.newActionObject.type === 'Llegada tarde' || this.newActionObject.type === 'Cobro Pedido entregado';
-  }
 
   createAction() {
     if (!this.newActionObject.dateAction || !this.newActionObject.type || !this.newActionObject.customer.id) {

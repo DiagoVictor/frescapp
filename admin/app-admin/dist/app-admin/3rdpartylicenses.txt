@@ -262,6 +262,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
+mapbox-gl
+SEE LICENSE IN LICENSE.txt
+
 rxjs
 Apache-2.0
                                Apache License

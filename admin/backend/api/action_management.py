@@ -34,7 +34,10 @@ def create_action():
         "status": data.get("status", "Creada"),
         "actionComment": data.get("actionComment"),
         "solutionType": data.get("solutionType"),
-        "solutionComment": data.get("solutionComment")
+        "solutionComment": data.get("solutionComment"),
+        "longitude": data.get("longitude"),
+        "latituted" : data.get("latituted"),
+        
     }
 
     actions_collection.insert_one(new_action)

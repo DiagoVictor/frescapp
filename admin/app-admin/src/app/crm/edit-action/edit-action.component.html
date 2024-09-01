@@ -1,3 +1,6 @@
+<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.css' rel='stylesheet' />
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js"></script>
 <br><br>
 <div class="container">
     <h3 class="mb-4">Completar acción</h3>
@@ -7,17 +10,29 @@
             <label for="dateAction">Fecha Ejecución:</label>
             <input type="text" class="form-control" id="dateAction" name="dateAction" [(ngModel)]="actionObject.dateAction" readonly disabled>
         </div>
-
-        <!-- Cliente ID (Modal) -->
         <div class="form-group mb-3">
-            <label for="customer">Cliente:</label>
-            <input type="text" class="form-control" id="customer" name="customer" [(ngModel)]="actionObject.customer.name" readonly disabled>
+            <label for="customer">Nombre Cliente:</label>
+            <input type="text" class="form-control" id="name" name="name" [(ngModel)]="actionObject.customer.name">
         </div>
-
-        <!-- Tipo de Acción -->
+        <div class="form-group mb-3">
+            <label for="customer">Dirección Cliente:</label>
+            <input type="text" class="form-control" id="address" name="address" [(ngModel)]="actionObject.customer.address" >
+        </div>
+        <div class="form-group mb-3">
+            <label for="customer">Teléfono Cliente:</label>
+            <input type="text" class="form-control" id="phone" name="phone" [(ngModel)]="actionObject.customer.phone" >
+        </div>
+        <div class="form-group mb-3">
+            <label for="customer">Email Cliente:</label>
+            <input type="text" class="form-control" id="email" name="email" [(ngModel)]="actionObject.customer.email" >
+        </div>
+        <div class="form-group mb-3">
+            <div  id="map" class="map-container">
+            </div>
+        </div>
         <div class="form-group mb-3">
             <label for="type">Tipo de Acción:</label>
-            <input type="text" class="form-control" id="type" name="type" [(ngModel)]="actionObject.type" readonly disabled>
+            <input type="text" class="form-control" id="type" name="type" [(ngModel)]="actionObject.type.name" readonly disabled>
         </div>
 
         <!-- Número de Pedido (Cascada basado en Customer ID) -->
@@ -36,12 +51,6 @@
         <div class="form-group mb-3">
             <label for="actionComment">Detalle:</label>
             <input type="text" class="form-control" id="actionComment" name="actionComment" [(ngModel)]="actionObject.actionComment" readonly disabled>
-        </div>
-
-        <!-- Estado -->
-        <div class="form-group mb-3">
-            <label for="status">Estado:</label>
-            <input type="text" class="form-control" id="status" name="status" [(ngModel)]="actionObject.status" readonly disabled>
         </div>
         <div class="form-group mb-3">
             <label for="solution">Solución:</label>
