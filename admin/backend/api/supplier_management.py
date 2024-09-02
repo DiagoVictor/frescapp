@@ -36,11 +36,11 @@ def create_supplier():
     return jsonify({"status": "success", "message": "Supplier created successfully."}), 201
 
 # Ruta para editar un proveedor existente
-@supplier_api.route('/supplier/<string:nit>', methods=['PUT'])
-def edit_supplier(nit):
+@supplier_api.route('/supplier/<string:id>', methods=['PUT'])
+def edit_supplier(id):
     data = request.json
     result = supplier_collection.update_one(
-        {"nit": nit},
+        {"_id": id},
         {"$set": data}
     )
     if result.matched_count:
@@ -49,9 +49,9 @@ def edit_supplier(nit):
         return jsonify({"status": "failure", "message": "Supplier not found."}), 404
 
 # Ruta para eliminar un proveedor
-@supplier_api.route('/supplier/<string:nit>', methods=['DELETE'])
-def delete_supplier(nit):
-    result = supplier_collection.delete_one({"nit": nit})
+@supplier_api.route('/supplier/<string:id>', methods=['DELETE'])
+def delete_supplier(id):
+    result = supplier_collection.delete_one({"_id": id})
     if result.deleted_count:
         return jsonify({"status": "success", "message": "Supplier deleted successfully."}), 200
     else:
