@@ -18,6 +18,7 @@ export class AuthenticationService {
         map(response => {
           if (response.token) {
             localStorage.setItem('token', response.token);
+            localStorage.setItem('role', response.user_data.role);
           }
           return response;
         })

@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { ActionService } from '../../services/action.service';
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
-import { AuthenticationService } from '../../services/authentication.service';
 
 @Component({
   selector: 'app-list-actionns-customers',
@@ -22,12 +21,11 @@ export class ListActionnsCustomersComponent {
   constructor(
     private actionService: ActionService,
     private router: Router,
-    private datePipe: DatePipe,
-    private authService: AuthenticationService
+    private datePipe: DatePipe
   ){}
   ngOnInit(): void {
     this.getActions();
-    this.selectedManager = this.authService.getUsername();
+    this.selectedManager = localStorage.getItem('username');
     this.filterDateManager();
   }
   navigateToaAction(actionNumber: number) {
@@ -43,7 +41,7 @@ export class ListActionnsCustomersComponent {
     }
   }
   filterDateManager(): void {
-    this.selectedManager = this.authService.getUsername();
+    this.selectedManager = localStorage.getItem('username');
     this.filteredActions = this.actions.filter(action => {
       const actionDate = this.datePipe.transform(action.dateAction, 'yyyy-MM-dd');
       const matchesDate = !this.searchDate || actionDate === this.searchDate;

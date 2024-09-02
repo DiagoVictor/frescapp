@@ -4,21 +4,21 @@
             <input type="text" class="form-control" placeholder="Buscar acción..." [(ngModel)]="searchText"
                 (keyup)="filterActions()">
         </div> -->
-        <div class="col-6">
+        <div class="col-12">
             <input type="date" class="form-control" [(ngModel)]="searchDate" (ngModelChange)="filterDateManager()">
         </div>
         <!-- <div class="col-auto">
             <button type="button" class="btn btn-primary" (click)="newAction()">Nueva Acción</button>
         </div> -->
     </div>
-    <div class="row justify-right">
+    <!-- <div class="row justify-right">
 
-        <!-- <div class="col-6">
+        <div class="col-6">
             <select class="form-control" id="manager" name="manager" [(ngModel)]="selectedManager" (ngModelChange)="filterDateManager()">
                 <option *ngFor="let manager of managers" [value]="manager">{{ manager }}</option>
             </select>
-        </div> -->
-    </div>    
+        </div>
+    </div>     -->
     <div *ngIf="messageAction" class="alert alert-success alert-dismissible fade show" role="alert">
         {{ messageAction }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

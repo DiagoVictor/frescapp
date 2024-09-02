@@ -9,11 +9,13 @@ import { AuthenticationService } from '../services/authentication.service';
 })
 export class HomeComponent implements OnInit {
   isLoggedIn: boolean = false;
+  role:string | null ='';
 
   constructor(private authService: AuthenticationService, private router: Router) { }
 
   ngOnInit(): void {
     this.checkToken();
+    this.role = localStorage.getItem('role');
   }
 
   checkToken() {
