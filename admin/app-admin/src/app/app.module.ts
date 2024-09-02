@@ -26,6 +26,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { CommonModule, DatePipe } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { SuppliersComponent  } from './suppliers/suppliers.component';
+import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -60,6 +61,6 @@ import { SuppliersComponent  } from './suppliers/suppliers.component';
     ReactiveFormsModule,
     NgbModule
   ],
-  providers: [DatePipe],
+  providers: [DatePipe,{ provide: LocationStrategy, useClass: HashLocationStrategy }],
 })
 export class AppModule { }
