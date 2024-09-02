@@ -1,0 +1,89 @@
+<br>
+<div class="container-fluid mt-5">
+    <div class="row justify-right">
+      <div class="col-6">
+        <input type="text" class="form-control" placeholder="Buscar proveedor..." [(ngModel)]="searchText"
+          (keyup)="filterSuppliers()">
+      </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newSupplierModal"
+          data-bs-dismiss="modal">Nuevo Proveedor</button>
+      </div>
+    </div>
+  
+    <div *ngIf="messageSupplier" class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ messageSupplier }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>NIT</th>
+          <th>Email</th>
+          <th>Dirección</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let supplier of filteredSuppliers">
+          <td>{{ supplier.name }}</td>
+          <td>{{ supplier.nit }}</td>
+          <td>{{ supplier.email }}</td>
+          <td>{{ supplier.address }}</td>
+          <td>
+            <div class="row">
+              <div class="col-auto">
+                <span style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#editSupplierModal" 
+                      (click)="setCurrentSupplier(supplier)">
+                  <i class="fas fa-edit fa-lg text-primary"></i>
+                </span>
+              </div>
+              <div class="col-auto">
+                <span style="cursor: pointer;" (click)="deleteSupplier(supplier.id)">
+                  <i class="fas fa-trash fa-lg text-danger"></i>
+                </span>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Modal para Crear/Editar Proveedor -->
+  <div class="modal fade" id="newSupplierModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ isEditMode ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</h5>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="name">Nombre:</label>
+            <input type="text" class="form-control" id="name" [(ngModel)]="currentSupplier.name">
+          </div>
+          <div class="form-group">
+            <label for="nit">NIT:</label>
+            <input type="text" class="form-control" id="nit" [(ngModel)]="currentSupplier.nit">
+          </div>
+          <div class="form-group">
+            <label for="email">Correo Electrónico:</label>
+            <input type="email" class="form-control" id="email" [(ngModel)]="currentSupplier.email">
+          </div>
+          <div class="form-group">
+            <label for="address">Dirección:</label>
+            <input type="text" class="form-control" id="address" [(ngModel)]="currentSupplier.address">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" (click)="saveSupplier()" data-bs-dismiss="modal">
+            {{ isEditMode ? 'Guardar Cambios' : 'Crear Proveedor' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  

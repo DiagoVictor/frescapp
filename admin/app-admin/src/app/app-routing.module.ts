@@ -17,6 +17,7 @@ import { PurchaseComponent } from './purchases/purchase/purchase.component';
 import { ListActionnsCustomersComponent } from './crm/list-actionns-customers/list-actionns-customers.component';
 import { EditActionComponent } from './crm/edit-action/edit-action.component';
 import { NewActionComponent } from './crm/new-action/new-action.component';
+import { SuppliersComponent  } from './suppliers/suppliers.component';
 
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent },
@@ -36,6 +37,7 @@ const routes: Routes = [
   { path: 'crm', component: ListActionnsCustomersComponent },
   { path: 'edit_action/:action', component: EditActionComponent },
   { path: 'newAction', component: NewActionComponent },
+  { path: 'suppliers', component: SuppliersComponent },
   { path: '', component: HomeComponent }
 ];
 

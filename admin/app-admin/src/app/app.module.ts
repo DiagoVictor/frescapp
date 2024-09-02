@@ -25,6 +25,7 @@ import { EditActionComponent } from './crm/edit-action/edit-action.component';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CommonModule, DatePipe } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { SuppliersComponent  } from './suppliers/suppliers.component';
 
 @NgModule({
   declarations: [
@@ -46,7 +47,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     PurchaseComponent,
     ListActionnsCustomersComponent,
     NewActionComponent,
-    EditActionComponent
+    EditActionComponent,
+    SuppliersComponent
   ],
   bootstrap: [AppComponent],
   imports: [
