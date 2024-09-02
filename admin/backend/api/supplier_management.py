@@ -8,6 +8,7 @@ db = client['frescapp']
 supplier_collection = db['suppliers']
 
 # Ruta para listar todos los proveedores
+@supplier_api.route('/suppliers', methods=['GET'])
 def list_suppliers():
     suppliers = list(supplier_collection.find({}).sort('name', 1))
     
