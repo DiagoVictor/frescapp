@@ -38,12 +38,16 @@ def create_supplier():
 # Ruta para editar un proveedor existente
 @supplier_api.route('/supplier/<string:id>', methods=['PUT'])
 def edit_supplier(id):
-    data = request.json
-    object_id = ObjectId(id)
-    
+    data = request.json   
+    supplier = {
+        "name": data['name'],
+        "nit": data['nit'],
+        "email": data['email'],
+        "address": data['address']
+    }
     result = supplier_collection.update_one(
-        {"_id": object_id},
-        {"$set": data}
+        {"_id": ObjectId(id)},
+        {"$set": supplier}
     )
     
     if result.matched_count:
