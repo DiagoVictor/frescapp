@@ -9,19 +9,19 @@ export class SupplierService {
   private baseUrl = 'https://app.buyfrescapp.com:5000/';
   //private baseUrl = 'https://localhost:5000/';
   constructor(private http: HttpClient) { }
-  getSuppliers() {
+  getSuppliers():Observable<any> {
     return this.http.get(`${this.baseUrl}api/supplier/suppliers`);
   }
 
-  createSupplier(supplier: any) {
+  createSupplier(supplier: any):Observable<any> {
     return this.http.post(`${this.baseUrl}api/supplier/supplier`, supplier);
   }
 
-  updateSupplier(supplier: any) {
-    return this.http.put(`${this.baseUrl}api/supplier/supplier/${supplier.id}`, supplier);
+  updateSupplier(supplier: any):Observable<any> {
+    return this.http.put(`${this.baseUrl}api/supplier/supplier/${supplier._id}`, supplier);
   }
 
-  deleteSupplier(supplierId: number) {
+  deleteSupplier(supplierId: number):Observable<any> {
     return this.http.delete(`${this.baseUrl}api/supplier/supplier/${supplierId}`);
   }
 }

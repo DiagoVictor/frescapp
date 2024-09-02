@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from pymongo import MongoClient
-import certifi
+from bson import ObjectId
 
 supplier_api = Blueprint('supplier', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
@@ -39,10 +39,13 @@ def create_supplier():
 @supplier_api.route('/supplier/<string:id>', methods=['PUT'])
 def edit_supplier(id):
     data = request.json
+    object_id = ObjectId(id)
+    
     result = supplier_collection.update_one(
-        {"_id": id},
+        {"_id": object_id},
         {"$set": data}
     )
+    
     if result.matched_count:
         return jsonify({"status": "success", "message": "Supplier updated successfully."}), 200
     else:
@@ -51,7 +54,8 @@ def edit_supplier(id):
 # Ruta para eliminar un proveedor
 @supplier_api.route('/supplier/<string:id>', methods=['DELETE'])
 def delete_supplier(id):
-    result = supplier_collection.delete_one({"_id": id})
+    object_id = ObjectId(id)
+    result = supplier_collection.delete_one({"_id": object_id})
     if result.deleted_count:
         return jsonify({"status": "success", "message": "Supplier deleted successfully."}), 200
     else:
