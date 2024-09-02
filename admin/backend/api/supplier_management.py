@@ -3,8 +3,7 @@ from pymongo import MongoClient
 import certifi
 
 supplier_api = Blueprint('supplier', __name__)
-
-client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp', tlsCAFile=certifi.where())
+client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
 supplier_collection = db['suppliers']
 

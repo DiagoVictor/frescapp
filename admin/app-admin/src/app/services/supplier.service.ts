@@ -10,18 +10,18 @@ export class SupplierService {
   //private baseUrl = 'https://localhost:5000/';
   constructor(private http: HttpClient) { }
   getSuppliers() {
-    return this.http.get(this.baseUrl);
+    return this.http.get(`${this.baseUrl}api/supplier/suppliers`);
   }
 
   createSupplier(supplier: any) {
-    return this.http.post(this.baseUrl, supplier);
+    return this.http.post(`${this.baseUrl}api/supplier/supplier`, supplier);
   }
 
   updateSupplier(supplier: any) {
-    return this.http.put(`${this.baseUrl}/${supplier.id}`, supplier);
+    return this.http.put(`${this.baseUrl}api/supplier/supplier/${supplier.id}`, supplier);
   }
 
   deleteSupplier(supplierId: number) {
-    return this.http.delete(`${this.baseUrl}/${supplierId}`);
+    return this.http.delete(`${this.baseUrl}api/supplier/supplier/${supplierId}`);
   }
 }
