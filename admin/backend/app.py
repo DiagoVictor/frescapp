@@ -12,6 +12,7 @@ from api.alegra_management import alegra_api
 from api.woo_management import woo_api
 from api.purchase_management import purchase_api
 from api.action_management import action_api
+from api.supplier_management import supplier_api
 
 
 if __name__ == '__main__':
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     app.register_blueprint(woo_api, url_prefix='/api/woo')
     app.register_blueprint(purchase_api, url_prefix='/api/purchase')
     app.register_blueprint(action_api, url_prefix='/api/action')
+    app.register_blueprint(supplier_api, url_prefix='/api/supplier')
 
     @app.route('/api/shared/<path:filename>')
     def serve_static(filename):
