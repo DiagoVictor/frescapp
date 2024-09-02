@@ -46,8 +46,11 @@
     </div>
     <div>
       <label>Proveedor:</label>
-      <input type="text" [(ngModel)]="this.selectedProduct.proveedor" class="form-control"/>
+      <select [(ngModel)]="selectedProduct.proveedor" class="form-control">
+        <option *ngFor="let supplier of suppliers" [value]="supplier.name">{{ supplier.name }}</option>
+      </select>
     </div>
+    
     <div *ngIf="selectedProduct.clients?.length">
       <h6 class="mt-3">Clientes que pidieron este producto:</h6>
       <table class="table">

@@ -10,7 +10,7 @@ supplier_collection = db['suppliers']
 # Ruta para listar todos los proveedores
 @supplier_api.route('/suppliers', methods=['GET'])
 def list_suppliers():
-    suppliers = list(supplier_collection.find({}, {'_id': 0}).sort('name', 1))
+    suppliers = list(supplier_collection.find({}).sort('name', 1))
     return jsonify(suppliers), 200
 
 # Ruta para crear un nuevo proveedor

@@ -53,6 +53,7 @@ export class SuppliersComponent implements OnInit {
   }
 
   saveSupplier() {
+    console.log(this.currentSupplier)
     if (this.isEditMode) {
       this.supplierService.updateSupplier(this.currentSupplier).subscribe(
         (res: any) => {

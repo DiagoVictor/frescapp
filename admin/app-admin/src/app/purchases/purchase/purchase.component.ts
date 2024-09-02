@@ -2,6 +2,8 @@ import { Component, Input } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { PurchaseService } from '../../services/purchase.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { SupplierService } from '../../services/supplier.service';
+
 @Component({
   selector: 'app-purchase',
   templateUrl: './purchase.component.html',
@@ -19,10 +21,12 @@ export class PurchaseComponent {
   sortDirection: number = 1; // 1 for ascending, -1 for descending
   successMessage: string | null = null;
   errorMessage: string | null = null;
+  suppliers: any[] = [];
   constructor(
     private route: ActivatedRoute,
     private purchaseService: PurchaseService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private supplierService : SupplierService
   ) {
     this.route.params.subscribe(params => {
       this.purchaseNumber = params['purchaseNumber'];
@@ -34,6 +38,11 @@ export class PurchaseComponent {
       (res: any) => {
         this.purchase = res;
         this.filteredProducts = this.purchase.products;
+      }
+    );
+    this.supplierService.getSuppliers().subscribe(
+      (res: any) => {
+        this.suppliers = res;
       }
     );
   }
