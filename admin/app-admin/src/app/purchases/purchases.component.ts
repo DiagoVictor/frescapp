@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { PurchaseService } from '../services/purchase.service';
 import { Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
-
+import * as XLSX from 'xlsx';
+import * as FileSaver from 'file-saver';
 @Component({
   selector: 'app-purchases',
   templateUrl: './purchases.component.html',
@@ -84,4 +85,41 @@ export class PurchasesComponent {
       }
     );
   }
+  calculateRegisteredPercentage(products: any[]): number {
+    if (products.length === 0) {
+      return 0;
+    }
+    const registeredCount = products.filter(product => product.status === 'Registrado').length;
+    return Math.round((registeredCount / products.length) * 100);
+  }
+  calculateGMV(products: any[]): number {
+    return products.reduce((total, product) => {
+      const productTotal = (product.price_purchase || 0) * (product.total_quantity_ordered || 0);
+      return total + productTotal;
+    }, 0);
+  }  
+  downloadExcel(purchase: any) {
+    const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+    const EXCEL_EXTENSION = '.xlsx';
+    const worksheetData = purchase.products.map((product: { sku: any; name: any; category: any; price_purchase: number; total_quantity_ordered: number; final_price_purchase:number;  status:any;}) => ({
+      SKU: product.sku,
+      Nombre: product.name,
+      Categoría: product.category,
+      Precio_Sugerido: product.price_purchase,
+      Precio_Real: product.final_price_purchase,
+      Cantidad: product.total_quantity_ordered,
+      Total_Sugerido: product.price_purchase * product.total_quantity_ordered,
+      Total_Real: product.final_price_purchase * product.total_quantity_ordered,
+      status : product.status
+    }));
+  
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = { Sheets: { 'Productos': worksheet }, SheetNames: ['Productos'] };
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  
+    // Descargar el archivo Excel
+    const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
+    const fileName = `Compra_${purchase.purchase_number}.xlsx`;
+    FileSaver.saveAs(data, fileName);
+   }
 }

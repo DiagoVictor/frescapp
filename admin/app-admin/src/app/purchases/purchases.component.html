@@ -1,55 +1,67 @@
 <div class="container-fluid mt-5">
   <div class="row justify-right">
     <div class="col-6">
-      <input type="text" class="form-control" placeholder="Buscar compra..." [(ngModel)]="searchText"
-        (keyup)="filterPurchases()">
+      <input type="text" class="form-control" placeholder="Buscar compra..." [(ngModel)]="searchText" (keyup)="filterPurchases()">
     </div>
     <div class="col-auto">
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPurchase"
-        data-bs-dismiss="modal">Nuevo compra</button>
+        data-bs-dismiss="modal">Nueva compra</button>
     </div>
   </div>
+  
   <div *ngIf="messagePurchase" class="alert alert-success alert-dismissible fade show" role="alert">
     {{ messagePurchase }}
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
   
-   <table class="table">
+  <table class="table">
     <thead>
       <tr>
-        <th >Número de Compra </th>
-        <th > Fecha </th>
-        <th > Cantidad sku</th>
-        <th > Estado</th>
-        <th > Acciones</th>
-
+        <th>Número de Compra</th>
+        <th>Fecha</th>
+        <th>Cantidad SKU</th>
+        <th>Porcentaje Registrado</th>
+        <th>GMV</th> 
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let purchase of this.purchases"  >
+      <tr *ngFor="let purchase of this.purchases">
         <td (click)="navigateToPurchase(purchase.purchase_number)">{{ purchase.purchase_number }}</td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">{{ purchase.date }}</td>
-        <td (click)="navigateToPurchase(purchase.purchase_number)">{{  purchase.products.length  }}</td>
-        <td (click)="navigateToPurchase(purchase.purchase_number)">{{ purchase.status }}</td>
+        <td (click)="navigateToPurchase(purchase.purchase_number)">{{ purchase.products.length }}</td>
+        <td (click)="navigateToPurchase(purchase.purchase_number)">
+          {{ calculateRegisteredPercentage(purchase.products) }}%
+        </td>
+        <td (click)="navigateToPurchase(purchase.purchase_number)">
+          {{ calculateGMV(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->
+        </td> <!-- Columna que muestra el GMV -->
         <td>
           <div class="row">
-          <div class="col-auto">
-            <span (click)="openPdfModal(purchase.purchase_number)" style="cursor: pointer;" data-bs-toggle="modal"
-              data-bs-target="#pdfModal" data-bs-dismiss="modal">
-              <i class="fas fa-file-pdf fa-lg text-primary"></i>
-            </span>
-          </div>
-          <div class="col-auto">
-            <span (click)="delete_purchase(purchase.purchase_number)" style="cursor: pointer;">
-              <i class="fas fa-trash fa-lg text-danger"></i>
-            </span>
-          </div>
+            <div class="col-auto">
+              <span (click)="openPdfModal(purchase.purchase_number)" style="cursor: pointer;" data-bs-toggle="modal"
+                data-bs-target="#pdfModal" data-bs-dismiss="modal">
+                <i class="fas fa-file-pdf fa-lg text-primary"></i>
+              </span>
+            </div>
+            <div class="col-auto">
+              <span (click)="delete_purchase(purchase.purchase_number)" style="cursor: pointer;">
+                <i class="fas fa-trash fa-lg text-danger"></i>
+              </span>
+            </div>
+            <div class="col-auto">
+              <span (click)="downloadExcel(purchase)" style="cursor: pointer;">
+                <i class="fas fa-file-excel fa-lg text-success"></i> <!-- Icono de Excel -->
+              </span>
+            </div>
           </div>
         </td>
       </tr>
     </tbody>
   </table>
 </div>
+
+
 <div class="modal fade" id="newPurchase" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">

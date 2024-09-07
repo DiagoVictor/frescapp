@@ -9,7 +9,6 @@
       (ngModelChange)="filterProducts()"
     />
   </div>
-
   <table class="table">
     <thead>
       <tr>
@@ -18,15 +17,18 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let product of filteredProducts" (click)="openEditModal(productModal, product)" [ngClass]="{'table-success': product.final_price_purchase > 0}">
-        <td>{{ product.name + ' (' + product.sku + ')' }}</td>
-        <td>{{ product.total_quantity_ordered +' '+ product.unit}}</td>
+      <tr *ngFor="let product of filteredProducts" 
+          (click)="openEditModal(productModal, product)"
+          [ngClass]="{
+            'table-success': product.status === 'Registrado',
+            'table-warning': product.status === 'Registro parcial'
+          }">
+        <td>{{ product.category.substring(0, 3).toUpperCase() + ' - ' + product.name }}</td>
+        <td>{{ product.total_quantity_ordered + ' ' + product.unit }}</td>
       </tr>
     </tbody>
-  </table>
+  </table>  
 </div>
-
-<!-- Modal -->
 <ng-template #productModal let-modal>
   <div class="modal-header">
     <h5 class="modal-title">{{ this.selectedProduct.name }}</h5>
@@ -47,7 +49,7 @@
     <div>
       <label>Proveedor:</label>
       <select [(ngModel)]="selectedProduct.proveedor" class="form-control">
-        <option *ngFor="let supplier of suppliers" [value]="supplier.name">{{ supplier.name }}</option>
+        <option *ngFor="let supplier of suppliers" [ngValue]="supplier">{{ supplier.name }}</option>
       </select>
     </div>
     

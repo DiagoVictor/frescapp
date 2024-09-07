@@ -76,7 +76,7 @@ def create_purchase(date):
                 "name": "$product_info.name",
                 "total_quantity_ordered": 1,
                 "price_purchase": "$product_info.price_purchase",
-                "proveedor": "$product_info.proveedor",
+                "proveedor": "",
                 "category": "$product_info.category",
                 "unit": "$product_info.unit",
                 "status": "Creada",
@@ -144,7 +144,7 @@ def update_price():
     new_price = data.get("final_price_purchase")
     new_proveedor = data.get("proveedor")
     purchase = purchase_collection.find_one({"purchase_number": purchase_number})
-
+    status = data.get("status")
     if purchase:
         updated = False
         for product in purchase['products']:
@@ -152,6 +152,7 @@ def update_price():
                 # Actualiza el precio del producto
                 product['final_price_purchase'] = new_price
                 product['proveedor'] = new_proveedor
+                product['status'] = status
                 updated = True
                 break
 

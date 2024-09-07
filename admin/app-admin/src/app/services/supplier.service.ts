@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class SupplierService {
   private baseUrl = 'https://app.buyfrescapp.com:5000/';
-  //private baseUrl = 'https://localhost:5000/';
+  //private baseUrl = 'http://localhost:5000/';
   constructor(private http: HttpClient) { }
   getSuppliers():Observable<any> {
     return this.http.get(`${this.baseUrl}api/supplier/suppliers`);

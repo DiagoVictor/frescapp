@@ -36,8 +36,16 @@ export class PurchaseComponent {
   ngOnInit(): void {
     this.purchaseService.getPurchase(this.purchaseNumber).subscribe(
       (res: any) => {
-        this.purchase = res;
-        this.filteredProducts = this.purchase.products;
+        this.purchase = res;        
+        this.filteredProducts = this.purchase.products.sort((a: any, b: any) => {
+          if (a.category.toLowerCase() < b.category.toLowerCase()) {
+            return -1;
+          } else if (a.category.toLowerCase() > b.category.toLowerCase()) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
       }
     );
     this.supplierService.getSuppliers().subscribe(
@@ -77,16 +85,30 @@ export class PurchaseComponent {
     this.modalService.open(content);
     this.successMessage = null;
     this.errorMessage = null;
+    if (this.selectedProduct.proveedor) {
+      // Buscar el objeto completo del proveedor en la lista de suppliers
+      this.selectedProduct.proveedor = this.suppliers.find(
+        supplier => supplier.id === this.selectedProduct.proveedor.id
+      );
+    }
   }
 
   savePrice() {
+    let status = 'Creada';
+    if (this.selectedProduct.final_price_purchase > 0 && this.selectedProduct.proveedor) {
+      status = 'Registrado';
+    } else if (this.selectedProduct.final_price_purchase || this.selectedProduct.proveedor) {
+      status = 'Registro parcial';
+    }
+    this.selectedProduct.status = status;
     const data = {
       sku: this.selectedProduct.sku,
       purchase_number: this.purchaseNumber,
       final_price_purchase: this.selectedProduct.final_price_purchase,
-      proveedor: this.selectedProduct.proveedor
+      proveedor: this.selectedProduct.proveedor,
+      status: status 
     };
-
+  
     this.purchaseService.updatePrice(data).subscribe(
       (res: any) => {
         this.successMessage = 'Precio guardado exitosamente.';
@@ -98,4 +120,5 @@ export class PurchaseComponent {
       }
     );
   }
+  
 }
