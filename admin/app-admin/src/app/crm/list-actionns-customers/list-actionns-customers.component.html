@@ -29,7 +29,7 @@
             <tr>
                 <th> Fecha </th>
                 <th> Cliente </th>
-                <th> Estado</th>
+                <th> Dirección</th>
                 <!-- <th> Opciones</th> -->
             </tr>
         </thead>
@@ -41,7 +41,7 @@
             (click)="action.status === 'Creada' ? navigateToaAction(action.actionNumber) : viewAction(action)">
             
             <td>{{ action.dateAction }}</td>
-            <td>{{ action.customer.name }}</td>
+            <td>{{ action.customer.name || 'Por seleccionar...' }}</td>
             <td>{{ action.customer.address }}</td>
             <!-- <td>
                 <div class="row">

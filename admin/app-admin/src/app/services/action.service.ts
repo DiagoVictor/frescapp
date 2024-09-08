@@ -35,4 +35,7 @@ export class ActionService {
   deleteAction(actionNumber: string): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}api/action/action/${actionNumber}`);
   }
+  getPotentialCustomers(): Observable<Object[]> {
+    return this.http.get<Object[]>(`${this.baseUrl}api/action/potentialCustomers`);
+  }
 }

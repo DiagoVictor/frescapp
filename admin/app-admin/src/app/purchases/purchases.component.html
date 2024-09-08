@@ -21,6 +21,7 @@
         <th>Fecha</th>
         <th>Cantidad SKU</th>
         <th>Porcentaje Registrado</th>
+        <th>Porcentaje Registro Pacial</th>
         <th>GMV</th> 
         <th>Acciones</th>
       </tr>
@@ -32,6 +33,9 @@
         <td (click)="navigateToPurchase(purchase.purchase_number)">{{ purchase.products.length }}</td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">
           {{ calculateRegisteredPercentage(purchase.products) }}%
+        </td>
+        <td (click)="navigateToPurchase(purchase.purchase_number)">
+          {{ calculateRegisteredParcialPercentage(purchase.products) }}%
         </td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">
           {{ calculateGMV(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->
@@ -52,6 +56,11 @@
             <div class="col-auto">
               <span (click)="downloadExcel(purchase)" style="cursor: pointer;">
                 <i class="fas fa-file-excel fa-lg text-success"></i> <!-- Icono de Excel -->
+              </span>
+            </div>
+            <div class="col-auto">
+              <span (click)="sync_allegra(purchase)" style="cursor: pointer;">
+                <img src="assets/alegra.png" alt="icono" style="width: 24px; height: 24px;" />
               </span>
             </div>
           </div>

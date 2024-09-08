@@ -10,6 +10,9 @@
             <label for="dateAction">Fecha Ejecución:</label>
             <input type="text" class="form-control" id="dateAction" name="dateAction" [(ngModel)]="actionObject.dateAction" readonly disabled>
         </div>
+        <button type="button" class="btn btn-secondary mb-3" (click)="openCustomers()">
+            Buscar Cliente
+          </button>
         <div class="form-group mb-3">
             <label for="customer">Nombre Cliente:</label>
             <input type="text" class="form-control" id="name" name="name" [(ngModel)]="actionObject.customer.name">
@@ -73,3 +76,22 @@
         </div>
     </form>
 </div>
+<div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="customerModalLabel">Buscar Cliente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" class="form-control mb-3" placeholder="Buscar cliente" [(ngModel)]="searchTerm" (input)="searchCustomer()">
+  
+          <ul class="list-group">
+            <li *ngFor="let customer of filteredCustomers" class="list-group-item" (click)="selectCustomer(customer)">
+              {{ customer.name }} - {{ customer.phone }} - {{ customer.email }} - {{ customer.address }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>

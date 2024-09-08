@@ -8,6 +8,7 @@ action_api = Blueprint('action', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
 actions_collection = db['actions']
+potential_customers = db['customer_potential']
 
 # Crear una nueva acción
 @action_api.route('/action', methods=['POST'])
@@ -82,3 +83,8 @@ def delete_action(actionNumber):
         return jsonify({"status": "success", "message": "Action deleted successfully"}), 200
     else:
         return jsonify({"status": "failure", "message": "Action not found"}), 404
+
+@action_api.route('/potentialCustomers', methods=['GET'])
+def potentialCustomers():
+    customers_cursor = list(potential_customers.find({}, {'_id': 0}))
+    return jsonify(customers_cursor), 200

@@ -92,6 +92,13 @@ export class PurchasesComponent {
     const registeredCount = products.filter(product => product.status === 'Registrado').length;
     return Math.round((registeredCount / products.length) * 100);
   }
+  calculateRegisteredParcialPercentage(products: any[]){
+    if (products.length === 0) {
+      return 0;
+    }
+    const registeredCount = products.filter(product => product.status === 'Registro parcial').length;
+    return Math.round((registeredCount / products.length) * 100);
+  }
   calculateGMV(products: any[]): number {
     return products.reduce((total, product) => {
       const productTotal = (product.price_purchase || 0) * (product.total_quantity_ordered || 0);
@@ -121,5 +128,8 @@ export class PurchasesComponent {
     const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
     const fileName = `Compra_${purchase.purchase_number}.xlsx`;
     FileSaver.saveAs(data, fileName);
+   }
+   sync_allegra(purchase: any){
+    this.getPurchases();
    }
 }
