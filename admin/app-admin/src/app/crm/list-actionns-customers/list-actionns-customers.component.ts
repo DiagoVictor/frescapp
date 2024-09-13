@@ -9,8 +9,8 @@ import { DatePipe } from '@angular/common';
   styleUrl: './list-actionns-customers.component.css'
 })
 export class ListActionnsCustomersComponent {
-  actions:  any[]   =[];
-  filteredActions: any[] = [];
+  actions:  any[] | undefined;
+  filteredActions: any[] | undefined;
   searchText: string = '';
   messageAction: string ='';
   statusCodeAction : string = '' ;
@@ -31,18 +31,31 @@ export class ListActionnsCustomersComponent {
   navigateToaAction(actionNumber: number) {
       this.router.navigate(['/edit_action', actionNumber]);
   }
-  filterActions(){
+  filterActions() {
     if (this.searchText.trim() !== '') {
-      this.filteredActions = this.actions.filter(action => {
-        return action.purchase_number.toLowerCase().includes(this.searchText.toLowerCase());
+      this.filteredActions = this.actions?.filter(action => {
+        const searchTextLower = this.searchText.toLowerCase();
+        return (
+          (action.customer.name && action.customer.name.toLowerCase().includes(searchTextLower)) ||
+          (action.customer.address && action.customer.address.toLowerCase().includes(searchTextLower)) ||
+          (action.customer.phone && action.customer.phone.toLowerCase().includes(searchTextLower)) ||
+          (action.customer.email && action.customer.email.toLowerCase().includes(searchTextLower)) ||
+          (action.manager && action.manager.toLowerCase().includes(searchTextLower)) ||
+          (action.status && action.status.toLowerCase().includes(searchTextLower)) ||
+          (action.actionComment && action.actionComment.toLowerCase().includes(searchTextLower)) ||
+          (action.solutionType && action.solutionType.toLowerCase().includes(searchTextLower)) ||
+          (action.solutionComment && action.solutionComment.toLowerCase().includes(searchTextLower))
+        );
       });
     } else {
       this.filteredActions = this.actions;
     }
   }
+  
+  
   filterDateManager(): void {
     this.selectedManager = localStorage.getItem('username');
-    this.filteredActions = this.actions.filter(action => {
+    this.filteredActions = this.actions?.filter(action => {
       const actionDate = this.datePipe.transform(action.dateAction, 'yyyy-MM-dd');
       const matchesDate = !this.searchDate || actionDate === this.searchDate;
       return matchesDate;

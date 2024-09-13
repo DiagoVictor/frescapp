@@ -6,7 +6,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 })
 export class AlegraService {
   private baseUrl = 'https://app.buyfrescapp.com:5000/';
-  //private baseUrl = 'https://127.0.0.1:5000/';
+  //private baseUrl = 'http://127.0.0.1:5000/';
 
 
   constructor(private http: HttpClient) { }
@@ -34,5 +34,8 @@ export class AlegraService {
       'X-Sat-Register': 'tu-sat-register'
     });
     return this.http.post(url, { headers: headers });
+  }
+  send_purchase(fecha:any){
+    return this.http.get(this.baseUrl+'api/alegra/send_purchase/'+fecha);   
   }
 }

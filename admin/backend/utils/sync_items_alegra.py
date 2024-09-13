@@ -32,20 +32,62 @@ def get_all_items():
             break
     return items
 
+def find_item_by_reference(items, reference):
+    return next((item for item in items if item.get("reference") == reference), None)
 # Función para crear un producto en la API de Alegra
 def create_item_in_alegra(product):
+    if product['unit'] == 'KG':
+        unidad = 'kilogram'
+    elif product['unit'] == 'UND':
+        unidad = 'unit'
+    else:
+        unidad = 'unit'  # Valor por defecto si no coincide
+
     payload = {
+        "type": "product",
         "name": product["name"],
         "reference": product["sku"],
-        "price": product["price_sale"]
+        "price": product["price_sale"],
+        "inventory": {
+            "unit": unidad,
+            "warehouses": [{"id": "1"}]
+        }
     }
+
     response = requests.post(url_items, headers=headers, json=payload)
     if response.status_code == 201:
         print(f"Producto creado exitosamente: {response.json()}")
     else:
         print(f"Error al crear el producto: {response.status_code} - {response.text}")
+def update_item_alegra(product):
+    # Asignar la unidad según el valor de product['unit']
+    if product['unit'] == 'KG':
+        unidad = 'kilogram'
+    elif product['unit'] == 'UND':
+        unidad = 'unit'
+    else:
+        unidad = 'unit'  # Valor por defecto si no coincide
 
-# Función principal
+    payload = {
+        "type": "product",
+        "name": product["name"],
+        "reference": product["sku"],
+        "price": product["price_sale"],
+        "inventory": {
+            "unit": unidad,
+
+            "warehouses": [{"id": "1"}]
+        }
+    }
+
+    response = requests.put(url_items + '/' + str(product["id"]), headers=headers, json=payload)
+    
+    if response.status_code == 201:
+        print(f"Producto actualizado exitosamente: {response.json()}")
+    else:
+        print(f"Error al actualizar el producto: {response.status_code} - {response.text}")
+
+
 def sync_products():
     # Obtener todos los productos de la API de Alegra
     alegra_items = get_all_items()
@@ -53,15 +95,14 @@ def sync_products():
 
     # Obtener todos los productos de la base de datos
     db_products = products_collection.find()
-
     for product in db_products:
-        # Verificar si el producto ya existe en Alegra usando la referencia (sku)
         if product["sku"] not in alegra_references:
-            # Si no existe, crear el producto en Alegra
             print(f"Creando producto: {product['name']} ({product['sku']})")
             create_item_in_alegra(product)
-        else:
-            print(f"El producto {product['name']} ({product['sku']}) ya existe en Alegra")
+        # else:
+        #     alegra_product = find_item_by_reference(alegra_items,product['sku'])
+        #     product["id"] = alegra_product["id"]
+        #     update_item_alegra(product)            
+        #     print(f"El producto {product['name']} ({product['sku']}) actualizado en Alegra")
 
-# Ejecutar la sincronización de productos
 sync_products()

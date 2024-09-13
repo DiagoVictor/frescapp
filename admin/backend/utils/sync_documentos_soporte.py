@@ -140,7 +140,6 @@ def obtener_compras_agrupadas(fecha):
                 }
             ]
         }
-        print(payload)
         response = requests.post(url_doc_soportes, headers=headers, json=payload)
         if response.status_code == 201:
             print(f"Factura creada para {purchase['proveedor_name']} con número {invoice_number}")
@@ -165,4 +164,4 @@ def obtener_compras_agrupadas(fecha):
         else:
             print(f"Error al crear factura: {response.text}")
 
-obtener_compras_agrupadas('2024-09-10')
+obtener_compras_agrupadas('2024-09-11')

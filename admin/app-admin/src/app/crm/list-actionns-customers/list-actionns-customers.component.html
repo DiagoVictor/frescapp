@@ -1,9 +1,10 @@
 <div class="container-fluid mt-5">
     <div class="row justify-right">
-        <div class="col-6">
+        <div class="col-12">
             <input type="text" class="form-control" placeholder="Buscar acción..." [(ngModel)]="searchText"
                 (keyup)="filterActions()">
         </div>
+        <br><br>
         <div class="col-12">
             <input type="date" class="form-control" [(ngModel)]="searchDate" (ngModelChange)="filterDateManager()">
         </div>

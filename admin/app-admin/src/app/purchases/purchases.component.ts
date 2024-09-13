@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { PurchaseService } from '../services/purchase.service';
 import { Router } from '@angular/router';
+import { AlegraService } from '../services/alegra.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
@@ -19,6 +20,7 @@ export class PurchasesComponent {
   pdfData:any;
   constructor(
     private purchaseService: PurchaseService,
+    private alegraService: AlegraService,
     private router: Router,
     private sanitizer: DomSanitizer
   ){}
@@ -137,6 +139,23 @@ export class PurchasesComponent {
     FileSaver.saveAs(data, fileName);
    }
    sync_allegra(purchase: any){
+    this.alegraService.send_purchase(purchase.date).subscribe(
+      (res: any) => {
+        this.getPurchases();
+        this.messagePurchase = 'Ordenes de compras sincronizada exitosamente!';
+        this.statusCodePurchase = res.statusCode || '200';
+        setTimeout(() => {
+          this.messagePurchase = '';
+        }, 3000);
+      },
+      (error: any) => {
+        this.messagePurchase = 'Fallo al sincronizar las Ordenes de compra.';
+        this.statusCodePurchase = error.status || '500'; 
+        setTimeout(() => {
+          this.messagePurchase = '';
+        }, 3000);
+      }
+    );
     this.getPurchases();
    }
 }
