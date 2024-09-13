@@ -45,8 +45,7 @@ export class ListActionnsCustomersComponent {
     this.filteredActions = this.actions.filter(action => {
       const actionDate = this.datePipe.transform(action.dateAction, 'yyyy-MM-dd');
       const matchesDate = !this.searchDate || actionDate === this.searchDate;
-      const matchesManager = !this.selectedManager || action.manager === this.selectedManager;
-      return matchesDate && matchesManager;
+      return matchesDate;
     });
   }
   newAction() {

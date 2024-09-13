@@ -21,7 +21,8 @@
           (click)="openEditModal(productModal, product)"
           [ngClass]="{
             'table-success': product.status === 'Registrado',
-            'table-warning': product.status === 'Registro parcial'
+            'table-warning': product.status === 'Registro parcial',
+            'table-primary': product.status === 'Facturada'
           }">
         <td>{{ product.category.substring(0, 3).toUpperCase() + ' - ' + product.name }}</td>
         <td>{{ product.total_quantity_ordered + ' ' + product.unit }}</td>
@@ -48,8 +49,8 @@
     </div>
     <div>
       <label>Proveedor:</label>
-      <select [(ngModel)]="selectedProduct.proveedor" class="form-control">
-        <option *ngFor="let supplier of suppliers" [ngValue]="supplier">{{ supplier.name }}</option>
+      <select [(ngModel)]="this.selectedProduct.proveedor" class="form-control">
+        <option *ngFor="let supplier of suppliers" [ngValue]="supplier">{{ supplier.nickname }}</option>
       </select>
     </div>
     
@@ -73,7 +74,7 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="modal.dismiss('Cancel')">Cancelar</button>
-    <button type="button" class="btn btn-primary" (click)="savePrice(); modal.close('Save click')">Guardar</button>
+    <button type="button" class="btn btn-primary" (click)="savePrice(); modal.close('Save click')" *ngIf="selectedProduct.status != 'Facturada' ">Guardar</button>
   </div>
 </ng-template>
 

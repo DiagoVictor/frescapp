@@ -85,12 +85,9 @@ export class PurchaseComponent {
     this.modalService.open(content);
     this.successMessage = null;
     this.errorMessage = null;
-    if (this.selectedProduct.proveedor) {
-      // Buscar el objeto completo del proveedor en la lista de suppliers
-      this.selectedProduct.proveedor = this.suppliers.find(
-        supplier => supplier.id === this.selectedProduct.proveedor.id
-      );
-    }
+    this.selectedProduct.proveedor = this.suppliers.find(
+      supplier => supplier._id === product.proveedor._id
+    );
   }
 
   savePrice() {

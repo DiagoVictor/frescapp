@@ -18,7 +18,9 @@ export class SuppliersComponent implements OnInit {
     name: '',
     nit: '',
     email: '',
-    address: ''
+    address: '',
+    phone: '',
+    typeSupport: ''
   };
 
   constructor(private supplierService: SupplierService, private router: Router) {}
@@ -97,7 +99,7 @@ export class SuppliersComponent implements OnInit {
   }
 
   resetCurrentSupplier() {
-    this.currentSupplier = { id: null, name: '', nit: '', email: '', address: '' };
+    this.currentSupplier = { id: null, name: '', nit: '', email: '', address: '', phone :'', nickname:'', typeSupport:'' };
   }
 
   clearMessageAfterDelay() {

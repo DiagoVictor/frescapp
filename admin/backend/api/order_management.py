@@ -135,15 +135,25 @@ def generate_remision(id_order):
         )
     pdf_content = []
     remision_number = order.order_number
-    remision_paragraph = Paragraph('<font>Remisión de la orden # {}</font>'.format(remision_number), centered_style)
-    green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
+    remision_paragraph = Paragraph(
+        '<font>Remisión #({}) {}</font>'.format(remision_number, order.delivery_date),
+        centered_style
+)
+
+    green_box = Table(
+        [[remision_paragraph]],
+        colWidths=[250],
+        rowHeights=[70],
+        style=[('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#97D700'))]
+    )
 
     # Tabla contenedora de la imagen y la caja verde
     content_table = Table([
         [logo, green_box]
     ], colWidths=[200, 250])
+
     pdf_content.append(content_table)
-    pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
+    pdf_content.append(Paragraph('<br/>', styles['Normal']))
     table_width = 500
 
     # Aplicar estilos de WordWrap a las celdas de la tabla

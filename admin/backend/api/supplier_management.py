@@ -29,7 +29,10 @@ def create_supplier():
         "name": data['name'],
         "nit": data['nit'],
         "email": data['email'],
-        "address": data['address']
+        "address": data['address'],
+        "phone": data['phone'],
+        "typeSupport" : data['typeSupport'],
+        "nickname" : data['nickname']
     }
     
     supplier_collection.insert_one(supplier)
@@ -43,7 +46,10 @@ def edit_supplier(id):
         "name": data['name'],
         "nit": data['nit'],
         "email": data['email'],
-        "address": data['address']
+        "address": data['address'],
+        "phone": data['phone'],
+        "typeSupport" : data['typeSupport'],
+        "nickname" : data['nickname']
     }
     result = supplier_collection.update_one(
         {"_id": ObjectId(id)},

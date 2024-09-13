@@ -99,6 +99,13 @@ export class PurchasesComponent {
     const registeredCount = products.filter(product => product.status === 'Registro parcial').length;
     return Math.round((registeredCount / products.length) * 100);
   }
+  calculateFacturadaPercentage(products: any[]){
+    if (products.length === 0) {
+      return 0;
+    }
+    const registeredCount = products.filter(product => product.status === 'Facturada').length;
+    return Math.round((registeredCount / products.length) * 100);
+  }
   calculateGMV(products: any[]): number {
     return products.reduce((total, product) => {
       const productTotal = (product.price_purchase || 0) * (product.total_quantity_ordered || 0);

@@ -76,7 +76,7 @@ def create_purchase(date):
                 "name": "$product_info.name",
                 "total_quantity_ordered": 1,
                 "price_purchase": "$product_info.price_purchase",
-                "proveedor": "",
+                "proveedor": {},
                 "category": "$product_info.category",
                 "unit": "$product_info.unit",
                 "status": "Creada",
@@ -188,7 +188,7 @@ def get_report_purchase(purchase_number):
                     "sku": "$products.sku",
                     "name": "$products.name",
                     "price_purchase": "$products.price_purchase",
-                    "proveedor": "$products.proveedor",
+                    "proveedor": "$products.proveedor.name",
                     "category": "$products.category",
                     "unit": "$products.unit"
                 },
