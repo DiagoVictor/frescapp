@@ -23,7 +23,7 @@ def get_all_clients():
     start = 0
     limit = 30
     while True:
-        response = requests.get(f"{url_clients}?start={start}&limit={limit}", headers=headers)
+        response = requests.get(f"{url_clients}??status=active&start={start}&limit={limit}", headers=headers)
         if response.status_code == 200:
             data = response.json()
             if not data:
@@ -168,6 +168,7 @@ def transform_and_send_invoice(order, client, items):
     }
     # URL y cabeceras para la API de Alegra
     url_invoice = "https://api.alegra.com/api/v1/invoices/"
+    print(invoice_data)
     response = requests.post(url_invoice, headers=headers, json=invoice_data)
     return response
 
@@ -194,4 +195,4 @@ def send_invoice(order_number):
     else:
         print(f"No se encontró la orden con número {order_number}")
 
-send_invoice("9732")
+send_invoice("93177")

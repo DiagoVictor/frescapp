@@ -76,7 +76,7 @@ def create_purchase(date):
                 "name": "$product_info.name",
                 "total_quantity_ordered": 1,
                 "price_purchase": "$product_info.price_purchase",
-                "proveedor": {},
+                "proveedor": "",
                 "category": "$product_info.category",
                 "unit": "$product_info.unit",
                 "status": "Creada",
