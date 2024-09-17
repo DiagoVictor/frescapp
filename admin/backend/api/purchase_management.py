@@ -280,7 +280,7 @@ def get_report_purchase(purchase_number):
         clients_quantities = Paragraph(product['clients_quantities'], word_wrap_style)
         quantity = Paragraph(str(product.get('total_quantity_ordered')) + "  " + str(product.get('unit')), word_wrap_style)
         price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
-        proveedor =  Paragraph(product['proveedor'],word_wrap_style)
+        proveedor =  Paragraph('',word_wrap_style)
         name_paragraph = Paragraph(name, word_wrap_style)
         product_row = [name_paragraph, product.get('category'), quantity, clients_quantities, price, '', proveedor]
         product_data.append(product_row)
