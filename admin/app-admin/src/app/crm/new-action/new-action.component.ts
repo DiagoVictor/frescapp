@@ -89,7 +89,6 @@ export class NewActionComponent implements OnInit {
 
     this.actionService.createAction(this.newActionObject).subscribe(
       (response) => {
-        console.log('Acción creada exitosamente:', response);
         this.router.navigate(['/crm']); // Navegar a la lista de acciones después de crear la acción
       },
       (error) => {

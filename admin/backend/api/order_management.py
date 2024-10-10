@@ -138,7 +138,7 @@ def generate_remision(id_order):
     remision_paragraph = Paragraph(
         '<font>Remisión #({}) {}</font>'.format(remision_number, order.delivery_date),
         centered_style
-)
+    )
 
     green_box = Table(
         [[remision_paragraph]],

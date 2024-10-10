@@ -47,7 +47,10 @@ def get_picking(date):
         if not order:
             return jsonify({'message': 'Order not found'}), 404        
         remision_number = order['order_number']
-        remision_paragraph = Paragraph('<font>Remisión de la orden # {}</font>'.format(remision_number), centered_style)
+        remision_paragraph = Paragraph(
+            '<font>Remisión #({}) {}</font>'.format(remision_number, date),
+            centered_style
+        )
         green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
 
         # Tabla contenedora de la imagen y la caja verde

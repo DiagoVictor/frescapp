@@ -164,4 +164,4 @@ def obtener_compras_agrupadas(fecha):
         else:
             print(f"Error al crear factura: {response.text}")
 
-obtener_compras_agrupadas('2024-09-11')
+obtener_compras_agrupadas('2024-09-25')

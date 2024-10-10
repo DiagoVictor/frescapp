@@ -4,13 +4,15 @@
             <input type="text" class="form-control" placeholder="Buscar acción..." [(ngModel)]="searchText"
                 (keyup)="filterActions()">
         </div>
-        <br><br>
-        <div class="col-12">
+    </div>
+    <br>
+    <div class="row justify-right text-center">
+        <div class="col-6">
             <input type="date" class="form-control" [(ngModel)]="searchDate" (ngModelChange)="filterDateManager()">
         </div>
-        <!-- <div class="col-auto">
+        <div class="col-6">
             <button type="button" class="btn btn-primary" (click)="newAction()">Nueva Acción</button>
-        </div> -->
+        </div>
     </div>
     <!-- <div class="row justify-right">
 
@@ -80,6 +82,18 @@
                 <div class="form-group mb-3">
                     <label>Cliente:</label>
                     <p>{{ actionSelect.customer.name }}</p>
+                </div>
+                <div class="form-group mb-3">
+                    <label>Teléfono:</label>
+                    <p>{{ actionSelect.customer.phone }}</p>
+                </div>
+                <div class="form-group mb-3">
+                    <label>Correo:</label>
+                    <p>{{ actionSelect.customer.email }}</p>
+                </div>
+                <div class="form-group mb-3">
+                    <label>Dirección:</label>
+                    <p>{{ actionSelect.customer.address }}</p>
                 </div>
                 <div class="form-group mb-3">
                     <label>Tipo de Acción:</label>

@@ -53,4 +53,3 @@ if __name__ == '__main__':
     context = ('/etc/ssl/certs/app_buyfrescapp_com.crt', '/etc/ssl/certs/app_buyfrescapp_com.key')
 
     app.run(host='0.0.0.0', port=5000, ssl_context=context)
-
