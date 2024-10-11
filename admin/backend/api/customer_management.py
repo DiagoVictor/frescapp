@@ -44,7 +44,7 @@ def create_customer():
         updated_at = updated_at,
         password = hashed_password,
         category = category,
-        list_products = [],
+        list_products = "",
         role = "Cliente"
     )
     customer.save()
