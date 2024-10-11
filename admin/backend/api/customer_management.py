@@ -25,8 +25,6 @@ def create_customer():
     category = data.get('category')
     bcrypt = Bcrypt()
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    list_products = []
-    role = data.get('role','')
     if not phone or not email:
         return jsonify({'message': 'Faltan campos por diligenciar'}), 400
 
@@ -46,8 +44,8 @@ def create_customer():
         updated_at = updated_at,
         password = hashed_password,
         category = category,
-        list_products = list_products,
-        role = role
+        list_products = [],
+        role = "Cliente"
     )
     customer.save()
     message = """

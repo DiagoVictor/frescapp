@@ -24,7 +24,6 @@ def login():
         return jsonify({'message': 'Missing required fields'}), 400
 
     bcrypt = Bcrypt()
-    # Buscar en la colección de clientes por correo electrónico o teléfono
     user_data = customers_collection.find_one({
         '$or': [
             {'email': {'$regex': f'^{user}$', '$options': 'i'}},  # Busca el email ignorando mayúsculas/minúsculas
