@@ -12,21 +12,25 @@ client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/fresca
 db = client['frescapp']
 customers_collection = db['customers']  
 
-# Ruta para iniciar sesión
+
 @user_api.route('/login', methods=['POST'])
 def login():
     # Obtener datos del cuerpo de la solicitud
     data = request.json
     user = data.get('user')
-    user = user.lower()
+    user = user.strip().lower()
     password = data.get('password')
     if not password or not user:
         return jsonify({'message': 'Missing required fields'}), 400
 
     bcrypt = Bcrypt()
     # Buscar en la colección de clientes por correo electrónico o teléfono
-    user_data = customers_collection.find_one({'$or': [{'email': user}, {'phone': user}]})
-    
+    user_data = customers_collection.find_one({
+        '$or': [
+            {'email': {'$regex': f'^{user}$', '$options': 'i'}},  # Busca el email ignorando mayúsculas/minúsculas
+            {'phone': {'$regex': f'^{user}$', '$options': 'i'}}   # Busca el teléfono ignorando mayúsculas/minúsculas
+        ]
+    })    
     if user_data:
         # Verificar la contraseña almacenada en la base de datos con la proporcionada
         hashed_password = user_data.get('password')

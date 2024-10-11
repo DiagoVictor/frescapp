@@ -20,7 +20,8 @@ class Customer:
                  updated_at, 
                  password,
                  category,
-                 list_products):
+                 list_products,
+                 role):
         self.phone = phone
         self.name = name
         self.document = document
@@ -33,7 +34,8 @@ class Customer:
         self.updated_at = updated_at
         self.password = password
         self.category = category
-        self.list_products = list_products
+        self.list_products = list_products,
+        self.role = role
     def save(self):
         customer_data = {
             "phone": self.phone,
@@ -48,7 +50,8 @@ class Customer:
             "updated_at" : self.updated_at,
             "password" : self.password,
             "category" : self.category,
-            "list_products" : self.list_products
+            "list_products" : self.list_products,
+            "role" : self.role
         }
         result = customers_collection.insert_one(customer_data)
         return result.inserted_id
@@ -69,7 +72,8 @@ class Customer:
                         "updated_at" : self.updated_at,
                         "password" : self.password,
                         "category" : self.category,
-                        "list_products" : self.list_products
+                        "list_products" : self.list_products,
+                        "role" : self.role
                     }
             }
         )

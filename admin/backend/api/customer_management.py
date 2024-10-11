@@ -26,6 +26,7 @@ def create_customer():
     bcrypt = Bcrypt()
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     list_products = []
+    role = data.get('role','')
     if not phone or not email:
         return jsonify({'message': 'Faltan campos por diligenciar'}), 400
 
@@ -45,7 +46,8 @@ def create_customer():
         updated_at = updated_at,
         password = hashed_password,
         category = category,
-        list_products = list_products
+        list_products = list_products,
+        role = role
     )
     customer.save()
     message = """
@@ -164,19 +166,22 @@ def list_customers():
     customers_cursor = Customer.objects()
     customer_data = [
         {
-         "id": str(customer["_id"]), 
-         "phone": customer["phone"], 
-         "name": customer["name"], 
-         "document": customer["document"], 
-         "document_type": customer["document_type"], 
-         "address": customer["address"], 
-         "restaurant_name": customer["restaurant_name"], 
-         "email": customer["email"], 
-         "status": customer["status"], 
-         "created_at": customer["created_at"], 
-         "updated_at": customer["updated_at"], 
-         "category": customer["category"]
-         }
+            "id": str(customer.get("_id", "")), 
+            "phone": customer.get("phone", ""), 
+            "name": customer.get("name", ""), 
+            "document": customer.get("document", ""), 
+            "document_type": customer.get("document_type", ""), 
+            "address": customer.get("address", ""), 
+            "restaurant_name": customer.get("restaurant_name", ""), 
+            "email": customer.get("email", ""), 
+            "status": customer.get("status", ""), 
+            "created_at": customer.get("created_at", ""), 
+            "updated_at": customer.get("updated_at", ""), 
+            "category": customer.get("category", ""), 
+            "list_products": customer.get("list_products", []),
+            "segmentation": customer.get("segmentation", ""),
+            "role": customer.get("role", "")
+        }
         for customer in customers_cursor
     ]
     customers_json = json.dumps(customer_data)
