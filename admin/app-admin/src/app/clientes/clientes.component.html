@@ -114,6 +114,13 @@
           </select>
           </div>
           <div class="mb-3">
+            <label for="role" class="form-label">Rol</label>
+            <select class="form-control" id="role" name="role"
+            [(ngModel)]="selectedCustomer.role">
+            <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+          </select>
+          </div>
+          <div class="mb-3">
             <label for="list_products" class="form-label">Productos</label>
             <div *ngFor="let product of selectedCustomer.list_products; let i = index; trackBy: trackByIndex" class="input-group mb-2">
               <input type="text" class="form-control" [(ngModel)]="selectedCustomer.list_products[i]" name="product-{{i}}" />

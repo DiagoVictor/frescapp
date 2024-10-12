@@ -16,6 +16,7 @@ export class ClientesComponent implements OnInit {
   documentTypes: string[] = [];
   cateroryTypes: string[] = [];
   statusTypes : string[] = [];
+  roles : string[] = ['Administrador','Comercial','Comprador','Cliente']
   userPassword = {
     newPassword: '',
     confirmPassword: ''

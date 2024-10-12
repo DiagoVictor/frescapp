@@ -27,6 +27,8 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { SuppliersComponent  } from './suppliers/suppliers.component';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
+import { ListRutaComponent  } from './ruta/list-ruta/list-ruta.component';
+import { ListRutasComponent  } from './ruta/list-rutas/list-rutas.component';
 
 @NgModule({
   declarations: [
@@ -49,7 +51,9 @@ import { HashLocationStrategy, LocationStrategy } from '@angular/common';
     ListActionnsCustomersComponent,
     NewActionComponent,
     EditActionComponent,
-    SuppliersComponent
+    SuppliersComponent,
+    ListRutaComponent,
+    ListRutasComponent
   ],
   bootstrap: [AppComponent],
   imports: [

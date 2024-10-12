@@ -1,0 +1,82 @@
+<div class="container-fluid mt-5">
+    <div class="row justify-right">
+        <div class="col-6">
+            <input type="text" class="form-control" placeholder="Buscar ruta..." [(ngModel)]="searchText"
+                (keyup)="filterRoutes()">
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newRouteModal"
+                data-bs-dismiss="modal">Nueva Ruta</button>
+        </div>
+    </div>
+
+    <div *ngIf="messageRoute" class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ messageRoute }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ruta</th>
+                <th>Fecha</th>
+                <th>Conductor</th>
+                <th>Cantidad de Paradas</th>
+                <th>Dinero a Recaudar</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let route of filteredRoutes">
+                <td (click)="navigateToRoute(route)">{{ route.route_number }}</td>
+                <td (click)="navigateToRoute(route)">{{ route.close_date }}</td>
+                <td (click)="navigateToRoute(route)">{{ route.total_stops }}</td>
+                <td (click)="navigateToRoute(route)">{{ route.total_to_charge | currency:'COP' }}</td>
+                <td>
+                    <div class="row">
+                        <div class="col-auto">
+                            <span (click)="deleteRoute(route)" style="cursor: pointer;">
+                                <i class="fas fa-trash fa-lg text-danger"></i>
+                            </span>
+                        </div>
+                        <div class="col-auto">
+                            <span (click)="programarRuta(route)" style="cursor: pointer;">
+                                <i class="fas fa-calendar fa-lg text-success"></i>
+                            </span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para crear una nueva ruta -->
+<div class="modal fade" id="newRouteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Ruta</h5>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="form-group">
+                        <label for="fecha">Fecha:</label>
+                        <input type="date" class="form-control" id="fecha" name="fecha" [(ngModel)]="newRouteDate">
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label for="driver">Conductor:</label>
+                        <select class="form-control" id="driver" name="driver"
+                        [(ngModel)]="newRouteDriver">
+                        <option *ngFor="let driver of drivers" [value]="driver">{{ driver }}</option>
+                      </select>                    </div>
+                    <br>
+                    <div class="text-right">
+                        <button class="btn btn-primary" (click)="createRoute()">Crear Ruta</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -19,7 +19,11 @@ export class NavigationBarComponent implements OnInit {
     this.role = localStorage.getItem('role');
     return !!token; 
   }
+  isMenuCollapsed = true;
 
+  toggleMenu() {
+    this.isMenuCollapsed = !this.isMenuCollapsed;
+  }
   logout(): void {
     const token = localStorage.getItem('token');
     if (token) {

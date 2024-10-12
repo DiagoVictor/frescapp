@@ -26,10 +26,10 @@ def login():
     bcrypt = Bcrypt()
     user_data = customers_collection.find_one({
         '$or': [
-            {'email': {'$regex': f'^{user}$', '$options': 'i'}},  # Busca el email ignorando mayúsculas/minúsculas
-            {'phone': {'$regex': f'^{user}$', '$options': 'i'}}   # Busca el teléfono ignorando mayúsculas/minúsculas
+            {'email': user},  # Busca el email tal como es
+            {'phone': user}   # Busca el teléfono tal como es
         ]
-    })    
+    })  
     if user_data:
         # Verificar la contraseña almacenada en la base de datos con la proporcionada
         hashed_password = user_data.get('password')

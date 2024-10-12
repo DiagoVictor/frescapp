@@ -141,6 +141,7 @@ def update_customer(customer_id):
     created_at = data.get('created_at')
     updated_at = data.get('updated_at')
     category = data.get('category')
+    role = data.get('role')
     customer = Customer.object(customer_id)
     if not customer:
         return jsonify({'message': 'Customer not found'}), 404
@@ -156,6 +157,7 @@ def update_customer(customer_id):
     customer.created_at = created_at or customer.created_at
     customer.updated_at = updated_at or customer.updated_at
     customer.category = category or customer.category
+    customer.role = role or customer.role
     customer.updated()
     return jsonify({'message': 'customer updated successfully'}), 200
 
