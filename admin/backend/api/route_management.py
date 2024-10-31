@@ -1,10 +1,8 @@
 from flask import Blueprint, jsonify, request
-from models.route import Route  # Asumiendo que la clase Route está en models.route
+from models.route import Route
 from pymongo import MongoClient
-import json
 from datetime import datetime
 
-# Inicializar la conexión a MongoDB
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
 routes_collection = db['routes']
@@ -12,7 +10,6 @@ orders_collection = db['orders']
 counters_collection = db['counters']
 route_api = Blueprint('route', __name__)
 
-# Función para incrementar el contador en la colección 'counter'
 def get_next_route_number():
     counter = counters_collection.find_one_and_update(
         {'_id': 'route_number'},
@@ -27,94 +24,109 @@ def create_route():
     data = request.get_json()
     close_date = data.get('close_date')
     driver = data.get('driver')
+    cost = data.get('cost', 0)
 
-    # Validar campos obligatorios
     if not driver or not close_date:
         return jsonify({'message': 'Missing required fields'}), 400
 
-    # Generar route_number automáticamente a partir del contador
-    route_number = counters_collection.find_one_and_update(
-        {"_id": "route_id"},
-        {"$inc": {"sequence_value": 1}},
-        upsert=True,
-        return_document=True
-    )["sequence_value"]
-
-    # Extraer las órdenes para la fecha de entrega proporcionada
+    route_number = get_next_route_number()
     orders = list(orders_collection.find({"delivery_date": close_date}))
 
     if not orders:
         return jsonify({"message": "No orders found for the given delivery date."}), 404
 
-    # Crear las paradas (stops) con los detalles de cada orden
     stops = []
-    for order in orders:
+    for index, order in enumerate(orders, start=1):
         stop = {
-            "total_to_charge": sum(item['price_sale'] * item['quantity'] for item in order['products']),  # Total a cobrar
-            "quantity_sku": len(order['products']),  # Conteo total de SKUs a entregar
-            "address": order.get('deliveryAddress'),  # Dirección del cliente
-            "phone": order.get('customer_phone'),  # Teléfono del cliente
-            "client_name": order.get('customer_name')  # Nombre del cliente
+            "total_to_charge": sum(item['price_sale'] * item['quantity'] for item in order['products']),
+            "quantity_sku": len(order['products']),
+            "address": order.get('deliveryAddress'),
+            "phone": order.get('customer_phone'),
+            "client_name": order.get('customer_name'),
+            "total_charged": sum(item['price_sale'] * item['quantity'] for item in order['products']), 
+            "payment_method": "",
+            "checkin_time": "",
+            "checkin_latitude": "",
+            "checkin_longitude": "",
+            "order": index,
+            "status": "Por entregar"
         }
         stops.append(stop)
 
-    # Crear el documento de la ruta
-    route = {
-        "route_number": route_number,
-        "close_date": close_date,
-        "driver": driver,
-        "stops": stops  # Agregar las paradas a la ruta
-    }
+    route = Route(route_number=route_number, close_date=close_date, driver=driver, stops=stops, cost=cost)
+    route_id = route.save()
 
-    # Guardar la ruta en la base de datos
-    routes_collection.insert_one(route)
+    return jsonify({'message': 'Route created successfully', 'route_id': route_id}), 201
 
-    return jsonify({'message': 'Route created successfully', 'route_number': route_number}), 201
-
-# Ruta para actualizar una ruta existente
-@route_api.route('/routes/<string:route_id>', methods=['PUT'])
-def update_route(route_id):
+@route_api.route('/route', methods=['PUT'])
+def update_route():
     data = request.get_json()
-    route_number = data.get('route_number')
-    close_date_str = data.get('close_date')
-    driver = data.get('driver')
+    route_id = data.get('_id')
 
-    route = Route.object(route_id)
-    if not route:
+    # Obtener datos actualizados
+    route_number = data.get('route_number')
+    close_date = data.get('close_date')
+    driver = data.get('driver')
+    cost = data.get('cost', 0)
+    stops = data.get('stops', [])
+
+    # Buscar la ruta como diccionario y crear instancia de Route
+    route_data = Route.object(route_id)
+    if not route_data:
         return jsonify({'message': 'Route not found'}), 404
 
-    # Actualizar solo los campos que se proporcionen
-    route.route_number = route_number or route.route_number
-    if close_date_str:
-        try:
-            route.close_date = datetime.strptime(close_date_str, "%Y-%m-%d %H:%M:%S")
-        except ValueError:
-            return jsonify({'message': 'Invalid date format, use YYYY-MM-DD HH:MM:SS'}), 400
-    route.driver = driver or route.driver
+    # Crear la instancia de Route
+    route = Route(
+        id=route_id,
+        route_number=route_number or route_data.get('route_number'),
+        close_date=close_date or route_data.get('close_date'),
+        driver=driver or route_data.get('driver'),
+        cost=cost if cost is not None else route_data.get('cost'),
+        stops=stops or route_data.get('stops')
+    )
 
+    # Guardar los cambios con el método update de la instancia
     route.update()
-
+    
     return jsonify({'message': 'Route updated successfully'}), 200
 
-# Ruta para listar todas las rutas
+
+
 @route_api.route('/routes', methods=['GET'])
 def list_routes():
-    routes_cursor = Route.objects()  # Obtener todas las rutas
-
-    # Construir los datos de la ruta para la respuesta JSON
+    routes_cursor = Route.objects()
     route_data = [
         {
             "id": str(route["_id"]),
             "route_number": route["route_number"],
             "close_date": route["close_date"],
             "driver": route["driver"],
-            "stops": route["stops"]
+            "stops": route["stops"],
+            "status": "creada",
+            "cost": route["cost"]
         }
         for route in routes_cursor
-    ]
+    ]   
+    return jsonify(route_data), 200
 
-    # Convertir los datos de la ruta a formato JSON
-    routes_json = json.dumps(route_data)
+@route_api.route('/route/<string:route_number>', methods=['GET'])
+def get_route(route_number):
+    route = Route.find_by_route_number(route_number)
+    
+    if not route:
+        return jsonify({'message': 'Route not found'}), 404
+    
+    # Convertimos `_id` a `str` si está presente
+    if '_id' in route:
+        route['_id'] = str(route['_id'])
+        
+    return jsonify(route), 200
 
-    # Devolver la respuesta JSON con el código de estado 200 (OK)
-    return routes_json, 200
+
+@route_api.route('/route/<string:route_id>', methods=['DELETE'])
+def delete_route(route_id):
+    route = Route.object(route_id) 
+    if route:
+        route.delete_route()
+        return jsonify({'message': 'Route deleted successfully'}), 200
+    return jsonify({'message': 'Route not found'}), 404

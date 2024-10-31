@@ -18,7 +18,7 @@ import { ListActionnsCustomersComponent } from './crm/list-actionns-customers/li
 import { EditActionComponent } from './crm/edit-action/edit-action.component';
 import { NewActionComponent } from './crm/new-action/new-action.component';
 import { SuppliersComponent  } from './suppliers/suppliers.component';
-import { ListRutaComponent  } from './ruta/list-ruta/list-ruta.component';
+import { StopsComponent  } from './ruta/stops/stops.component';
 import { ListRutasComponent  } from './ruta/list-rutas/list-rutas.component';
 
 const routes: Routes = [
@@ -41,7 +41,7 @@ const routes: Routes = [
   { path: 'newAction', component: NewActionComponent },
   { path: 'suppliers', component: SuppliersComponent },
   { path: 'rutas', component: ListRutasComponent },
-  { path: 'ruta', component: ListRutaComponent },
+  { path: 'stops/:route_number', component: StopsComponent },
   { path: '', component: HomeComponent }
 ];
 

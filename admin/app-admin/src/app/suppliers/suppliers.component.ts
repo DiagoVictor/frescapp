@@ -20,6 +20,7 @@ export class SuppliersComponent implements OnInit {
     email: '',
     address: '',
     phone: '',
+    nickname: '', // Agregar si es utilizado en el HTML
     typeSupport: ''
   };
 
@@ -99,7 +100,7 @@ export class SuppliersComponent implements OnInit {
   }
 
   resetCurrentSupplier() {
-    this.currentSupplier = { id: null, name: '', nit: '', email: '', address: '', phone :'', nickname:'', typeSupport:'' };
+    this.currentSupplier = { id: null, name: '', nit: '', email: '', address: '', phone: '', nickname: '', typeSupport: '' };
   }
 
   clearMessageAfterDelay() {

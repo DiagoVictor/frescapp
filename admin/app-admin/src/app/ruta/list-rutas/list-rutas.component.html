@@ -21,6 +21,7 @@
                 <th>Ruta</th>
                 <th>Fecha</th>
                 <th>Conductor</th>
+                <th>Costo</th>
                 <th>Cantidad de Paradas</th>
                 <th>Dinero a Recaudar</th>
                 <th>Acciones</th>
@@ -28,10 +29,16 @@
         </thead>
         <tbody>
             <tr *ngFor="let route of filteredRoutes">
-                <td (click)="navigateToRoute(route)">{{ route.route_number }}</td>
-                <td (click)="navigateToRoute(route)">{{ route.close_date }}</td>
-                <td (click)="navigateToRoute(route)">{{ route.total_stops }}</td>
-                <td (click)="navigateToRoute(route)">{{ route.total_to_charge | currency:'COP' }}</td>
+                <td (click)="navigateToRoute(route.route_number)">{{ route.route_number }}</td>
+                <td (click)="navigateToRoute(route.route_number)">{{ route.close_date }}</td>
+                <td (click)="navigateToRoute(route.route_number)">{{ route.driver }}</td>
+                <td (click)="navigateToRoute(route.route_number)">{{ route.cost | currency:'USD' }}</td>
+                <td (click)="navigateToRoute(route.route_number)">
+                    {{ calculateTotalStops(route.id) }}
+                </td>
+                <td (click)="navigateToRoute(route.route_number)">
+                    {{ calculateTotalToCharge(route.id) | currency:'USD'}}
+                </td>
                 <td>
                     <div class="row">
                         <div class="col-auto">
@@ -71,6 +78,11 @@
                         [(ngModel)]="newRouteDriver">
                         <option *ngFor="let driver of drivers" [value]="driver">{{ driver }}</option>
                       </select>                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label for="cost">Costo:</label>
+                        <input type="number" class="form-control" id="cost" name="cost" [(ngModel)]="newCost">
+                    </div>
                     <br>
                     <div class="text-right">
                         <button class="btn btn-primary" (click)="createRoute()">Crear Ruta</button>

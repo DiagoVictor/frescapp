@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RoutesService } from '../../services/routes.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-list-rutas',
@@ -13,23 +14,25 @@ export class ListRutasComponent {
   public messageRoute = '';
   public newRouteDate: string = '';
   public newRouteDriver: string = '';
+  public newCost : number = 0;
   public drivers: string[] = ['Carlos Julio Lopez']
 
 
   constructor(
     private routesService: RoutesService,
+    private router: Router,
 
   ) { }
 
   ngOnInit(): void {
     this.getRoutes();
-    this.filteredRoutes = this.routes;
-    console.log(this.filteredRoutes)
+    //this.filterRoutes();
   }
   getRoutes(){
     this.routesService.getRoutes().subscribe(
       (res: any) => {
         this.routes = res;
+        this.filteredRoutes = this.routes;
       }
       )
   }
@@ -38,7 +41,7 @@ export class ListRutasComponent {
   }
 
   createRoute() {
-    this.routesService.createRoute(this.newRouteDate,this.newRouteDriver).subscribe(
+    this.routesService.createRoute(this.newRouteDate,this.newRouteDriver,this.newCost).subscribe(
       (res: any) => {
         this.messageRoute = 'Nueva ruta creada exitosamente!';
         this.getRoutes();
@@ -47,34 +50,39 @@ export class ListRutasComponent {
     )
   }
 
-  deleteRoute(routeId: number) {
-    //this.routes = this.routes.filter(route => route.id !== routeId);
-    this.filteredRoutes = this.routes;
-    this.messageRoute = 'Ruta eliminada exitosamente!';
+  deleteRoute(route : any) {
+    this.routesService.delteRoute(route.id).subscribe(
+      (res: any) => {
+        this.messageRoute = 'Ruta eliminada exitosamente!';
+        this.getRoutes();
+        this.filteredRoutes = this.routes;
+      }
+    )
   }
 
-  navigateToRoute(routeId: number) {
-    // Implementar navegación a detalles de la ruta
+  navigateToRoute(routNumber: number) {
+    this.router.navigate(['/stops', routNumber]);
   }
   programarRuta(route:any){
 
   }
-  calculateTotalToCharge() {
-    this.filteredRoutes.forEach((route: any) => {
+  calculateTotalToCharge(routeId: string) {
+    const route = this.filteredRoutes.find((route: any) => route.id === routeId);
+    if (route) {
       let total = 0;
       route.stops.forEach((stop: any) => {
         total += stop.total_to_charge; // Sumar el total a cobrar de cada parada
       });
-      route.total_to_charge = total; // Agregar el total a la ruta
-    });
+      return total; 
+    }
+    return 0
   }
-
-  // Función para calcular la cantidad de paradas por ruta
-  calculateTotalStops() {
-    this.filteredRoutes.forEach((route: any) => {
-      const totalStops = route.stops.length; // Contar la cantidad de paradas
-      route.total_stops = totalStops; // Agregar la cantidad de paradas a la ruta
-    });
+  
+  calculateTotalStops(routeId: string) {
+    const route = this.filteredRoutes.find((route: any) => route.id === routeId);
+    if (route) {
+      return route.stops.length; 
+    }
+    return 0
   }
-
 }
