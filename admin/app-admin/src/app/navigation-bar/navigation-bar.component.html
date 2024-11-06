@@ -32,6 +32,9 @@
       <li class="nav-item" *ngIf="role == 'administrador' || role == 'comercial'">
         <a class="nav-link" routerLink="/crm" routerLinkActive="active">CRM</a>
       </li>
+      <li class="nav-item" *ngIf="role == 'administrador' || role == 'comercial'">
+        <a class="nav-link" routerLink="/precios" routerLinkActive="active">Precios</a>
+      </li>
       <li class="nav-item">
         <a class="nav-link" (click)="logout()">Cerrar Sesión</a>
       </li>

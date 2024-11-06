@@ -8,7 +8,7 @@
     <br>
     <div class="row justify-right text-center">
         <div class="col-6">
-            <input type="date" class="form-control" [(ngModel)]="searchDate" (ngModelChange)="filterDateManager()">
+            <input type="date" class="form-control" [(ngModel)]="searchDate" (ngModelChange)="filterDateManager(searchDate)">
         </div>
         <div class="col-6">
             <button type="button" class="btn btn-primary" (click)="newAction()">Nueva Acción</button>

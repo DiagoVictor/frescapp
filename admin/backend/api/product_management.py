@@ -10,6 +10,7 @@ from google.oauth2.service_account import Credentials
 import os
 import json
 from pymongo import MongoClient
+from openpyxl import Workbook
 product_api = Blueprint('product', __name__)
 
 # Ruta para crear un nuevo product
@@ -259,3 +260,5 @@ def syncsheet():
     except Exception as e:
         return jsonify({'error': f"Error al interactuar con MongoDB: {str(e)}"}), 500
     return jsonify({"message": "Productos actualizados."}),  200
+
+

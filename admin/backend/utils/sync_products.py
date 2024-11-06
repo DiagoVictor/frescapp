@@ -66,10 +66,8 @@ try:
             { '$set': { 'price_purchase': { '$toDouble': "$price_purchase" } } },
             { '$set': { 'description': { '$toString': "$description" } } },
             { '$set': { 'root': { '$toString': "$root" } } },
-            { '$set': { 'rate': { '$toDouble': "$rate" } } },
             { '$set': { 'quantity': { '$toDouble': "$quantity" } } },
             { '$set': { 'step_unit': { '$toDouble': "$step_unit" } } },
-            { '$set': { 'rate_root': { '$toDouble': "$rate_root" } } }
         ]
     )
 except Exception as e:

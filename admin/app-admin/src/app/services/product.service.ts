@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class ProductService {
   private baseUrl = 'https://app.buyfrescapp.com:5000/';
-  //private baseUrl = 'https://192.168.101.80:5000/';
+  //private baseUrl = 'http://localhost:5000/';
 
   constructor(private httpClient: HttpClient) { }
 

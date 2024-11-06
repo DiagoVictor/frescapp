@@ -16,7 +16,11 @@ export class ListActionnsCustomersComponent {
   statusCodeAction : string = '' ;
   actionSelect :any;
   managers: string[] = ['Ferney', 'Cata', 'Diago','Saco'];
-  searchDate: string | null = null;
+  today = new Date();
+  yyyy = this.today.getFullYear();
+  mm = String(this.today.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11, por eso sumamos 1
+  dd = String(this.today.getDate()).padStart(2, '0');
+  searchDate = `${this.yyyy}-${this.mm}-${this.dd}`;
   selectedManager: string | null = null;
   constructor(
     private actionService: ActionService,
@@ -26,7 +30,7 @@ export class ListActionnsCustomersComponent {
   ngOnInit(): void {
     this.getActions();
     this.selectedManager = localStorage.getItem('username');
-    this.filterDateManager();
+    this.filterDateManager(this.searchDate);
   }
   navigateToaAction(actionNumber: number) {
       this.router.navigate(['/edit_action', actionNumber]);
@@ -53,11 +57,11 @@ export class ListActionnsCustomersComponent {
   }
   
   
-  filterDateManager(): void {
+  filterDateManager(dateSearch:any): void {
     this.selectedManager = localStorage.getItem('username');
     this.filteredActions = this.actions?.filter(action => {
       const actionDate = this.datePipe.transform(action.dateAction, 'yyyy-MM-dd');
-      const matchesDate = !this.searchDate || actionDate === this.searchDate;
+      const matchesDate = dateSearch;
       return matchesDate;
     });
   }

@@ -3,9 +3,12 @@
     <!-- <div class="col-auto">
       <button type="button" class="btn btn-success" (click)="updatePrice()">Actualizar precios</button>
      </div> -->
-    <div class="col-auto">
+    <!-- <div class="col-auto">
       <button type="button" class="btn btn-primary" (click)="syncSheet()">Sincronizar sheet</button>
-    </div>
+    </div> -->
+    <div class="col-auto">
+      <button type="button" class="btn btn-primary" (click)="downloadProductFormat()">Descargar Plantilla Página</button>
+    </div> 
     <div class="col-6">
       <input type="text" class="form-control" placeholder="Buscar producto..." [(ngModel)]="searchText"
         (keyup)="filterProducts()">

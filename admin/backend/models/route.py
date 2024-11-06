@@ -41,7 +41,7 @@ class Route:
 
     @staticmethod
     def objects():
-        return routes_collection.find()
+        return routes_collection.find().sort("close_date", -1)
 
     @staticmethod
     def object(id):

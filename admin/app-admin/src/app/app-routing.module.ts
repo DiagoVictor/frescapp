@@ -20,6 +20,7 @@ import { NewActionComponent } from './crm/new-action/new-action.component';
 import { SuppliersComponent  } from './suppliers/suppliers.component';
 import { StopsComponent  } from './ruta/stops/stops.component';
 import { ListRutasComponent  } from './ruta/list-rutas/list-rutas.component';
+import { PricingComponent  } from './pricing/pricing.component';
 
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent },
@@ -41,6 +42,7 @@ const routes: Routes = [
   { path: 'newAction', component: NewActionComponent },
   { path: 'suppliers', component: SuppliersComponent },
   { path: 'rutas', component: ListRutasComponent },
+  { path: 'precios', component: PricingComponent },
   { path: 'stops/:route_number', component: StopsComponent },
   { path: '', component: HomeComponent }
 ];

@@ -14,7 +14,7 @@ from api.purchase_management import purchase_api
 from api.action_management import action_api
 from api.supplier_management import supplier_api
 from api.route_management import route_api
-
+from api.product_history_management import product_history_api
 
 if __name__ == '__main__':
     app = Flask(__name__)
@@ -26,6 +26,7 @@ if __name__ == '__main__':
     # Registra los blueprints de los diferentes módulos de la aplicación
     app.register_blueprint(order_api, url_prefix='/api/order')
     app.register_blueprint(product_api, url_prefix='/api/product')
+    app.register_blueprint(product_history_api, url_prefix='/api/products_history')
     app.register_blueprint(customer_api, url_prefix='/api/customer')
     app.register_blueprint(user_api, url_prefix='/api/user')
     app.register_blueprint(configOrder_api, url_prefix='/api/config')
@@ -52,8 +53,8 @@ if __name__ == '__main__':
 
     # Configurar CORS para permitir solicitudes desde cualquier origen
     CORS(app, resources={"/*": {"origins": "*"}})
-    context = ('/etc/ssl/certs/app_buyfrescapp_com.crt', '/etc/ssl/certs/app_buyfrescapp_com.key')
+    #context = ('/etc/ssl/certs/app_buyfrescapp_com.crt', '/etc/ssl/certs/app_buyfrescapp_com.key')
 
-    #app.run(host='0.0.0.0')
-    app.run(host='0.0.0.0', port=5000, ssl_context=context)
+    app.run(host='0.0.0.0')
+    #app.run(host='0.0.0.0', port=5000, ssl_context=context)
 

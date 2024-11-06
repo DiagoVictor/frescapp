@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../services/product.service';
 import { Router } from '@angular/router';
-
+import * as XLSX from 'xlsx';
+import * as FileSaver from 'file-saver';
 @Component({
   selector: 'app-products',
   templateUrl: './products.component.html',
@@ -138,5 +139,37 @@ export class ProductsComponent implements OnInit {
         }
       })
     }
-
+    downloadProductFormat() {
+      const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+      const EXCEL_EXTENSION = '.xlsx';
+      
+      // Estructura de datos para las columnas requeridas
+      const worksheetData = this.products.map((product: { 
+        sku: any; 
+        name: any; 
+        category: string[]; 
+        unit: string[]; 
+        image: string[]; 
+        price_sale: number;
+      }) => ({
+        SKU: product.sku,
+        Nombre: product.name,
+        Precio_normal: product.price_sale,
+        Categorías: product.category,
+        Etiquetas: product.unit,
+        Imágenes: product.image
+      }));
+    
+      // Crear hoja de cálculo a partir del JSON
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+      const workbook = { Sheets: { 'Productos': worksheet }, SheetNames: ['Productos'] };
+    
+      // Convertir el workbook en un array binario para descargar
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    
+      // Crear archivo Blob y descargar
+      const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
+      const fileName = 'Productos_Format.xlsx';
+      FileSaver.saveAs(data, fileName);
+    }
 }
