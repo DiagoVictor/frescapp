@@ -17,6 +17,7 @@ export class PricingComponent {
   dd = String(this.today.getDate()).padStart(2, '0');
   searchDate_start = `${this.yyyy}-${this.mm}-${this.dd}`;
   searchDate_end = `${this.yyyy}-${this.mm}-${this.dd}`;
+  operationDate = `${this.yyyy}-${this.mm}-${this.dd}`;
   product: any = {};
   actionTipo: any = '';
   successMessage: string = '';
@@ -49,6 +50,11 @@ export class PricingComponent {
       // Si no hay texto de búsqueda, muestra todos los productos
       this.filteredProducts = this.products;
     }
+  }
+  updatePrices(operationDate:any){
+    this.productHistoryService.updatePrices(operationDate)
+      .subscribe(products => {
+      });
   }
   
 }

@@ -25,8 +25,13 @@ class Product:
                  root,
                  child,
                  step_unit,
+                 step_unit_sipsa,
+                 factor_volumen,
+                 sipsa_id,
                  proveedor,
-                 rate_root):
+                 rate_root,
+                 last_price_purchase,
+                 quantity):
         self.name = name
         self.unit = unit
         self.category = category
@@ -45,6 +50,11 @@ class Product:
         self.step_unit = step_unit
         self.proveedor = proveedor
         self.rate_root = rate_root
+        self.step_unit_sipsa = step_unit_sipsa
+        self.factor_volumen = factor_volumen
+        self.sipsa_id = sipsa_id
+        self.last_price_purchase = last_price_purchase
+        self.quantity = quantity
 
     def save(self):
         product_data = {
@@ -60,7 +70,12 @@ class Product:
             "iva_value" : self.iva_value,
             "description" : self.description,
             "image" : self.image,
-            "status" : self.status
+            "status" : self.status,
+            "step_unit_sipsa" : self.step_unit_sipsa,
+            "factor_volumen" : self.factor_volumen,
+            "sipsa_id" : self.sipsa_id,
+            "last_price_purchase" : self.last_price_purchase,
+            "quantity" : self.quantity
         }
         result = products_collection.insert_one(product_data)
         return result.inserted_id
@@ -81,7 +96,11 @@ class Product:
                         "iva_value" : self.iva_value,
                         "description" : self.description,
                         "image" : self.image,
-                        "status" : self.status
+                        "status" : self.status,
+                        "step_unit_sipsa" : self.step_unit_sipsa,
+                        "factor_volumen" : self.factor_volumen,
+                        "sipsa_id" : self.sipsa_id,
+                        "last_price_purchase" : self.last_price_purchase
                     }
             }
         )

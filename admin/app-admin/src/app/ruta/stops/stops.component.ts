@@ -34,10 +34,14 @@ export class StopsComponent {
     this.routesService.getRoute(this.routeNumber).subscribe(
       (res: any) => {
         this.routeSelect = res;
-        this.stops = res["stops"];
-        this.stopSelect = res["stops"][0];
+    
+        // Ordena los stops basados en el atributo 'order'
+        this.stops = res["stops"].sort((a: any, b: any) => a.order - b.order);
+    
+        // Selecciona el primer stop después de ordenar
+        this.stopSelect = this.stops[0];
       }
-    );
+    );    
   }
 
   navigateToStop(stop: any) {

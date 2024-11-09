@@ -80,13 +80,12 @@ export class ProductsComponent implements OnInit {
     this.productService.updateProduct(this.product.id, this.product).subscribe((data: any) => {
       // Lógica después de actualizar el producto, si es necesario
       this.successMessage = '¡Producto actualizado correctamente!';
+      this.getProducts();
       setTimeout(() => {
         this.successMessage = ''; // Reiniciar el mensaje después de unos segundos
       }, 3000); // Mostrar el mensaje durante 3 segundos
     });
 
-    // Actualiza la lista de productos después de actualizar uno
-    this.getProducts();
   }
 
   created_product(): void {
@@ -100,25 +99,6 @@ export class ProductsComponent implements OnInit {
     });
     this.getProducts(); // Actualiza la lista de productos después de crear uno
   }
-
-  updatePrice(): void {
-    // Obtener la lista de SKU y precios de venta actualizados
-    const skuPriceList: any = this.filteredProducts.map(product => {
-      return { sku: product.sku, price_sale: product.price_sale, id: product.id };
-    });
-
-    // Llamar al servicio para actualizar los precios de los productos
-    this.productService.updatePrices(skuPriceList).subscribe((data: any) => {
-      // Lógica después de actualizar los precios, si es necesario
-      this.successMessage = '¡Precios actualizados correctamente!';
-      setTimeout(() => {
-        this.successMessage = ''; // Reiniciar el mensaje después de unos segundos
-      }, 3000); // Mostrar el mensaje durante 3 segundos
-    });
-
-    // No es necesario llamar a getProducts() aquí, ya que se llama dentro de updatePrices().
-  }
-
   camposCompletos(): boolean {
     const { name, unit, category, sku, price_sale, price_purchase, discount, margen, iva, iva_value, description, image, status } = this.product;
     return !!name && !!unit && !!category && !!sku && !!price_sale && !!image && !!status;

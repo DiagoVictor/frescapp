@@ -16,7 +16,7 @@ export class ListRutasComponent {
   public newRouteDriver: string = '';
   public newCost : number = 0;
   public drivers: string[] = ['Carlos Julio Lopez']
-
+  public selectedRoute:any = '';
 
   constructor(
     private routesService: RoutesService,
@@ -49,7 +49,6 @@ export class ListRutasComponent {
       }
     )
   }
-
   deleteRoute(route : any) {
     this.routesService.delteRoute(route.id).subscribe(
       (res: any) => {
@@ -85,4 +84,36 @@ export class ListRutasComponent {
     }
     return 0
   }
+  openEditRoute(route: any): void {
+    // Clona el objeto de la ruta seleccionada
+    this.selectedRoute = { ...route };
+
+    // Ordena las paradas basándose en el atributo 'order'
+    this.selectedRoute.stops = this.selectedRoute.stops.sort((a: any, b: any) => a.order - b.order);
+}
+
+// Función para mover una parada hacia arriba
+moveStopUp(index: number): void {
+    if (index > 0) {
+        const stops = this.selectedRoute.stops;
+        [stops[index - 1], stops[index]] = [stops[index], stops[index - 1]];
+    }
+}
+
+// Función para mover una parada hacia abajo
+moveStopDown(index: number): void {
+    const stops = this.selectedRoute.stops;
+    if (index < stops.length - 1) {
+        [stops[index], stops[index + 1]] = [stops[index + 1], stops[index]];
+    }
+}
+
+// Guardar cambios en la ruta
+updateRoute(): void {
+    // Actualiza los datos de la ruta en el servicio o base de datos aquí
+    this.routesService.updateRoute(this.selectedRoute).subscribe((data: any) => {
+        // Acciones después de guardar los cambios
+        this.getRoutes(); // Actualiza la lista de rutas en la interfaz
+    });
+}
 }

@@ -45,10 +45,8 @@
         <td>{{ product.name }}</td>
         <td>{{ product.unit }}</td>
         <td>{{ product.category }}</td>
-        <td>{{ product.price_purchase }}</td>
-        <td>
-          <input type="number" class="form-control" id="price_sale" name="price_sale" [(ngModel)]="product.price_sale">
-        </td>
+        <td>{{ product.price_purchase | currency:'USD':'symbol':'1.0-0' }}</td>
+        <td>{{ product.price_sale | currency:'USD':'symbol':'1.0-0' }}</td>
         <td>{{ product.status }}</td>
         <td>
           <!-- Utiliza solo el ícono sin el marco del botón -->
@@ -82,7 +80,9 @@
                 <select class="form-control" id="unit" name="unit" [(ngModel)]="product.unit">
                   <option value="" disabled selected>Selecciona una unidad</option>
                   <option value="KG">Kg</option>
-                  <option value="UNIT">Unidad</option>
+                  <option value="UNIDAD">Unidad</option>
+                  <option value="CANASTILLA">Canastilla</option>
+                  <option value="BULTO">Bulto</option>
                 </select>
               </div>
             </div>
@@ -91,8 +91,14 @@
             <div class="col-4">
               <div class="form-group">
                 <label for="category">Categoría:</label>
-                <input type="text" class="form-control" id="category" name="category"
-                  [(ngModel)]="this.product.category">
+                <select class="form-control" id="category" name="category" [(ngModel)]="this.product.category">
+                  <option value="" disabled selected>Selecciona una Categoría</option>
+                  <option value="Abarrotes">Abarrotes</option>
+                  <option value="Frutas">Frutas</option>
+                  <option value="Hortalizas">Hortalizas</option>
+                  <option value="Tubérculos">Tubérculos</option>
+                  <option value="Verduras">Verduras</option>
+                </select>
               </div>
             </div>
             <div class="col-8">
@@ -152,6 +158,25 @@
               </div>
             </div>
           </div>
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group">
+                <label for="iva">Padre:</label>
+                <select class="form-control" id="root" name="root" [(ngModel)]="product.root">
+                  <option value="" disabled selected>Selecciona una opción</option>
+                  <option value="1">Si</option>
+                  <option value="0">No</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label for="iva_value">SKU Padre:</label>
+                <input type="text" class="form-control" id="child" name="child"
+                  [(ngModel)]="this.product.child">
+              </div>
+            </div>
+          </div>
           <div class="form-group">
             <label for="description">Descripción:</label>
             <textarea class="form-control" id="description" name="description"
@@ -169,6 +194,23 @@
                   <option value="active">Activo</option>
                   <option value="inactive">Inactivo</option>
                 </select>
+              </div>
+
+              <div class="form-group">
+                <label for="status">step unit:</label>
+                <input type="number" class="form-control" id="margen" name="margen" [(ngModel)]="this.product.step_unit">
+              </div>
+              <div class="form-group">
+                <label for="status">step unit Sipsa:</label>
+                <input type="number" class="form-control" id="margen" name="margen" [(ngModel)]="this.product.step_unit_sipsa">
+              </div>
+              <div class="form-group">
+                <label for="status">Factor de Volúmen:</label>
+                <input type="number" class="form-control" id="margen" name="margen" [(ngModel)]="this.product.factor_volumen">
+              </div>
+              <div class="form-group">
+                <label for="status">Sipsa ID:</label>
+                <input type="text" class="form-control" id="margen" name="margen" [(ngModel)]="this.product.sipsa_id">
               </div>
             </div>
             <div class="col-6">

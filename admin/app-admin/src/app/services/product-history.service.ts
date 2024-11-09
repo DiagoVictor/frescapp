@@ -13,4 +13,7 @@ export class ProductHistoryService {
   getProductsHistory(operation_date_start:any,operation_date_end:any): Observable<any[]> {
     return this.httpClient.get<any[]>(this.baseUrl+'api/products_history/products_history/'+operation_date_start+'/'+operation_date_end);
   }
+  updatePrices(operation_date:any): Observable<any[]> {
+    return this.httpClient.get<any[]>(this.baseUrl+'api/products_history/products_history_new/'+operation_date);
+  }
 }

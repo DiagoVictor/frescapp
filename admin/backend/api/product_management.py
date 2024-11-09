@@ -31,6 +31,10 @@ def create_product():
     image = data.get('image')
     status = data.get('status')
     quantity = data.get('quantity')
+    step_unit_sipsa = data.get('step_unit_sipsa')
+    factor_volumen = data.get('factor_volumen')
+    sipsa_id = data.get('sipsa_id')
+    last_price_purchase = data.get('last_price_purchase') 
     if not sku or not name:
         return jsonify({'message': 'Missing required fields'}), 400
 
@@ -51,7 +55,11 @@ def create_product():
         description = description,
         image = image,
         status = status,
-        quantity = quantity
+        quantity = quantity,
+        step_unit_sipsa = step_unit_sipsa,
+        factor_volumen = factor_volumen,
+        sipsa_id = sipsa_id,
+        last_price_purchase = last_price_purchase
     )
     product.save()
     return jsonify({'message': 'Product created successfully'}), 201
@@ -74,6 +82,7 @@ def update_product(product_id):
     image = data.get('image')
     status = data.get('status')
     quantity = data.get('quantity')
+    last_price_purchase = data.get('last_price_purchase')
 
     product = Product.object(product_id)
     if not product:
@@ -94,6 +103,7 @@ def update_product(product_id):
     product.image = image or product.image
     product.status = status or product.status
     product.quantity = quantity or product.quantity
+    product.last_price_purchase = last_price_purchase or product.last_price_purchase
     product.updated()
 
     return jsonify({'message': 'Product updated successfully'}), 200
@@ -120,7 +130,14 @@ def list_product():
             "description": product["description"], 
             "image": product["image"], 
             "status": product["status"],
-            "quantity" : product["quantity"]
+            "quantity" : product["quantity"],
+            "step_unit" :  product["step_unit"],
+            "step_unit_sipsa" :  product["step_unit_sipsa"],
+            "factor_volumen" : product["factor_volumen"],
+            "sipsa_id" : product["sipsa_id"],
+            "root" : product["root"],
+            "child" : product["child"],
+            "last_price_purchase" : product["last_price_purchase"]
         }
         for product in products_cursor
     ]

@@ -183,7 +183,7 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="total">Total:</label>
-                <input type="number" class="form-control" id="total" name="total" [(ngModel)]="order.total">
+                <input type="number" class="form-control" id="total" name="total" [(ngModel)]="order.total" [disabled]="true">
               </div>
             </div>
             <div class="col-6">
@@ -257,7 +257,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" (click)="saveOrder()">Guardar Cambios</button>
+        <button type="button" class="btn btn-primary" (click)="saveOrder()" [disabled]="!camposCompletos()">Guardar Cambios</button>
       </div>
     </div>
   </div>

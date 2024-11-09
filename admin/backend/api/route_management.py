@@ -61,8 +61,7 @@ def create_route():
 @route_api.route('/route', methods=['PUT'])
 def update_route():
     data = request.get_json()
-    route_id = data.get('_id')
-
+    route_id = data.get('id')
     # Obtener datos actualizados
     route_number = data.get('route_number')
     close_date = data.get('close_date')

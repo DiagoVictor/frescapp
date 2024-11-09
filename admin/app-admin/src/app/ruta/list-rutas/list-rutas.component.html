@@ -47,7 +47,7 @@
                             </span>
                         </div>
                         <div class="col-auto">
-                            <span (click)="programarRuta(route)" style="cursor: pointer;">
+                            <span data-bs-toggle="modal" data-bs-target="#editRouteModal" data-bs-dismiss="modal" style="cursor: pointer;" (click)="openEditRoute(route)">
                                 <i class="fas fa-calendar fa-lg text-success"></i>
                             </span>
                         </div>
@@ -86,6 +86,62 @@
                     <br>
                     <div class="text-right">
                         <button class="btn btn-primary" (click)="createRoute()">Crear Ruta</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="editRouteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Ruta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="form-group">
+                        <label for="editFecha">Fecha:</label>
+                        <input type="date" class="form-control" id="editFecha" [(ngModel)]="selectedRoute.close_date" [disabled]="true">
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label for="editDriver">Conductor:</label>
+                        <select class="form-control" id="editDriver" [(ngModel)]="selectedRoute.driver">
+                            <option *ngFor="let driver of drivers" [value]="driver">{{ driver }}</option>
+                        </select>
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label for="editCost">Costo:</label>
+                        <input type="number" class="form-control" id="editCost" [(ngModel)]="selectedRoute.cost">
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label>Orden de Paradas:</label>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Dirección</th>
+                                    <th>Orden</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let stop of selectedRoute.stops">
+                                    <td>{{ stop.client_name }}</td>
+                                    <td>{{ stop.address }}</td>
+                                    <td>
+                                        <input type="number" class="form-control" [(ngModel)]="stop.order" placeholder="Orden">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <br>
+                    <div class="text-right">
+                        <button class="btn btn-primary" (click)="updateRoute()">Guardar Cambios</button>
                     </div>
                 </div>
             </div>

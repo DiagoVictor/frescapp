@@ -16,6 +16,7 @@ class ProductHistory:
                  root,
                  child,
                  step_unit,
+                 step_unit_sipsa,
                  factor_volumen,
                  margen,
                  last_price_purchased,
@@ -36,6 +37,7 @@ class ProductHistory:
         self.root = root
         self.child = child
         self.step_unit = step_unit
+        self.step_unit_sipsa = step_unit_sipsa
         self.margen = margen
         self.last_price_purchased = last_price_purchased
         self.minimokg = minimokg
@@ -58,6 +60,7 @@ class ProductHistory:
             "root": self.root,
             "child" : self.child,
             "step_unit" : self.step_unit,
+            "step_unit_sipsa" : self.step_unit_sipsa,
             "margen" : self.margen,
             "last_price_purchased" : self.last_price_purchased,
             "minimoKg" : self.minimokg,
@@ -85,6 +88,7 @@ class ProductHistory:
                         "root": self.root,
                         "child" : self.child,
                         "step_unit" : self.step_unit,
+                        "step_unit_sipsa" : self.step_unit_sipsa,
                         "margen" : self.margen,
                         "last_price_purchased" : self.last_price_purchased,
                         "minimoKg" : self.minimokg,

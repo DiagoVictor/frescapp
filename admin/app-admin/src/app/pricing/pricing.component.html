@@ -6,11 +6,9 @@
           (keyup)="filterProducts()">
       </div>
       <div class="col-auto">
-        <label for="fechaInicio">Fecha de inicio:</label>
         <input type="date" id="fechaInicio" class="form-control" [(ngModel)]="searchDate_start">
       </div>
       <div class="col-auto">
-        <label for="fechaFin">Fecha de fin:</label>
         <input type="date" id="fechaFin" class="form-control" [(ngModel)]="searchDate_end">
       </div>
       <div class="col-auto">
@@ -19,8 +17,9 @@
         </button>
       </div>
       <div class="col-auto">
-        <button class="btn btn-primary" (click)="getProducts(searchDate_start,searchDate_end)">
-          <i class="fas fa-search"></i> Cargar SIPSA
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#update_price"
+        data-bs-dismiss="modal">
+          <i class="fas fa-refresh"></i> Actualizar precios
         </button>
       </div>
     </div>
@@ -43,6 +42,7 @@
           <th>Padre</th>
           <th>Hijo</th>
           <th>Step Unit</th>
+          <th>Step Unit Sipsa</th>
           <th>Factor Volumen</th>
           <th>Sipsa ID</th>
           <th>Margen</th>
@@ -66,6 +66,7 @@
           <td>{{ product.root }}</td>
           <td>{{ product.child }}</td>
           <td>{{ product.step_unit }}</td>
+          <td>{{ product.step_unit_sipsa }}</td>
           <td>{{ product.factor_volumen }}</td>
           <td>{{ product.sipsa_id }}</td>
           <td>{{ product.margen }}</td>
@@ -81,4 +82,24 @@
       </tbody>
     </table>
 </div>
-    
+<div class="modal fade" id="update_price" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="update_price">Actulizar Precios</h5>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <div class="form-group">
+              <label for="fecha">Fecha:</label>
+              <input type="date" class="form-control" id="operationDate" name="operationDate" [(ngModel)]="operationDate">
+            </div>
+            <br>
+            <div class="text-right"> <!-- Alineación a la derecha -->
+              <button class="btn btn-primary" (click)="updatePrices(operationDate)">Actualizar Precios</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

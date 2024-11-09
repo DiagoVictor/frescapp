@@ -16,7 +16,13 @@ export class OrdenesComponent implements OnInit {
   orders: any[] | [] | undefined;
   filteredOrders: any[] | undefined;
   searchText: string = '';
-  searchDate: string | undefined;
+  today = new Date();
+  yyyy = this.today.getFullYear();
+  mm = String(this.today.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11, por eso sumamos 1
+  dd = String(this.today.getDate()).padStart(2, '0');
+  searchDate_start = `${this.yyyy}-${this.mm}-${this.dd}`;
+  searchDate_end = `${this.yyyy}-${this.mm}-${this.dd}`;
+  searchDate = `${this.yyyy}-${this.mm}-${this.dd}`;
   order: any = {};
   product: any = {};
   customers: any[]  = [];
@@ -37,6 +43,7 @@ export class OrdenesComponent implements OnInit {
   statusCodeAlegra = '';
   sortColumn: string = '';
   sortDirection: string = 'asc';
+  order_numer_sug:string = Math.floor(10000 + Math.random() * 90000).toString();
   constructor(
     private orderService: OrderService
     ,private router: Router
@@ -90,6 +97,9 @@ export class OrdenesComponent implements OnInit {
   openEditModal(order: any, type: any): void {
     this.order = order;
     this.actionType = type;
+    if (Object.keys(order).length === 0) {
+      this.order.order_number = this.order_numer_sug;
+    }
   }
   updated_order(): void {
     const currentDate: Date = new Date();
@@ -103,8 +113,9 @@ export class OrdenesComponent implements OnInit {
 
     // Formatear la fecha y hora
     const formattedDate: string = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-    this.order.total = parseFloat(this.order.total);
+    this.order.total = parseFloat(this.order.products.reduce((total: number, product: any) => {
+      return total + (product.quantity * product.price_sale);
+    }, 0));
     this.order.updated_at = formattedDate;
     this.orderService.updateOrder(this.order.id, this.order).subscribe((data: any) => {
       // Lógica después de actualizar la orden, si es necesario
@@ -127,7 +138,9 @@ export class OrdenesComponent implements OnInit {
 
     this.order.created_at = formattedDate;
     this.order.updated_at = formattedDate;
-    this.order.total = parseFloat(this.order.total);
+    this.order.total = parseFloat(this.order.products.reduce((total: number, product: any) => {
+      return total + (product.quantity * product.price_sale);
+    }, 0));
     this.orderService.createOrder(this.order).subscribe((data: any) => {
       // Lógica después de crear una nueva orden, si es necesario
     });
