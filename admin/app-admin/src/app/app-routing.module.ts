@@ -8,16 +8,12 @@ import { HomeComponent } from './home/home.component';
 import { ReportsComponent } from './reports/reports.component';
 import { RestorePasswordComponent } from './restore-password/restore-password.component';
 import { DeleteAccountComponent } from './delete-account/delete-account.component';
-import { PickingComponent } from './reports/picking/picking.component';
-import { ComprasComponent } from './reports/compras/compras.component';
-import { CotizarComponent } from './reports/cotizar/cotizar.component';
-import { IntegrarComponent } from './reports/integrar/integrar.component';
 import { PurchasesComponent } from './purchases/purchases.component';
 import { PurchaseComponent } from './purchases/purchase/purchase.component';
 import { ListActionnsCustomersComponent } from './crm/list-actionns-customers/list-actionns-customers.component';
 import { EditActionComponent } from './crm/edit-action/edit-action.component';
 import { NewActionComponent } from './crm/new-action/new-action.component';
-import { SuppliersComponent  } from './suppliers/suppliers.component';
+import { SuppliersComponent  } from './purchases/suppliers/suppliers.component';
 import { StopsComponent  } from './ruta/stops/stops.component';
 import { ListRutasComponent  } from './ruta/list-rutas/list-rutas.component';
 import { PricingComponent  } from './pricing/pricing.component';
@@ -29,10 +25,6 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'home', component: HomeComponent },
   { path: 'reports', component: ReportsComponent },
-  { path: 'reports/picking', component: PickingComponent },
-  { path: 'reports/compras', component: ComprasComponent },
-  { path: 'reports/cotizar', component: CotizarComponent },
-  { path: 'reports/integrar', component: IntegrarComponent },
   { path: 'delete-account', component: DeleteAccountComponent },
   { path: 'restore/:user_id', component: RestorePasswordComponent },
   { path: 'purchases', component: PurchasesComponent },

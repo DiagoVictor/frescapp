@@ -18,12 +18,6 @@
         <a class="nav-link" routerLink="/ordenes" routerLinkActive="active">Pedidos</a>
       </li>
       <li class="nav-item" *ngIf="role == 'administrador'">
-        <a class="nav-link" routerLink="/reports" routerLinkActive="active">Operación</a>
-      </li>
-      <li class="nav-item" *ngIf="role == 'administrador'">
-        <a class="nav-link" routerLink="/suppliers" routerLinkActive="active">Proveedores</a>
-      </li>
-      <li class="nav-item" *ngIf="role == 'administrador'">
         <a class="nav-link" routerLink="/rutas" routerLinkActive="active">Rutas</a>
       </li>
       <li class="nav-item" *ngIf="role == 'administrador'">
@@ -34,6 +28,9 @@
       </li>
       <li class="nav-item" *ngIf="role == 'administrador' || role == 'comercial'">
         <a class="nav-link" routerLink="/precios" routerLinkActive="active">Precios</a>
+      </li>
+      <li class="nav-item" *ngIf="role == 'administrador'">
+        <a class="nav-link" routerLink="/reports" routerLinkActive="active">UE</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" (click)="logout()">Cerrar Sesión</a>

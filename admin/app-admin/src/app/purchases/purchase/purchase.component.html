@@ -30,6 +30,7 @@
     </tbody>
   </table>  
 </div>
+
 <ng-template #productModal let-modal>
   <div class="modal-header">
     <h5 class="modal-title">{{ this.selectedProduct.name }}</h5>
@@ -43,17 +44,26 @@
       <label>Precio de Compra sugerido:</label>
       <span class="form-control">{{ this.selectedProduct.price_purchase }}</span>
     </div>
+
+    <!-- Campo Precio de Compra con Validación -->
     <div>
       <label>Precio de Compra:</label>
-      <input type="number" [(ngModel)]="this.selectedProduct.final_price_purchase" class="form-control"/>
+      <input type="number" [(ngModel)]="this.selectedProduct.final_price_purchase" 
+             (ngModelChange)="validatePrice()" 
+             class="form-control"
+             [ngClass]="{'is-invalid': !isPriceValid && selectedProduct.final_price_purchase !== null}" />
+      <div *ngIf="!isPriceValid && selectedProduct.final_price_purchase !== null" class="invalid-feedback">
+          El precio debe estar entre {{ this.selectedProduct.price_purchase * 0.6  | currency:'USD'}} y {{ this.selectedProduct.price_purchase * 1.4 | currency:'USD'}} del sugerido.
+      </div>
     </div>
+
     <div>
       <label>Proveedor:</label>
       <select [(ngModel)]="this.selectedProduct.proveedor" class="form-control">
         <option *ngFor="let supplier of suppliers" [ngValue]="supplier">{{ supplier.nickname }}</option>
       </select>
     </div>
-    
+
     <div *ngIf="selectedProduct.clients?.length">
       <h6 class="mt-3">Clientes que pidieron este producto:</h6>
       <table class="table">
@@ -72,9 +82,14 @@
       </table>
     </div>
   </div>
+
+  <!-- Botón Guardar con Condicional de Activación -->
   <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="modal.dismiss('Cancel')">Cancelar</button>
-    <button type="button" class="btn btn-primary" (click)="savePrice(); modal.close('Save click')" *ngIf="selectedProduct.status != 'Facturada' ">Guardar</button>
+    <button type="button" class="btn" [ngClass]="{'btn-danger': !isPriceValid, 'btn-primary': isPriceValid}" 
+            (click)="savePrice(); modal.close('Save click')" 
+            [disabled]="!isPriceValid" *ngIf="selectedProduct.status != 'Facturada'">
+      Guardar
+    </button>
   </div>
 </ng-template>
-

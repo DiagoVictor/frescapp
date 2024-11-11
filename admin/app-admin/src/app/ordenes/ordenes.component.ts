@@ -6,6 +6,7 @@ import { ClientesService } from '../services/clientes.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AlegraService } from '../services/alegra.service';
 import { DatePipe } from '@angular/common';
+import { WooService } from '../services/woo.service';
 
 @Component({
   selector: 'app-orders',
@@ -43,6 +44,7 @@ export class OrdenesComponent implements OnInit {
   statusCodeAlegra = '';
   sortColumn: string = '';
   sortDirection: string = 'asc';
+  orderNumbertosync :string = '';
   order_numer_sug:string = Math.floor(10000 + Math.random() * 90000).toString();
   constructor(
     private orderService: OrderService
@@ -52,6 +54,7 @@ export class OrdenesComponent implements OnInit {
     ,private sanitizer: DomSanitizer
     ,private alegraService: AlegraService
     ,private datePipe: DatePipe
+    ,private wooService: WooService
   ) { }
 
   ngOnInit(): void {
@@ -186,8 +189,11 @@ export class OrdenesComponent implements OnInit {
         },
       );
   }
-  openPdfModal(order: any): void {
-    this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('https://app.buyfrescapp.com:5000/api/order/generate_pdf/' + order);
+  openPdfModal(order: any,type:any): void {
+    if (type == 'unique')
+      this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('https://app.buyfrescapp.com:5000/api/order/generate_pdf/' + order);
+    else
+      this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('https://app.buyfrescapp.com:5000/api/reports/picking/' + this.searchDate);
   }
   getCustomers(){
     this.clienteService.getClientes()
@@ -285,6 +291,17 @@ export class OrdenesComponent implements OnInit {
       if (valueA < valueB) return this.sortDirection === 'asc' ? -1 : 1;
       if (valueA > valueB) return this.sortDirection === 'asc' ? 1 : -1;
       return 0;
+    });
+  }
+  sendSyncOrder(orderNumber:any) {
+    this.wooService.get_order(orderNumber).subscribe((response:any) => {
+      if (response) {
+        this.successMessage = response.message || 'Orden sincronizada correctamente!';
+        this.getOrders()
+      } else {
+        this.failedMessage = response.message || 'Falló la sincronizacón de la orden!';
+        this.getOrders()
+      }
     });
   }
 }

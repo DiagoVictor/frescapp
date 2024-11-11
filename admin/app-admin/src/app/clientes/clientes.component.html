@@ -2,7 +2,9 @@
   <div class="row justify-right">
     <div class="col-auto">
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal"
-        data-bs-dismiss="modal" (click)="openEditModal({}, 'new')">Nuevo Cliente</button>
+        data-bs-dismiss="modal" (click)="openEditModal({}, 'new')">
+        <i class="fas fa-plus-circle fa-lg"></i>
+        Nuevo Cliente</button>
     </div>
     <div class="col-10">
       <input type="text" class="form-control" placeholder="Buscar cliente..." [(ngModel)]="searchText"

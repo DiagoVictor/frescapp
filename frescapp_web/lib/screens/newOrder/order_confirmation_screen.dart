@@ -189,11 +189,20 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () async {
+                  // Llamada a servicio para enviar los detalles de la orden
                   await sendOrderDetailsToService(widget.orderDetails);
+
+                  // Mostrar SnackBar de confirmación
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Orden creada exitosamente'),
+                    ),
+                  );
+
+                  // Navegación a la pantalla de pedidos
                   Navigator.push(
-                    // ignore: use_build_context_synchronously
                     context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    MaterialPageRoute(builder: (context) => const OrdersScreen()),
                   );
                 },
                 child: const Text('Finalizar'),

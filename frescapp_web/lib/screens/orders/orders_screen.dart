@@ -358,7 +358,7 @@ void _editOrder(BuildContext context, Order order) {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  _viewPDF(context,'https://.buyfrescapp.com:5000/api/order/generate_pdf/${order.id}');
+                                  _viewPDF(context,'https://app.buyfrescapp.com:5000/api/order/generate_pdf/${order.id}');
                                 }
                                 ,
                                   icon: const Column(

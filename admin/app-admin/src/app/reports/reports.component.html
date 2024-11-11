@@ -1,47 +1,110 @@
-<div class="container mt-5">
+<div class="container-fluid mt-5">
+  <div class="row justify-content-end">
+    <div class="col-auto">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUE"
+        data-bs-dismiss="modal">
+        <i class="fas fa-plus-circle fa-lg"></i>
+        Actualizar UE
+      </button>
+    </div>
+    <div class="col-10">
+      <a href="https://app.buyfrescapp.com:5000/api/order/orders/csv">Ordenes en CSV</a>
+    </div>
+  </div>
+</div>
+<br><br>
+<!-- Tabla de Datos Mensuales -->
+<div class="container">
   <div class="row">
-    <div class="col-md-3 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Picking</h5>
-          <p class="card-text">Ordenes a entregar</p>
-          <button class="btn btn-primary btn-block" routerLink="/reports/picking">Ver Picking</button>
-        </div>
+    <h4>Datos Mensuales</h4>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Tipo de UE</th>
+          <th *ngFor="let mes of monthlyData['GMV']?.mensual | keyvalue ">{{ mes.key }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Itera sobre cada métrica y muestra los valores de cada mes -->
+        <tr
+          *ngFor="let metric of ['GMV', 'COGS', 'Gross Profit', 'Gross Profit as % of GMV','Opex','WH Rent', 'Last Mile', 'Tech Cost', 'Others Cost', 'Supply Cost', 'Sales Force',  'Net Profit', 'Orders', 'Lines', 'AOV','ALV','MUA']">
+          <td>{{ metric }}</td>
+          <td *ngFor="let mes  of monthlyData[metric]?.mensual | keyvalue">{{ mes.value }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <br><br>
+  <!-- Tabla de Datos Semanales -->
+  <div class="row">
+    <h4>Datos Semanales</h4>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Tipo de UE</th>
+          <!-- Itera sobre los periodos semanales (semanas) de los datos pivotados -->
+          <th *ngFor="let semana of weeklyData['GMV']?.semanal | keyvalue">{{ semana.key }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Itera sobre cada métrica y muestra los valores de cada semana -->
+        <tr
+          *ngFor="let metric of ['GMV', 'COGS', 'Gross Profit', 'Gross Profit as % of GMV','Opex','WH Rent', 'Last Mile', 'Tech Cost', 'Others Cost', 'Supply Cost', 'Sales Force',  'Net Profit', 'Orders', 'Lines', 'AOV','ALV','MUA']">
+          <td>{{ metric }}</td>
+          <td *ngFor="let semana of weeklyData[metric]?.semanal | keyvalue">{{ semana.value }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal de actualización -->
+<div class="modal fade" id="newUE" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Actualizar Unidad Económica</h5>
       </div>
-    </div>
-    <!-- <div class="col-md-3 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Compras</h5>
-          <p class="card-text">Lista de productos a comprar</p>
-          <button class="btn btn-primary btn-block" routerLink="/reports/compras">Ver Compras</button>
-        </div>
-      </div>
-    </div> -->
-    <div class="col-md-3 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Cotizar</h5>
-          <p class="card-text">Cotizar productos</p>
-          <button class="btn btn-primary btn-block" routerLink="/reports/cotizar">Cotizar</button>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Integración</h5>
-          <p class="card-text">Integrar pedidos página</p>
-          <button class="btn btn-primary btn-block" routerLink="/reports/integrar">Integrar</button>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Descargas</h5>
-          <p class="card-text">Descargar histórico de ordenes </p>
-          <a href="https://app.buyfrescapp.com:5000/api/order/orders/csv">Ordenes en CSV</a>
+      <div class="modal-body">
+        <div class="container">
+          <!-- Campos para actualizar la UE -->
+          <div class="form-group">
+            <label for="fecha_base">Fecha Base:</label>
+            <input type="date" class="form-control" id="fecha_base" [(ngModel)]="ueData.fecha_base" name="fecha_base">
+          </div>
+          <br>
+          <div class="form-group">
+            <label for="wh_rent">Renta de Bodega:</label>
+            <input type="number" class="form-control" id="wh_rent" [(ngModel)]="ueData.wh_rent" name="wh_rent">
+          </div>
+          <br>
+          <div class="form-group">
+            <label for="cost_tech">Costo Tecnología:</label>
+            <input type="number" class="form-control" id="cost_tech" [(ngModel)]="ueData.cost_tech" name="cost_tech">
+          </div>
+          <br>
+          <div class="form-group">
+            <label for="sales_force">Fuerza de Ventas:</label>
+            <input type="number" class="form-control" id="sales_force" [(ngModel)]="ueData.sales_force"
+              name="sales_force">
+          </div>
+          <br>
+          <div class="form-group">
+            <label for="cost_insumos">Costo Insumos:</label>
+            <input type="number" class="form-control" id="cost_insumos" [(ngModel)]="ueData.cost_insumos"
+              name="cost_insumos">
+          </div>
+          <br>
+          <div class="form-group">
+            <label for="otros_costos">Otros Costos:</label>
+            <input type="number" class="form-control" id="otros_costos" [(ngModel)]="ueData.otros_costos"
+              name="otros_costos">
+          </div>
+          <br>
+          <button class="btn btn-primary w-100" (click)="updateUnitEconomics()" data-bs-dismiss="modal">Guardar
+            Actualización</button>
+          <br><br>
+          <button class="btn btn-secondary w-100" data-bs-dismiss="modal">Cancelar</button>
         </div>
       </div>
     </div>
