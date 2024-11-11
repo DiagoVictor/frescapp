@@ -6,8 +6,6 @@ import locale
 from locale import setlocale, LC_ALL
 from babel import numbers
 # Configurar la localización para obtener el nombre del mes en español
-locale.setlocale(locale.LC_TIME, 'es_CO.UTF-8')
-setlocale(LC_ALL, 'es_CO.UTF-8') 
 ue_api = Blueprint('ue', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
