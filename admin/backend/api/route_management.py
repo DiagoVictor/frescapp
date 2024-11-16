@@ -2,6 +2,11 @@ from flask import Blueprint, jsonify, request
 from models.route import Route
 from pymongo import MongoClient
 from datetime import datetime
+from werkzeug.utils import secure_filename
+import os,json
+from werkzeug.utils import secure_filename
+from flask import send_from_directory
+from models.order import Order
 
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
@@ -49,6 +54,7 @@ def create_route():
             "checkin_latitude": "",
             "checkin_longitude": "",
             "order": index,
+            "order_number" : order.get('order_number'),
             "status": "Por entregar"
         }
         stops.append(stop)
@@ -58,37 +64,74 @@ def create_route():
 
     return jsonify({'message': 'Route created successfully', 'route_id': route_id}), 201
 
+UPLOAD_FOLDER = '/home/ubuntu/evidences'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}  # Tipos de archivo permitidos
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @route_api.route('/route', methods=['PUT'])
 def update_route():
-    data = request.get_json()
-    route_id = data.get('id')
-    # Obtener datos actualizados
-    route_number = data.get('route_number')
-    close_date = data.get('close_date')
-    driver = data.get('driver')
-    cost = data.get('cost', 0)
-    stops = data.get('stops', [])
+    # Leer datos del formulario
+    data = request.form.get('route')  # El campo `route` enviado como string JSON
+    evidence = request.files.get('evidence')  # Archivo adjunto
 
-    # Buscar la ruta como diccionario y crear instancia de Route
-    route_data = Route.object(route_id)
-    if not route_data:
+    if not data:
+        return jsonify({'message': 'Missing route data'}), 400
+
+    try:
+        # Convertir el string JSON a un diccionario
+        route_data = json.loads(data)
+    except json.JSONDecodeError:
+        return jsonify({'message': 'Invalid JSON format'}), 400
+
+    route_id = route_data.get('id')
+
+    if not route_id:
+        return jsonify({'message': 'Missing route ID'}), 400
+
+    # Buscar la ruta en la base de datos
+    existing_route = Route.object(route_id)  # Esto retorna un diccionario
+    if not existing_route:
         return jsonify({'message': 'Route not found'}), 404
 
-    # Crear la instancia de Route
-    route = Route(
-        id=route_id,
-        route_number=route_number or route_data.get('route_number'),
-        close_date=close_date or route_data.get('close_date'),
-        driver=driver or route_data.get('driver'),
-        cost=cost if cost is not None else route_data.get('cost'),
-        stops=stops or route_data.get('stops')
+    # Crear una instancia de la clase Route usando los datos obtenidos
+    route_instance = Route(
+        id=existing_route['id'],
+        route_number=existing_route.get('route_number'),
+        close_date=existing_route.get('close_date'),
+        driver=existing_route.get('driver'),
+        cost=existing_route.get('cost'),
+        stops=existing_route.get('stops')
     )
 
-    # Guardar los cambios con el método update de la instancia
-    route.update()
-    
-    return jsonify({'message': 'Route updated successfully'}), 200
+    # Actualizar los datos de la ruta
+    route_instance.route_number = route_data.get('route_number', route_instance.route_number)
+    route_instance.close_date = route_data.get('close_date', route_instance.close_date)
+    route_instance.driver = route_data.get('driver', route_instance.driver)
+    route_instance.cost = route_data.get('cost', route_instance.cost)
+    route_instance.stops = route_data.get('stops', route_instance.stops)
 
+    # Guardar el archivo de evidencia si está presente
+    if evidence and allowed_file(evidence.filename):
+        filename = secure_filename(evidence.filename)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        evidence.save(filepath)
+
+    # Guardar los cambios en la base de datos
+    route_instance.update()
+    stops = route_data.get('stops', [])
+    for stop in stops:
+        order_number = stop.get('order_number')
+        status = stop.get('status')
+
+        if order_number and status:
+            # Buscar el pedido en la colección 'orders' usando order_number
+            order = orders_collection.update_one({"order_number" : order_number},{"$set": { "status": status}})
+        else:
+            print("Missing order_number or status for stop")
+    return jsonify({'message': 'Route updated successfully'}), 200
 
 
 @route_api.route('/routes', methods=['GET'])
@@ -124,8 +167,37 @@ def get_route(route_number):
 
 @route_api.route('/route/<string:route_id>', methods=['DELETE'])
 def delete_route(route_id):
-    route = Route.object(route_id) 
-    if route:
-        route.delete_route()
-        return jsonify({'message': 'Route deleted successfully'}), 200
-    return jsonify({'message': 'Route not found'}), 404
+    # Buscar la ruta como diccionario
+    route_data = Route.object(route_id)
+    if not route_data:
+        return jsonify({'message': 'Route not found'}), 404
+
+    # Convertir el diccionario a una instancia de la clase Route
+    route_instance = Route(
+        id=route_data['id'],
+        route_number=route_data.get('route_number'),
+        close_date=route_data.get('close_date'),
+        driver=route_data.get('driver'),
+        cost=route_data.get('cost'),
+        stops=route_data.get('stops')
+    )
+
+    # Llamar al método para eliminar la ruta
+    route_instance.delete_route()
+    return jsonify({'message': 'Route deleted successfully'}), 200
+
+@route_api.route('/route/evidence/<string:filename>', methods=['GET'])
+def get_evidence(filename):
+    """
+    Endpoint para obtener un archivo de evidencia por su nombre.
+    """
+    if not allowed_file(filename):
+        return jsonify({'message': 'Invalid file type'}), 400
+
+    # Verificar si el archivo existe en el directorio de evidencias
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(file_path):
+        return jsonify({'message': 'Evidence file not found'}), 404
+
+    # Enviar el archivo como respuesta
+    return send_from_directory(UPLOAD_FOLDER, filename)

@@ -30,7 +30,8 @@
         <th>Porc. Registrado</th>
         <th>Porc. Registro Pacial</th>
         <th>Porc. Facturado</th>
-        <th>GMV</th> 
+        <th>Total Estimado</th> 
+        <th>Total Real</th> 
         <th>Estado</th> 
         <th>Acciones</th>
       </tr>
@@ -50,7 +51,10 @@
           {{ calculateFacturadaPercentage(purchase.products) }}%
         </td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">
-          {{ calculateGMV(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->
+          {{ calculatetotalEstimate(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->
+        </td>
+        <td (click)="navigateToPurchase(purchase.purchase_number)">
+          {{ calculatetotalReal(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->
         </td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">{{ purchase.status }}</td>
         <td>

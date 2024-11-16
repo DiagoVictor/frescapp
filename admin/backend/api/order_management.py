@@ -83,12 +83,9 @@ def delete_order(id=None):
     finded_order = Order.object(id)
     finded_order.delete_order()
     return jsonify({'message': 'Order created successfully'}), 201
-@order_api.route('/orders/<string:dateOrders>', methods=['GET'])
-def list_orders(dateOrders):
-    if dateOrders == 'all':
-        orders_cursor = Order.objects()
-    else:
-        orders_cursor = Order.find_by_date(dateOrders)
+@order_api.route('/orders/<string:startDate>/<string:endDate>', methods=['GET'])
+def list_orders(startDate,endDate):
+    orders_cursor = Order.find_by_date(startDate,endDate)
     order_data = [
         {
          "id": str(order["_id"]), 
@@ -113,7 +110,33 @@ def list_orders(dateOrders):
     ]
     orders_json = json.dumps(order_data)
     return orders_json, 200
-
+@order_api.route('/orders/status/<string:status>', methods=['GET'])
+def list_ordersByStats(status):
+    orders_cursor = Order.find_by_status(status)
+    order_data = [
+        {
+         "id": str(order["_id"]), 
+         "order_number": order["order_number"] if order["order_number"] else order["orderNumber"], 
+         "customer_email": order["customer_email"] if order["customer_email"] else order["customerEmail"], 
+         "customer_phone": order["customer_phone"] if order["customer_phone"] else order["customerPhone"], 
+        "customer_documentNumber": order.get("customer_documentNumber", order.get("customerDocumentNumber", "N/A")),
+        "customer_documentType": order.get("customer_documentType", order.get("customerDocumentType", "N/A")),
+         "customer_name": order["customer_name"] if order["customer_name"] else order["customerName"], 
+         "delivery_date": order["delivery_date"] if order["delivery_date"] else order["deliveryDate"], 
+         "status": order["status"], 
+         "created_at": order["created_at"], 
+         "updated_at": order["updated_at"], 
+         "products": order["products"],
+         "total": order["total"], 
+         "deliverySlot": order["deliverySlot"], 
+         "paymentMethod": order["paymentMethod"],
+         "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
+         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
+         }
+        for order in orders_cursor
+    ]
+    orders_json = json.dumps(order_data)
+    return orders_json, 200
 @order_api.route('/generate_pdf/<string:id_order>', methods=['GET'])
 def generate_remision(id_order):
     order = Order.object(id_order)

@@ -24,6 +24,10 @@ export class OrdenesComponent implements OnInit {
   searchDate_start = `${this.yyyy}-${this.mm}-${this.dd}`;
   searchDate_end = `${this.yyyy}-${this.mm}-${this.dd}`;
   searchDate = `${this.yyyy}-${this.mm}-${this.dd}`;
+  searchStartDate = `${this.yyyy}-${this.mm}-${this.dd}`;
+  searchEndDate = `${this.yyyy}-${this.mm}-${this.dd}`;
+  searchStatus = 'Estado'
+  statusOrders: string[] = ['Estado','Creada','Pagada','Facturada','Por entregar', 'Pendiente de pago'];
   order: any = {};
   product: any = {};
   customers: any[]  = [];
@@ -63,7 +67,7 @@ export class OrdenesComponent implements OnInit {
     if (!isLoggedIn) {
       this.router.navigate(['/login']);
     } else {
-      this.getOrders();
+      this.getOrders('date');
       this.orderService.getConfig().subscribe(config => {
         this.documentTypes = config.document_type;
         this.paymentMethods = config.payments_method;
@@ -78,9 +82,17 @@ export class OrdenesComponent implements OnInit {
     const token = localStorage.getItem('token');
     return !!token;
   }
-  getOrders(): void {
+  getOrders(type:any): void {
     this.orders = [];
-    this.orderService.getOrders(this.datePipe.transform(this.searchDate, 'yyyy-MM-dd') || 'all')
+    if(type == 'date')
+      this.orderService.getOrders(this.datePipe.transform(this.searchStartDate, 'yyyy-MM-dd'), this.datePipe.transform(this.searchEndDate, 'yyyy-MM-dd'))
+        .subscribe(orders => {
+          this.orders = orders;
+          this.filteredOrders = orders;
+          this.filterOrders();
+        });
+    else
+      this.orderService.getOrdersByStatus(this.searchStatus)
       .subscribe(orders => {
         this.orders = orders;
         this.filteredOrders = orders;
@@ -124,7 +136,7 @@ export class OrdenesComponent implements OnInit {
       // Lógica después de actualizar la orden, si es necesario
     });
 
-    this.getOrders();
+    this.getOrders('date');
   }
   created_order(): void {
     const currentDate: Date = new Date();
@@ -147,15 +159,15 @@ export class OrdenesComponent implements OnInit {
     this.orderService.createOrder(this.order).subscribe((data: any) => {
       // Lógica después de crear una nueva orden, si es necesario
     });
-    this.getOrders();
+    this.getOrders('date');
   }
   saveOrder() {
     if (this.actionType === 'update') {
       this.updated_order();
-      this.getOrders()
+      this.getOrders('date')
     } else if (this.actionType === 'new') {
       this.created_order();
-      this.getOrders()
+      this.getOrders('date')
     }
   }
   camposCompletos(): boolean {
@@ -240,12 +252,12 @@ export class OrdenesComponent implements OnInit {
           this.statusCodeAlegra == '400';
           this.messageAlegra = res.error?.message || 'Ocurrió un error'; // Ajusta el mensaje de error según sea necesario
         }
-        this.getOrders()
+        this.getOrders('date')
       },
       (error) => {
         this.statusCodeAlegra = error.status.toString(); // Obtiene el código de estado del error
         this.messageAlegra = error.error?.message || 'Ocurrió un error'; // Ajusta el mensaje de error según sea necesario
-        this.getOrders()
+        this.getOrders('date')
       }
     );
   }
@@ -261,7 +273,7 @@ export class OrdenesComponent implements OnInit {
   delete_order(id: any){
     this.orderService.deleteOrder(id).subscribe(
       (res: any) => {
-        this.getOrders()
+        this.getOrders('date')
       }
     );
   }
@@ -297,10 +309,10 @@ export class OrdenesComponent implements OnInit {
     this.wooService.get_order(orderNumber).subscribe((response:any) => {
       if (response) {
         this.successMessage = response.message || 'Orden sincronizada correctamente!';
-        this.getOrders()
+        this.getOrders('date')
       } else {
         this.failedMessage = response.message || 'Falló la sincronizacón de la orden!';
-        this.getOrders()
+        this.getOrders('date')
       }
     });
   }

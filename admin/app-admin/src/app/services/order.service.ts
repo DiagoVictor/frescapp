@@ -11,10 +11,12 @@ export class OrderService {
 
   constructor(private http: HttpClient) { }
 
-  getOrders(dateOrders:any): Observable<any[]> {
-    return this.http.get<any[]>(this.baseUrl+'api/order/orders/'+dateOrders);
+  getOrders(startDate:any,endDate:any): Observable<any[]> {
+    return this.http.get<any[]>(this.baseUrl+'api/order/orders/'+startDate+'/'+endDate);
   }
-
+  getOrdersByStatus(status:any): Observable<any[]> {
+    return this.http.get<any[]>(this.baseUrl+'api/order/orders/status/'+status);
+  }
   updateOrder(orderId: number, orderData: any): Observable<any> {
     const url = this.baseUrl + 'api/order/order/' + orderId;
     return this.http.post(url, orderData);

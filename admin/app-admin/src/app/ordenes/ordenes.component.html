@@ -11,7 +11,18 @@
         (keyup)="filterOrders()">
     </div>
     <div class="col-auto">
-      <input type="date" class="form-control" [(ngModel)]="searchDate" (change)="getOrders()">
+      <input type="date" class="form-control" [(ngModel)]="searchStartDate" (change)="getOrders('date')">
+    </div>
+    <div class="col-auto">
+      <input type="date" class="form-control" [(ngModel)]="searchEndDate" (change)="getOrders('date')">
+    </div>
+    <div class="col-auto">
+      <!-- Agregamos [(ngModel)] para enlazar el modelo -->
+      <select class="form-control" [(ngModel)]="searchStatus" (change)="getOrders('status')">
+        <option *ngFor="let statusOrder of statusOrders" [value]="statusOrder">
+          {{ statusOrder }}
+        </option>
+      </select>
     </div>
     <div class="col-auto">
       <input type="text" [(ngModel)]="orderNumbertosync" placeholder="Número de la página" class="form-control">
@@ -23,10 +34,10 @@
     </div>
     <div class="col-auto">
       <button (click)="openPdfModal(order.id,'list')" class="btn btn-primary" data-bs-toggle="modal"
-      data-bs-target="#pdfModal" data-bs-dismiss="modal">
+        data-bs-target="#pdfModal" data-bs-dismiss="modal">
         <i class="fas fa-file-pdf fa-lg"></i>
         Descargar lista
-    </button>
+      </button>
     </div>
   </div>
   <br *ngIf="successMessage">
@@ -47,13 +58,19 @@
   <table class="table">
     <thead>
       <tr>
-        <th (click)="sort('order_number')">Número de Orden <span *ngIf="sortColumn === 'order_number'">{{ sortDirection }}</span></th>
-        <th (click)="sort('customer_email')">Email del Cliente <span *ngIf="sortColumn === 'customer_email'">{{ sortDirection }}</span></th>
-        <th (click)="sort('customer_phone')">Teléfono del Cliente <span *ngIf="sortColumn === 'customer_phone'">{{ sortDirection }}</span></th>
-        <th (click)="sort('customer_documentNumber')">Documento del Cliente <span *ngIf="sortColumn === 'customer_documentNumber'">{{ sortDirection }}</span></th>
-        <th (click)="sort('customer_name')">Nombre del Cliente <span *ngIf="sortColumn === 'customer_name'">{{ sortDirection }}</span></th>
-        <th (click)="sort('delivery_date')">Fecha de Entrega <span *ngIf="sortColumn === 'delivery_date'">{{ sortDirection }}</span></th>
-        <th >total</th>
+        <th (click)="sort('order_number')">Número de Orden <span *ngIf="sortColumn === 'order_number'">{{ sortDirection
+            }}</span></th>
+        <th (click)="sort('customer_email')">Email del Cliente <span *ngIf="sortColumn === 'customer_email'">{{
+            sortDirection }}</span></th>
+        <th (click)="sort('customer_phone')">Teléfono del Cliente <span *ngIf="sortColumn === 'customer_phone'">{{
+            sortDirection }}</span></th>
+        <th (click)="sort('customer_documentNumber')">Documento del Cliente <span
+            *ngIf="sortColumn === 'customer_documentNumber'">{{ sortDirection }}</span></th>
+        <th (click)="sort('customer_name')">Nombre del Cliente <span *ngIf="sortColumn === 'customer_name'">{{
+            sortDirection }}</span></th>
+        <th (click)="sort('delivery_date')">Fecha de Entrega <span *ngIf="sortColumn === 'delivery_date'">{{
+            sortDirection }}</span></th>
+        <th>total</th>
         <th (click)="sort('status')">Estado <span *ngIf="sortColumn === 'status'">{{ sortDirection }}</span></th>
         <th>Acciones</th>
       </tr>
@@ -88,7 +105,8 @@
                 <i class="fas fa-file-pdf fa-lg text-primary"></i>
               </span>
             </div>
-            <div class="col-auto" *ngIf="order.status !== 'Facturada' && order.status !== 'Cancelada'">
+            <div class="col-auto"
+              *ngIf="order.status !== 'Facturada' && order.status !== 'Cancelada' && order.status == 'Pagada'">
               <span (click)="sync_allegra(order.order_number)" style="cursor: pointer;">
                 <img src="assets/alegra.png" alt="icono" style="width: 24px; height: 24px;" />
               </span>
@@ -118,14 +136,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="documentType">Cliente:</label>
-                <ng-select
-                  [items]="customers"
-                  bindLabel="name"
-                  bindValue="id"
-                  [searchable]="true"
-                  placeholder="Escribe para buscar..."
-                  [(ngModel)]="selectedCustomerId"
-                  (change)="onCustomerSelect()">
+                <ng-select [items]="customers" bindLabel="name" bindValue="id" [searchable]="true"
+                  placeholder="Escribe para buscar..." [(ngModel)]="selectedCustomerId" (change)="onCustomerSelect()">
                 </ng-select>
               </div>
             </div>
@@ -200,7 +212,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="total">Total:</label>
-                <input type="number" class="form-control" id="total" name="total" [(ngModel)]="order.total" [disabled]="true">
+                <input type="number" class="form-control" id="total" name="total" [(ngModel)]="order.total"
+                  [disabled]="true">
               </div>
             </div>
             <div class="col-6">
@@ -245,15 +258,9 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let product of order.products">
-                    <ng-select
-                    [items]="products"
-                    bindLabel="name"
-                    bindValue="id"
-                    [searchable]="true"
-                    placeholder="{{product.name}}"
-                    [(ngModel)]="product.id"
-                    (change)="onProductSelect(product)">
-                  </ng-select>
+                    <ng-select [items]="products" bindLabel="name" bindValue="id" [searchable]="true"
+                      placeholder="{{product.name}}" [(ngModel)]="product.id" (change)="onProductSelect(product)">
+                    </ng-select>
                     <td><input type="text" class="form-control" [(ngModel)]="product.sku"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.price_sale"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.quantity"></td>
@@ -274,7 +281,8 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" (click)="saveOrder()" [disabled]="!camposCompletos()">Guardar Cambios</button>
+        <button type="button" class="btn btn-primary" (click)="saveOrder()" [disabled]="!camposCompletos()">Guardar
+          Cambios</button>
       </div>
     </div>
   </div>
@@ -313,4 +321,3 @@
     </div>
   </div>
 </div>
-

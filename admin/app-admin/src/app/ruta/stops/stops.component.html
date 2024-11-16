@@ -74,6 +74,14 @@
                         </select>
                     </div>
                     <br>
+                    <div class="form-group">
+                        <label for="evidence">Evidencia (archivo o foto):</label>
+                        <input type="file" class="form-control" id="evidence" name="evidence" 
+                               (change)="onFileSelected($event)">
+                    </div>
+                    <br>
+                    <a href="https://app.buyfrescapp.com:5000/api/route/route/evidence/{{stopSelect.evidence}}" target="_blank">Descargar evidencia</a>
+                    <br><br>
                     <button class="btn btn-primary w-100" (click)="saveStop()" data-bs-dismiss="modal">Guardar Parada</button>
                     <br><br>
                     <button class="btn btn-secondary w-100" data-bs-dismiss="modal">Cancelar</button>

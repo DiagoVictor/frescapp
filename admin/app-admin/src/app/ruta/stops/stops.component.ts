@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { RoutesService } from '../../services/routes.service';
-import { Router } from '@angular/router';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-stops',
@@ -13,8 +12,9 @@ export class StopsComponent {
   public routeNumber: number = 0;
   public routeSelect: any;
   public stopSelect: any;
-  public methedoPayments = ["Nequi Carlos", "Daviplata Carlos", "Consignación Bancaria", "Mercado pago", "Efectivo"];
+  public methedoPayments = ["Nequi", "Daviplata", "Davivienda", "Bancolombia", "Mercado pago", "Efectivo"];
   public statusStops = ["Por entregar", "Pendiente de pago", "Pagada"];
+  public selectedFile: File | null = null; // Almacena el archivo seleccionado
 
   constructor(
     private routesService: RoutesService,
@@ -34,11 +34,7 @@ export class StopsComponent {
     this.routesService.getRoute(this.routeNumber).subscribe(
       (res: any) => {
         this.routeSelect = res;
-    
-        // Ordena los stops basados en el atributo 'order'
         this.stops = res["stops"].sort((a: any, b: any) => a.order - b.order);
-    
-        // Selecciona el primer stop después de ordenar
         this.stopSelect = this.stops[0];
       }
     );    
@@ -48,26 +44,43 @@ export class StopsComponent {
     this.stopSelect = stop;
   }
 
-  saveStop() {
-    // Encuentra el índice del stop actual en el array de stops
-    const index = this.stops.findIndex((s: any) => s.order === this.stopSelect.order);
-    
-    // Actualiza el stop en el array de stops de la ruta
-    if (index !== -1) {
-      this.routeSelect.stops[index] = this.stopSelect;
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      // Generar un nombre de archivo basado en el número de ruta y orden de parada
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${this.routeNumber}_${this.stopSelect.order}.${fileExtension}`;
+      
+      // Crear un archivo con el nuevo nombre
+      const renamedFile = new File([file], fileName, { type: file.type });
+      
+      this.selectedFile = renamedFile; // Guardar el archivo renombrado
+      this.stopSelect.evidence = fileName; // Guardar solo el nombre en el campo 'evidence' del stopSelect
     }
+  }
 
-    // Llama al servicio para actualizar la ruta completa con el stop modificado
-    this.routesService.updateRoute(this.routeSelect).subscribe(
+  saveStop() {
+    const formData = new FormData();
+  
+    // Añade la ruta como JSON
+    formData.append('route', JSON.stringify(this.routeSelect));
+  
+    // Añade el archivo, si está seleccionado
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile, this.selectedFile.name);
+    }
+    this.routesService.updateStop(this.routeSelect, this.selectedFile).subscribe(
       (response: any) => {
-        console.log("Parada guardada y ruta actualizada", response);
+        console.log('Parada guardada y ruta actualizada', response);
       },
       (error: any) => {
-        console.error("Error al guardar la parada", error);
+        console.error('Error al guardar la parada', error);
       }
     );
   }
-  navigateToRoute(){
+  
+
+  navigateToRoute() {
     this.router.navigate(['/rutas']);
   }
 }
