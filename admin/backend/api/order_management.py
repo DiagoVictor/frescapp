@@ -386,11 +386,11 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                         backgound-color="#97d700">
                                         <tr>
                                             <td id="header_wrapper"
-                                                style="padding: 36px 48px; text-align: left;">
-                                                <h2 style="margin-bottom: 8px;">Hola</h2>
-                                                <h1 style="margin-bottom: 16px;">{orden.customer_name},</h1>
-                                                <h2 style="margin-bottom: 16px;">Hemos recibido tu nueva orden y será entregada el {delivery_date} en {orden.deliveryAddress} entre {orden.deliverySlot}</h2>
-                                                <h2 style="margin-bottom: 0;">Será un gusto entregarla. Gracias</h2>
+                                                style="padding: 36px 48px; text-align: left; background-color: #97D700; color: white; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5;">
+                                                <p style="margin: 0; font-size: 18px; font-weight: bold;">Hola</p>
+                                                <p style="margin: 8px 0; font-size: 22px; font-weight: bold;">{orden.customer_name},</p>
+                                                <p style="margin: 8px 0;">Hemos recibido tu nueva orden y será entregada el {delivery_date} en {orden.deliveryAddress} entre {orden.deliverySlot}.</p>
+                                                <p style="margin: 8px 0;">Será un gusto entregarla. Gracias</p>
                                             </td>
                                         </tr>
                                     </table>
