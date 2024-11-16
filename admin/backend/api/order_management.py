@@ -388,9 +388,11 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                             <td id="header_wrapper"
                                                 style="padding: 36px 48px; display: block; text-text-align: left; padding-top: px; padding-bottom: px; padding-left: 48px; padding-right: 48px;"
                                                 text-align="left">
-                                                <h1>Hola {orden.customer_name},</h1>
+                                                <p>
+                                                <h2>Hola</h2> <h1>{orden.customer_name},</h1>
                                                 <h2>Hemos recibido tu nueva orden y será entregada el {delivery_date} en {orden.deliveryAddress} entre {orden.deliverySlot} </h2><br>
                                                 <h2>será un gusto entregarla. Gracias</h2>
+                                                </p>
                                             </td>
                                         </tr>
                                     </table>
