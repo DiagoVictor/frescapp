@@ -233,17 +233,23 @@ def generate_remision(id_order):
     subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
     descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
     total_formatted = locale.format_string('%.2f', total, grouping=True)
-    product_data.extend([['','','','',''],
+    image_path_payment = 'https://buyfrescapp.com/images/medio_pago.png'  # URL o ruta local de la imagen del medio de pago
+    payment_image = Image(image_path_payment, width=290, height=100)  # Ajustar tamaño de la imagen
+    product_data.extend([[payment_image,'','','',''],
         ['', '', '', 'Subtotal', subtotal_formatted],
         ['', '', '', 'Descuentos', descuentos_formatted],
         ['', '', '', 'Total', total_formatted]
     ])
+
+
     product_table = Table(product_data, colWidths=[table_width / 5] * 5)
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Bordes internos
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.black),  # Borde externo
+        ('SPAN', (0, len(order.products)+1), (2, len(order.products)+4))
+
     ]))
     pdf_content.append(product_table)
 
@@ -320,7 +326,7 @@ def orders_latest_customer(email):
 
 def send_order_email(order_number, customer_email, delivery_date, products, total):
     subject = f'Orden confirmada - Orden #{order_number}'
-    
+    orden = Order.find_by_order_number(order_number)
     # Construir la lista de productos en HTML
     product_list_html = ""
     for product in products:
@@ -382,8 +388,9 @@ def send_order_email(order_number, customer_email, delivery_date, products, tota
                                             <td id="header_wrapper"
                                                 style="padding: 36px 48px; display: block; text-text-align: left; padding-top: px; padding-bottom: px; padding-left: 48px; padding-right: 48px;"
                                                 text-align="left">
-                                                <h1>Hemos recibido tu nueva orden, </h1><br>
-                                                <h1>será un gusto entregarla. Gracias</h1>
+                                                <h1>Hola {orden.customer_name},</h1>
+                                                <h2>Hemos recibido tu nueva orden y será entregada el {delivery_date} en {orden.deliveryAddress} entre {orden.deliverySlot} </h2><br>
+                                                <h2>será un gusto entregarla. Gracias</h2>
                                             </td>
                                         </tr>
                                     </table>

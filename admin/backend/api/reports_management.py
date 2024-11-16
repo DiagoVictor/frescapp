@@ -112,7 +112,9 @@ def get_picking(date):
         subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
         descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
         total_formatted = locale.format_string('%.2f', total, grouping=True)
-        product_data.extend([['','','','',''],
+        image_path_payment = 'https://buyfrescapp.com/images/medio_pago.png'  # URL o ruta local de la imagen del medio de pago
+        payment_image = Image(image_path_payment, width=290, height=100)  # Ajustar tamaño de la imagen
+        product_data.extend([[payment_image,'','','',''],
             ['', '', '', 'Subtotal', subtotal_formatted],
             ['', '', '', 'Descuentos', descuentos_formatted],
             ['', '', '', 'Total', total_formatted]
@@ -122,7 +124,8 @@ def get_picking(date):
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
-            ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.black),
+            ('SPAN', (0, len(list(order['products']))+1), (2, len(list(order['products']))+4))
         ]))
         pdf_content.append(product_table)
         pdf_content.append(PageBreak())
