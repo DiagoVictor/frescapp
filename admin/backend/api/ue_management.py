@@ -5,19 +5,21 @@ from datetime import datetime, timedelta
 import locale
 from locale import setlocale, LC_ALL
 from babel import numbers
-# Configurar la localización para obtener el nombre del mes en español
+import locale
+
 ue_api = Blueprint('ue', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
 db = client['frescapp']
 orders_collection = db['orders']
 purchases_collection = db['purchases']
 routes_collection = db['routes']
+costs_collection = db["costs"]
 unit_economics_collection = db['unit_economics']
-
+locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
 
 @ue_api.route('/ue/<string:tipo>', methods=['GET'])
 def ue(tipo):
-    ue_list = list(unit_economics_collection.find({'tipo': tipo}, {'_id': 0}))
+    ue_list = list(unit_economics_collection.find({'tipo': str(tipo).capitalize()}, {'_id': 0}))
     return jsonify(ue_list), 200
 
 @ue_api.route('/updateUE', methods=['POST'])
@@ -27,12 +29,14 @@ def updateUE():
     
     # Convertir la fecha de string a datetime
     fecha_base = datetime.strptime(fecha_base_str, "%Y-%m-%d")  # Ajusta el formato según cómo se pase la fecha
-    
-    wh_rent = data.get("wh_rent")
-    cost_tech = data.get("cost_tech")
-    sales_force = data.get("sales_force")
-    otros_costos = data.get("otros_costos")
-    cost_insumos = data.get("cost_insumos")
+    nombre_mes = fecha_base.strftime('%B').capitalize()
+    costos = {c['typeCost']: c['amount'] for c in costs_collection.find({"typePeriod" : "Mensual", "period": nombre_mes})}
+    wh_rent = costos.get("wh_rent", 0)
+    cost_tech = costos.get("cost_tech", 0)
+    sales_force = costos.get("sales_force", 0)
+    cost_others = costos.get("cost_others", 0)
+    cost_supply = costos.get("cost_supply", 0)
+    perssonel = costos.get("perssonel", 0)
     year = fecha_base.year
     inicio_mes = fecha_base.replace(day=1)
     fin_mes = inicio_mes + timedelta(days=32)
@@ -44,13 +48,10 @@ def updateUE():
     inicio_semana = inicio_semana.strftime('%Y-%m-%d')
     fin_semana = fin_semana.strftime('%Y-%m-%d')
 
-    # Nombre del mes en español
-    nombre_mes = fecha_base.strftime('%B')
-
     # Calcular unit economics para el mes y la semana
     for periodo, fecha_inicio, fecha_fin in [
-        ("mensual", inicio_mes, fin_mes),
-        ("semanal", inicio_semana, fin_semana)
+        ("Mensual", inicio_mes, fin_mes),
+        ("Semanal", inicio_semana, fin_semana)
     ]:
         cogs = 0
         total_ordenes = 0
@@ -82,21 +83,23 @@ def updateUE():
             costo_logistico += ruta['cost']
 
         # Calcular costos fijos e insumos distribuidos según el periodo
-        if periodo == "mensual":
+        if periodo == "Mensual":
             wh_rent_distribuido = wh_rent
             cost_tech_distribuido = cost_tech
             sales_force_distribuido = sales_force
-            otros_costos_distribuido = otros_costos
-            cost_insumos_distribuido = cost_insumos
+            otros_costos_distribuido = cost_others
+            cost_insumos_distribuido = cost_supply
+            cost_personal_distribuido = perssonel
         else:
             wh_rent_distribuido = wh_rent / 4
             cost_tech_distribuido = cost_tech / 4
             sales_force_distribuido = sales_force / 4
-            otros_costos_distribuido = otros_costos / 4
-            cost_insumos_distribuido = cost_insumos / 4
+            otros_costos_distribuido = cost_others / 4
+            cost_insumos_distribuido = cost_supply / 4
+            cost_personal_distribuido = perssonel / 4
 
         # Calcular el total de costos fijos
-        opex = round(wh_rent_distribuido + cost_tech_distribuido +  otros_costos_distribuido + cost_insumos_distribuido +costo_logistico, 2)
+        opex = round(wh_rent_distribuido + cost_tech_distribuido +  otros_costos_distribuido + cost_insumos_distribuido +costo_logistico + cost_personal_distribuido, 2)
 
         # Calcular métricas adicionales
         margen_neto  = round(gmv - cogs, 2)  # Utilidad antes de restar costos fijos
@@ -109,7 +112,7 @@ def updateUE():
         # Eliminar registros anteriores que coincidan con el periodo y mes o semana antes de insertar
         unit_economics_collection.delete_many({
             "tipo": periodo,
-            "periodo": nombre_mes if periodo == "mensual" else f"semana {fecha_base.isocalendar()[1]}"
+            "periodo": nombre_mes if periodo == "Mensual" else f"Semanal {fecha_base.isocalendar()[1]}"
         })
 
         def formato_dinero(valor):
@@ -119,7 +122,7 @@ def updateUE():
         unit_economics_collection.insert_one({
             "year": year,
             "tipo": periodo,
-            "periodo": nombre_mes if periodo == "mensual" else f"semana {fecha_base.isocalendar()[1]}",
+            "periodo": nombre_mes if periodo == "Mensual" else f"Semana {fecha_base.isocalendar()[1]}",
             "GMV": formato_dinero(gmv),
             "COGS": formato_dinero(cogs),
             "Last Mile": formato_dinero(costo_logistico),
@@ -128,6 +131,7 @@ def updateUE():
             "Sales Force": formato_dinero(round(sales_force_distribuido, 2)),
             "Others Cost": formato_dinero(round(otros_costos_distribuido, 2)),
             "Supply Cost": formato_dinero(round(cost_insumos_distribuido, 2)),
+            "Perssonel" : formato_dinero(round(cost_personal_distribuido, 2)),
             "Opex": formato_dinero(opex),
             "Net Profit": formato_dinero(utilidad_bruta),
             "Gross Profit as % of GMV": formato_dinero(100-((cogs*100)/gmv)),

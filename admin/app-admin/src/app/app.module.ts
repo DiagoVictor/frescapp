@@ -26,6 +26,7 @@ import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { ListRutasComponent  } from './ruta/list-rutas/list-rutas.component';
 import { StopsComponent  } from './ruta/stops/stops.component';
 import { PricingComponent  } from './pricing/pricing.component';
+import { CostsComponent  } from './costs/costs.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { PricingComponent  } from './pricing/pricing.component';
     SuppliersComponent,
     ListRutasComponent,
     StopsComponent,
-    PricingComponent
+    PricingComponent,
+    CostsComponent
   ],
   bootstrap: [AppComponent],
   imports: [

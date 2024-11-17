@@ -16,7 +16,7 @@ from api.supplier_management import supplier_api
 from api.route_management import route_api
 from api.product_history_management import product_history_api
 from api.ue_management import ue_api
-
+from api.cost_management import cost_api
 if __name__ == '__main__':
     app = Flask(__name__)
     # Configura la aplicación utilizando el archivo config.py
@@ -40,6 +40,7 @@ if __name__ == '__main__':
     app.register_blueprint(supplier_api, url_prefix='/api/supplier')
     app.register_blueprint(route_api, url_prefix='/api/route')
     app.register_blueprint(ue_api, url_prefix='/api/ue')
+    app.register_blueprint(cost_api, url_prefix='/api/cost')
 
     @app.route('/api/shared/<path:filename>')
     def serve_static(filename):
@@ -55,8 +56,8 @@ if __name__ == '__main__':
 
     # Configurar CORS para permitir solicitudes desde cualquier origen
     CORS(app, resources={"/*": {"origins": "*"}})
-    context = ('/etc/ssl/certs/app_buyfrescapp_com.crt', '/etc/ssl/certs/app_buyfrescapp_com.key')
+    #context = ('/etc/ssl/certs/app_buyfrescapp_com.crt', '/etc/ssl/certs/app_buyfrescapp_com.key')
 
-    #app.run(host='0.0.0.0')
-    app.run(host='0.0.0.0', port=5000, ssl_context=context)
+    app.run(host='0.0.0.0')
+    #app.run(host='0.0.0.0', port=5000, ssl_context=context)
 

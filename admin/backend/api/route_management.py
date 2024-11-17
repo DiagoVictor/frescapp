@@ -127,8 +127,7 @@ def update_route():
         status = stop.get('status')
 
         if order_number and status:
-            # Buscar el pedido en la colección 'orders' usando order_number
-            order = orders_collection.update_one({"order_number" : order_number},{"$set": { "status": status}})
+            orders_collection.update_one({"order_number" : order_number},{"$set": { "status": status}})
         else:
             print("Missing order_number or status for stop")
     return jsonify({'message': 'Route updated successfully'}), 200

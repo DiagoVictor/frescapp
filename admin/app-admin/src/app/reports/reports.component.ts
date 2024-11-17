@@ -7,40 +7,21 @@ import { UnitEconomicsService } from '../services/unit-economics.service';
   styleUrls: ['./reports.component.css']
 })
 export class ReportsComponent implements OnInit {
-  ueData = {
-    fecha_base: '',
-    wh_rent: null,
-    cost_tech: null,
-    sales_force: null,
-    otros_costos: null,
-    cost_insumos: null
-  };
-
-  // Variables para almacenar los datos pivotados
+  ueDate: string = '';
   monthlyData: any = {};
   weeklyData: any = {};
   selectedPeriod: string = '';
-  semanas: string[] = ['semana 40','semana 41','semana 42','semana 43','semana 44']; 
-  meses: string[] = ['octubre','noviembre']
-  constructor(private unitEconomicsService: UnitEconomicsService) {}
+  semanas: string[] = ['Semana 40', 'Semana 41', 'Semana 42', 'Semana 43', 'Semana 44'];
+  meses: string[] = ['Octubre', 'Noviembre']
+  constructor(private unitEconomicsService: UnitEconomicsService) { }
 
   ngOnInit(): void {
-    this.getUE(); 
+    this.getUE();
   }
   // Función para actualizar los datos de la UE
   updateUnitEconomics() {
-    const dataToSend = {
-      dateUpdate: this.ueData.fecha_base,
-      wh_rent: this.ueData.wh_rent,
-      cost_tech: this.ueData.cost_tech,
-      sales_force: this.ueData.sales_force,
-      otros_costos: this.ueData.otros_costos,
-      cost_insumos: this.ueData.cost_insumos
-    };
-
-    this.unitEconomicsService.updateUE(dataToSend).subscribe(
+    this.unitEconomicsService.updateUE(this.ueDate).subscribe(
       response => {
-        console.log('UE Actualizada:', response);
         this.getUE(); // Refresca los datos después de la actualización
       },
       error => {
@@ -51,7 +32,7 @@ export class ReportsComponent implements OnInit {
 
   // Función para obtener los datos de las unidades económicas
   getUE() {
-    this.unitEconomicsService.getUE('mensual').subscribe(
+    this.unitEconomicsService.getUE('Mensual').subscribe(
       response => {
         this.monthlyData = this.pivotData(response); // Pivotar los datos mensuales
       },
@@ -60,9 +41,9 @@ export class ReportsComponent implements OnInit {
       }
     );
 
-    this.unitEconomicsService.getUE('semanal').subscribe(
+    this.unitEconomicsService.getUE('Semanal').subscribe(
       response => {
-        this.weeklyData = this.pivotData(response); // Pivotar los datos semanales
+        this.weeklyData = this.pivotData(response);
       },
       error => {
         console.error('Error al obtener los datos de la UE semanal:', error);
@@ -86,7 +67,7 @@ export class ReportsComponent implements OnInit {
         if (!pivotedData[metric]) {
           pivotedData[metric] = {}; // Crear objeto para la métrica
         }
-        
+
         if (!pivotedData[metric][tipo]) {
           pivotedData[metric][tipo] = {}; // Crear objeto para el tipo (mensual/semanal)
         }
@@ -94,8 +75,7 @@ export class ReportsComponent implements OnInit {
         pivotedData[metric][tipo][periodo] = item[metric]; // Asignar valor según tipo y periodo
       });
     });
-    console.log(pivotedData)
     return pivotedData;
-}
+  }
 
 }

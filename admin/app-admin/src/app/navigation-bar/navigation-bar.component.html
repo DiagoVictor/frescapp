@@ -32,6 +32,9 @@
       <li class="nav-item" *ngIf="role == 'administrador'">
         <a class="nav-link" routerLink="/reports" routerLinkActive="active">UE</a>
       </li>
+      <li class="nav-item" *ngIf="role == 'administrador'">
+        <a class="nav-link" routerLink="/costos" routerLinkActive="active">Costos</a>
+      </li>
       <li class="nav-item">
         <a class="nav-link" (click)="logout()">Cerrar Sesión</a>
       </li>

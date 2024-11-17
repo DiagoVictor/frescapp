@@ -22,6 +22,8 @@ export class PricingComponent {
   actionTipo: any = '';
   successMessage: string = '';
   errorMessage: string = '';
+  isLoading: boolean = false;
+
   constructor(private productHistoryService: ProductHistoryService, private router: Router) { }
   ngOnInit(): void {
     this.getProducts(this.searchDate_start,this.searchDate_end);
@@ -51,10 +53,19 @@ export class PricingComponent {
       this.filteredProducts = this.products;
     }
   }
-  updatePrices(operationDate:any){
-    this.productHistoryService.updatePrices(operationDate)
-      .subscribe(products => {
-      });
+  updatePrices(operationDate: any): void {
+    this.isLoading = true; // Activar el estado de carga
+    this.productHistoryService.updatePrices(operationDate).subscribe(
+      products => {
+        // Procesar la respuesta
+        this.successMessage = "Precios actualizados correctamente.";
+        this.isLoading = false; // Desactivar el estado de carga
+      },
+      error => {
+        this.errorMessage = "Hubo un error al actualizar los precios.";
+        this.isLoading = false; // Desactivar el estado de carga
+      }
+    );
   }
   
 }

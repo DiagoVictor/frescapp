@@ -13,7 +13,7 @@ export class UnitEconomicsService {
     return this.http.get(`${this.baseUrl}api/ue/ue/${tipo}`);
   }
 
-  updateUE(consulta: any):Observable<any> {
-    return this.http.post(`${this.baseUrl}api/ue/updateUE`, consulta);
+  updateUE(ueDate:any):Observable<any> {
+    return this.http.post(`${this.baseUrl}api/ue/updateUE`,{"dateUpdate" : ueDate});
   }
 }

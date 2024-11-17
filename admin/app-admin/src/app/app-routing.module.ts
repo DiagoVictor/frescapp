@@ -17,6 +17,7 @@ import { SuppliersComponent  } from './purchases/suppliers/suppliers.component';
 import { StopsComponent  } from './ruta/stops/stops.component';
 import { ListRutasComponent  } from './ruta/list-rutas/list-rutas.component';
 import { PricingComponent  } from './pricing/pricing.component';
+import { CostsComponent  } from './costs/costs.component';
 
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent },
@@ -35,6 +36,7 @@ const routes: Routes = [
   { path: 'suppliers', component: SuppliersComponent },
   { path: 'rutas', component: ListRutasComponent },
   { path: 'precios', component: PricingComponent },
+  { path: 'costos', component: CostsComponent },
   { path: 'stops/:route_number', component: StopsComponent },
   { path: '', component: HomeComponent }
 ];
