@@ -1,13 +1,8 @@
 <div class="container-fluid mt-5">
   <!-- Cuadro de búsqueda -->
   <div class="mb-3">
-    <input
-      type="text"
-      class="form-control"
-      placeholder="Buscar producto..."
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="filterProducts()"
-    />
+    <input type="text" class="form-control" placeholder="Buscar producto..." [(ngModel)]="searchTerm"
+      (ngModelChange)="filterProducts()" />
   </div>
   <table class="table">
     <thead>
@@ -17,18 +12,16 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let product of filteredProducts" 
-          (click)="openEditModal(productModal, product)"
-          [ngClass]="{
+      <tr *ngFor="let product of filteredProducts" (click)="openEditModal(productModal, product)" [ngClass]="{
             'table-success': product.status === 'Registrado',
             'table-warning': product.status === 'Registro parcial',
             'table-primary': product.status === 'Facturada'
           }">
         <td>{{ product.category.substring(0, 3).toUpperCase() + ' - ' + product.name }}</td>
-        <td>{{ product.total_quantity_ordered + ' ' + product.unit }}</td>
+        <td>{{ product.total_quantity + ' ' + product.unit }}</td>
       </tr>
     </tbody>
-  </table>  
+  </table>
 </div>
 
 <ng-template #productModal let-modal>
@@ -48,12 +41,12 @@
     <!-- Campo Precio de Compra con Validación -->
     <div>
       <label>Precio de Compra:</label>
-      <input type="number" [(ngModel)]="this.selectedProduct.final_price_purchase" 
-             (ngModelChange)="validatePrice()" 
-             class="form-control"
-             [ngClass]="{'is-invalid': !isPriceValid && selectedProduct.final_price_purchase !== null}" />
+      <input type="number" [(ngModel)]="this.selectedProduct.final_price_purchase" (ngModelChange)="validatePrice()"
+        class="form-control"
+        [ngClass]="{'is-invalid': !isPriceValid && selectedProduct.final_price_purchase !== null}" />
       <div *ngIf="!isPriceValid && selectedProduct.final_price_purchase !== null" class="invalid-feedback">
-          El precio debe estar entre {{ this.selectedProduct.price_purchase * 0.6  | currency:'USD'}} y {{ this.selectedProduct.price_purchase * 1.4 | currency:'USD'}} del sugerido.
+        El precio debe estar entre {{ this.selectedProduct.price_purchase * 0.6 | currency:'USD'}} y {{
+        this.selectedProduct.price_purchase * 1.4 | currency:'USD'}} del sugerido.
       </div>
     </div>
 
@@ -81,14 +74,22 @@
         </tbody>
       </table>
     </div>
+    <div>
+      <label>Inventario:</label>
+      <span class="form-control">{{ this.selectedProduct.inventory }}</span>
+    </div>
+    <div>
+      <label>Pronóstico:</label>
+      <input type="number" [(ngModel)]="this.selectedProduct.forecast" 
+      class="form-control"/>
+    </div>
   </div>
-
   <!-- Botón Guardar con Condicional de Activación -->
   <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="modal.dismiss('Cancel')">Cancelar</button>
-    <button type="button" class="btn" [ngClass]="{'btn-danger': !isPriceValid, 'btn-primary': isPriceValid}" 
-            (click)="savePrice(); modal.close('Save click')" 
-            [disabled]="!isPriceValid" *ngIf="selectedProduct.status != 'Facturada'">
+    <button type="button" class="btn" [ngClass]="{'btn-danger': !isPriceValid, 'btn-primary': isPriceValid}"
+      (click)="savePrice(); modal.close('Save click')" [disabled]="!isPriceValid"
+      *ngIf="selectedProduct.status != 'Facturada'">
       Guardar
     </button>
   </div>

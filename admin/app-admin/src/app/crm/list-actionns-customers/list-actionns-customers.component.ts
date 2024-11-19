@@ -30,7 +30,6 @@ export class ListActionnsCustomersComponent {
   ngOnInit(): void {
     this.getActions();
     this.selectedManager = localStorage.getItem('username');
-    this.filterDateManager(this.searchDate);
   }
   navigateToaAction(actionNumber: number) {
       this.router.navigate(['/edit_action', actionNumber]);
@@ -57,19 +56,11 @@ export class ListActionnsCustomersComponent {
   }
   
   
-  filterDateManager(dateSearch:any): void {
-    this.selectedManager = localStorage.getItem('username');
-    this.filteredActions = this.actions?.filter(action => {
-      const actionDate = this.datePipe.transform(action.dateAction, 'yyyy-MM-dd');
-      const matchesDate = dateSearch;
-      return matchesDate;
-    });
-  }
   newAction() {
     this.router.navigate(['/newAction']);
   }
   getActions(){
-    this.actionService.getActions().subscribe(
+    this.actionService.getActions(this.searchDate).subscribe(
       (res: any) => {
         this.actions = res;
         this.filteredActions = this.actions;

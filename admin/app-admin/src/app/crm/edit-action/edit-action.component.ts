@@ -143,10 +143,7 @@ export class EditActionComponent implements OnInit {
 
   completar() {
     const bogotaTime = new Date().toLocaleString("en-US", { timeZone: "America/Bogota" });
-    this.actionObject.dateSolution = new Date(bogotaTime).toISOString();
-    
-    this.actionObject.status = 'Completada';
-    
+    this.actionObject.dateSolution = new Date(bogotaTime).toISOString();    
     this.getCurrentLocation();
 
     this.actionService.editAction(this.actionObject.actionNumber, this.actionObject).subscribe((res) => {

@@ -27,8 +27,8 @@ client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/fresca
 db = client['frescapp']
 orders_collection = db['orders']  
 products_collection = db['orders']  
-@report_api.route('/picking/<string:date>', methods=['GET'])
-def get_picking(date):
+@report_api.route('/picking/<string:startDate>/<string:endDate>', methods=['GET'])
+def get_picking(startDate,endDate):
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
@@ -42,13 +42,13 @@ def get_picking(date):
             leading=50  # Espaciado entre líneas para centrar verticalmente
         )
     pdf_content = []
-    orders = orders_collection.find({"delivery_date" : date})
+    orders = orders_collection.find({"delivery_date": {"$gte": startDate, "$lte": endDate }})
     for order in orders:
         if not order:
             return jsonify({'message': 'Order not found'}), 404        
         remision_number = order['order_number']
         remision_paragraph = Paragraph(
-            '<font>Remisión #({}) {}</font>'.format(remision_number, date),
+            '<font>Remisión #({}) {}</font>'.format(remision_number, order['delivery_date']),
             centered_style
         )
         green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
@@ -133,7 +133,7 @@ def get_picking(date):
     pdf.build(pdf_content)
     buffer.seek(0)
     response = Response(buffer, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = 'inline; filename=remisiones_{}_{}.pdf'.format(date,date)
+    response.headers['Content-Disposition'] = 'inline; filename=remisiones_{}_{}.pdf'.format(startDate,endDate)
     return response
 
 @report_api.route('/compras/<string:date>/<string:supplier>', methods=['GET'])

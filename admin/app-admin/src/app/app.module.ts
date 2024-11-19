@@ -27,6 +27,9 @@ import { ListRutasComponent  } from './ruta/list-rutas/list-rutas.component';
 import { StopsComponent  } from './ruta/stops/stops.component';
 import { PricingComponent  } from './pricing/pricing.component';
 import { CostsComponent  } from './costs/costs.component';
+import { InventoryComponent  } from './inventory/inventory.component';
+import { EditInventoryComponent  } from './inventory/edit-inventory/edit-inventory.component';
+
 
 @NgModule({
   declarations: [
@@ -49,7 +52,9 @@ import { CostsComponent  } from './costs/costs.component';
     ListRutasComponent,
     StopsComponent,
     PricingComponent,
-    CostsComponent
+    CostsComponent,
+    InventoryComponent,
+    EditInventoryComponent
   ],
   bootstrap: [AppComponent],
   imports: [

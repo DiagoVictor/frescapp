@@ -66,6 +66,14 @@
             <label for="solutionComment">Detalle Solución:</label>
             <input type="text" class="form-control" id="solutionComment" name="solutionComment" [(ngModel)]="actionObject.solutionComment">
         </div>
+        <div class="form-group mb-3">
+            <label for="solution">Estado:</label>
+            <select class="form-control" id="estado" name="estado" [(ngModel)]="actionObject.status" required>
+                <option value="" disabled selected>Seleccione un estado</option>
+                <option value="Completada"  >Completada</option>
+                <option value="Creada"  >Creada</option>
+            </select>
+        </div>
         <div class="row">
             <div class="col-auto">
                 <button type="button" class="btn btn-primary" (click)="completar()">Completar</button>

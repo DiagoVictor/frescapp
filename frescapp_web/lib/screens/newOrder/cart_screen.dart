@@ -206,11 +206,20 @@ class _CartScreenState extends State<CartScreen> {
                     const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
+            if (total < 100000)
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'El monto mínimo de la orden debe ser 100,000',
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             // Botón para confirmar el pedido
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
-                onPressed: () {
+                onPressed:  total >= 100000 ?() {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -219,7 +228,7 @@ class _CartScreenState extends State<CartScreen> {
                           order : widget.order),
                     ),
                   );
-                },
+                } : null,
                 child: const Text('Confirmar Pedido'),
               ),
             ),
@@ -255,19 +264,19 @@ class _CartScreenState extends State<CartScreen> {
             case 0:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                MaterialPageRoute(builder: (context) => HomeScreen(order: widget.order)),
               );
               break;
             case 1:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                MaterialPageRoute(builder: (context) => OrdersScreen(order: widget.order)),
               );
               break;
             case 2:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                MaterialPageRoute(builder: (context) => ProfileScreen(order: widget.order)),
               );
               break;
             case 3:

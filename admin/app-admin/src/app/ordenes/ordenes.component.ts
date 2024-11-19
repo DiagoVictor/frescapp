@@ -205,7 +205,7 @@ export class OrdenesComponent implements OnInit {
     if (type == 'unique')
       this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('https://app.buyfrescapp.com:5000/api/order/generate_pdf/' + order);
     else
-      this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('https://app.buyfrescapp.com:5000/api/reports/picking/' + this.searchDate);
+      this.pdfData = this.sanitizer.bypassSecurityTrustResourceUrl('https://app.buyfrescapp.com:5000/api/reports/picking/' + this.searchStartDate + '/' + this.searchEndDate);
   }
   getCustomers(){
     this.clienteService.getClientes()

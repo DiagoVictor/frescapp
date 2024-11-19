@@ -239,20 +239,20 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
               case 0:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  MaterialPageRoute(builder: (context) => HomeScreen(order: widget.orderDetails)),
                 );
                 break;
               case 1:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                  MaterialPageRoute(builder: (context) =>  OrdersScreen(order: widget.orderDetails)),
                 );
                 break;
               case 2:
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ProfileScreen()),
+                      builder: (context) => ProfileScreen(order: widget.orderDetails)),
                 );
                 break;
               case 3:

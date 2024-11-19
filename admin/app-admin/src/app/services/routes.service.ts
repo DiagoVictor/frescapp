@@ -15,7 +15,11 @@ export class RoutesService {
     return this.http.get<any[]>(this.baseUrl+'api/route/route/'+routeNumber);
   }
   updateRoute(route: any) {
-    return this.http.put<any>(this.baseUrl+'api/route/route', {'route' : route, 'evidence': ''});
+    const formData = new FormData();
+    
+    // Agregar la información de la ruta como un string JSON
+    formData.append('route', JSON.stringify(route));
+    return this.http.put<any>(this.baseUrl+'api/route/route', formData);
   }
   updateStop(route: any, evidence: File | null) {
     const formData = new FormData();

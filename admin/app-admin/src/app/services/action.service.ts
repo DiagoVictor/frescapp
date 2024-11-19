@@ -17,8 +17,8 @@ export class ActionService {
   }
 
   // Obtener todas las acciones
-  getActions(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}api/action/actions`);
+  getActions(date:any): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}api/action/actions/${date}`);
   }
 
   // Obtener una acción específica por número

@@ -9,9 +9,17 @@
             <input type="date" class="form-control" id="dateAction" name="dateAction"
                 [(ngModel)]="newActionObject.dateAction" required>
         </div>
-
-        <!-- Cliente ID (Modal) -->
         <div class="form-group mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="customerExists" [(ngModel)]="isCustomerExisting"
+                    [ngModelOptions]="{standalone: true}" (change)="onCustomerExistsChange()">
+                <label class="form-check-label" for="customerExists">
+                    ¿El cliente existe?
+                </label>
+            </div>
+        </div>
+        <!-- Cliente ID (Modal) -->
+        <div class="form-group mb-3" *ngIf="isCustomerExisting">
             <label for="customerId">Cliente:</label>
             <div class="input-group">
                 <input type="text" class="form-control" id="customer" name="customer"

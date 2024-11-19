@@ -7,9 +7,11 @@ import 'package:frescapp/api_routes.dart';
 import 'package:frescapp/screens/newOrder/home_screen.dart';
 import 'package:frescapp/screens/orders/orders_screen.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:frescapp/models/order.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+    final Order? order;
+  const ProfileScreen({super.key, this.order});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -197,20 +199,20 @@ void _openWhatsApp(BuildContext context) async {
               case 0:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  MaterialPageRoute(builder: (context) => HomeScreen(order: widget.order)),
                 );
                 break;
               case 1:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                  MaterialPageRoute(builder: (context) => OrdersScreen(order: widget.order)),
                 );
                 break;
               case 2:
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ProfileScreen()),
+                      builder: (context) => ProfileScreen(order: widget.order)),
                 );
                 break;
               case 3:

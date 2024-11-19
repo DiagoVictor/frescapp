@@ -389,14 +389,14 @@ class _HomeScreenState extends State<HomeScreen> {
               case 1:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                  MaterialPageRoute(builder: (context) => OrdersScreen(order: widget.order)),
                 );
                 break;
               case 2:
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ProfileScreen()),
+                      builder: (context) => ProfileScreen(order: widget.order)),
                 );
                 break;
               case 3:

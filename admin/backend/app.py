@@ -17,6 +17,7 @@ from api.route_management import route_api
 from api.product_history_management import product_history_api
 from api.ue_management import ue_api
 from api.cost_management import cost_api
+from api.inventory_management import inventory_api
 if __name__ == '__main__':
     app = Flask(__name__)
     # Configura la aplicación utilizando el archivo config.py
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     app.register_blueprint(route_api, url_prefix='/api/route')
     app.register_blueprint(ue_api, url_prefix='/api/ue')
     app.register_blueprint(cost_api, url_prefix='/api/cost')
-
+    app.register_blueprint(inventory_api, url_prefix='/api/inventory')
     @app.route('/api/shared/<path:filename>')
     def serve_static(filename):
         root_dir = os.path.dirname(os.getcwd())

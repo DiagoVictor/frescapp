@@ -18,6 +18,7 @@ from reportlab.platypus import PageBreak
 import locale
 import certifi
 import urllib.request
+from datetime import datetime, timedelta
 
 
 purchase_api = Blueprint('purchase', __name__)
@@ -28,10 +29,14 @@ purchase_collection = db['purchases']
 
 @purchase_api.route('/create/<string:date>', methods=['GET'])
 def create_purchase(date):
+    date_str = date
+    date_object = datetime.strptime(date, "%Y-%m-%d")
+    yesterday = date_object - timedelta(days=1)
+    yesterday_str = yesterday.strftime("%Y-%m-%d")
     pipeline = [
         {
             "$match": {
-                "delivery_date": date
+                "delivery_date": date_str
             }
         },
         {
@@ -41,7 +46,7 @@ def create_purchase(date):
             "$group": {
                 "_id": {
                     "sku": "$products.sku",
-                    "client_name": "$customer_name"  # Asume que hay un campo client_name en la orden
+                    "client_name": "$customer_name"
                 },
                 "total_quantity_ordered": {"$sum": "$products.quantity"}
             }
@@ -70,13 +75,65 @@ def create_purchase(date):
             "$unwind": "$product_info"
         },
         {
+            "$lookup": {
+                "from": "inventory",
+                "let": {"sku": "$_id", "close_date": yesterday_str},
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": ["$close_date", "$$close_date"]},
+                                    {"$in": ["$$sku", "$products.sku"]}
+                                ]
+                            }
+                        }
+                    },
+                    {"$unwind": "$products"},
+                    {
+                        "$match": {
+                            "$expr": {"$eq": ["$products.sku", "$$sku"]}
+                        }
+                    },
+                    {
+                        "$project": {
+                            "quantity": "$products.quantity",
+                            "_id": 0
+                        }
+                    }
+                ],
+                "as": "inventory_info"
+            }
+        },
+        {
+            "$addFields": {
+                "inventory": {
+                    "$ifNull": [{"$arrayElemAt": ["$inventory_info.quantity", 0]}, 0]
+                }
+            }
+        },
+        {
+            "$addFields": {
+                "total_quantity": {
+                    "$add": [
+                        "$total_quantity_ordered",
+                        { "$ifNull": ["$forecast", 0] },
+                        { "$multiply": ["$inventory", -1] }  # Restamos la cantidad de inventario
+                    ]
+                }
+            }
+        },
+        {
             "$project": {
                 "_id": 0,
                 "sku": "$_id",
                 "name": "$product_info.name",
                 "total_quantity_ordered": 1,
                 "price_purchase": "$product_info.price_purchase",
-                "proveedor": "",
+                "forecast":{"$literal": 0},
+                "inventory": 1,
+                "proveedor" : "",
+                "total_quantity": 1,
                 "category": "$product_info.category",
                 "unit": "$product_info.unit",
                 "status": "Creada",
@@ -86,7 +143,6 @@ def create_purchase(date):
             }
         }
     ]
-
     products = list(orders_collection.aggregate(pipeline))
     if products:
         purchase_number = db['counters'].find_one_and_update(
@@ -143,6 +199,8 @@ def update_price():
     sku = data.get("sku")
     new_price = data.get("final_price_purchase")
     new_proveedor = data.get("proveedor")
+    forecast = data.get("forecast")
+    total_quantity = data.get("total_quantity")
     purchase = purchase_collection.find_one({"purchase_number": purchase_number})
     status = data.get("status")
     if purchase:
@@ -153,6 +211,8 @@ def update_price():
                 product['final_price_purchase'] = new_price
                 product['proveedor'] = new_proveedor
                 product['status'] = status
+                product['forecast'] = forecast
+                product['total_quantity'] = total_quantity
                 updated = True
                 break
 
@@ -171,72 +231,74 @@ def update_price():
 @purchase_api.route('/purchase/report/<string:purchase_number>', methods=['GET'])
 def get_report_purchase(purchase_number):
     pipeline = [
-        {
-            "$match": {
-                "purchase_number": str(purchase_number)  # Asegúrate de que `purchase_number` es una cadena
-            }
-        },
-        {
-            "$unwind": "$products"
-        },
-        {
-            "$unwind": "$products.clients"
-        },
-        {
-            "$group": {
-                "_id": {
-                    "sku": "$products.sku",
-                    "name": "$products.name",
-                    "price_purchase": "$products.price_purchase",
-                    "proveedor": "$products.proveedor.name",
-                    "category": "$products.category",
-                    "unit": "$products.unit"
-                },
-                "total_quantity_ordered": {"$sum": "$products.clients.quantity"},
-                "clients_quantities": {"$push": {"client_name": "$products.clients.client_name", "quantity": "$products.clients.quantity"}},
-                "date": {"$first": "$date"}
-            }
-        },
-        {
-            "$project": {
-                "_id": 0,
-                "sku": "$_id.sku",
-                "name": "$_id.name",
-                "total_quantity_ordered": 1,
-                "price_purchase": "$_id.price_purchase",
-                "proveedor": "$_id.proveedor",
-                "category": "$_id.category",
-                "unit": "$_id.unit",
-                "date": 1,
-                "clients_quantities": {
-                    "$reduce": {
-                        "input": "$clients_quantities",
-                        "initialValue": "",
-                        "in": {
-                            "$concat": [
-                                "$$value",
-                                {
-                                    "$cond": {
-                                        "if": {"$eq": ["$$value", ""]},
-                                        "then": "",
-                                        "else": " - "
-                                    }
-                                },
-                                {"$concat": [ {"$toString": "$$this.quantity"}]}
-                            ]
-                        }
+    {
+        "$match": {
+            "purchase_number": str(purchase_number)  # Asegurarse de que `purchase_number` es una cadena
+        }
+    },
+    {
+        "$unwind": "$products"  # Expandimos el array `products`
+    },
+    {
+        "$unwind": "$products.clients"  # Expandimos el array `clients` dentro de `products`
+    },
+    {
+        "$group": {
+            "_id": {
+                "sku": "$products.sku",
+                "name": "$products.name",
+                "category": "$products.category",
+                "unit": "$products.unit",
+                "price_purchase": "$products.price_purchase"
+            },
+            "date": {"$first": "$date"},  # Preservar la fecha original
+            "clients_quantities": {
+                "$push": {
+                    "client_name": "$products.clients.client_name",
+                    "quantity": "$products.clients.quantity"
+                }
+            },
+            "total_quantity": {"$sum": "$products.clients.quantity"}
+        }
+    },
+    {
+        "$project": {
+            "_id": 0,
+            "sku": "$_id.sku",
+            "name": "$_id.name",
+            "total_quantity": "$total_quantity",
+            "price_purchase": "$_id.price_purchase",
+            "category": "$_id.category",
+            "unit": "$_id.unit",
+            "date": 1,
+            "clients_quantities": {
+                "$reduce": {
+                    "input": "$clients_quantities",
+                    "initialValue": "",
+                    "in": {
+                        "$concat": [
+                            "$$value",
+                            {
+                                "$cond": {
+                                    "if": {"$eq": ["$$value", ""]},
+                                    "then": "",
+                                    "else": " - "
+                                }
+                            },
+                            {"$concat": [ {"$toString": "$$this.quantity"}]}
+                        ]
                     }
                 }
             }
-        },
-        {
-            "$sort": {
-                "category": 1,
-                "name": 1
-            }
         }
-    ]
-
+    },
+    {
+        "$sort": {
+            "category": 1,
+            "name": 1
+        }
+    }
+]
     products = list(purchase_collection.aggregate(pipeline))
 
     buffer = BytesIO()
@@ -267,9 +329,9 @@ def get_report_purchase(purchase_number):
     pdf_content.append(content_table)
     pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
     
-    table_width = 500
+    table_width = 450
     product_data = [
-        ['Nombre', 'Categoria', 'Cant. Total',  'Pick','Precio Unit.', 'Precio Real', 'Proveedor'],  # Encabezado
+        ['Nombre', 'Categoria', 'Cant. Total ', 'Pick','Precio Unit.','Precio Real'],  # Encabezado
     ]
 
     word_wrap_style = styles["Normal"]
@@ -278,18 +340,24 @@ def get_report_purchase(purchase_number):
     for product in products:
         name = product['name'] + " - ( " + product['sku'] + " )"
         clients_quantities = Paragraph(product['clients_quantities'], word_wrap_style)
-        quantity = Paragraph(str(product.get('total_quantity_ordered')) + "  " + str(product.get('unit')), word_wrap_style)
+        quantity = Paragraph(str(product.get('total_quantity')) + "  " + str(product.get('unit')), word_wrap_style)
         price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
         proveedor =  Paragraph('',word_wrap_style)
         name_paragraph = Paragraph(name, word_wrap_style)
-        product_row = [name_paragraph, product.get('category'), quantity, clients_quantities, price, '', proveedor]
+        product_row = [name_paragraph, product.get('category'), quantity, clients_quantities, price,]
         product_data.append(product_row)
     
-    total = locale.format_string('%.2f',sum(round(float(product['total_quantity_ordered']) * float(product['price_purchase']),0) for product in products), grouping=True)
-    product_data.extend([['', '', '', '', '', ''],
-                         ['', '', '', 'Total', total, '']])
+    total = locale.format_string('%.2f',sum(round(float(product['total_quantity']) * float(product['price_purchase']),0) for product in products), grouping=True)
+    product_data.extend([['', '', '', '', '',''],
+                         ['', '', '', 'Total', total,'']])
     
-    col_widths = [(2 / 8) * table_width] + [(1 / 8) * table_width] * 5
+    col_widths = [
+    0.4 * table_width,  # 40%
+    0.15 * table_width,  # 20%
+    0.20 * table_width,  # 20%
+    0.10 * table_width, # 19%
+    0.15 * table_width  # 19%
+    ]
     product_table = Table(product_data, colWidths=col_widths)
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),

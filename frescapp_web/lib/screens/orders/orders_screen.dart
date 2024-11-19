@@ -13,7 +13,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({super.key});
+  final Order? order;
+  const OrdersScreen({super.key, this.order});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -437,19 +438,19 @@ void _editOrder(BuildContext context, Order order) {
               case 0:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  MaterialPageRoute(builder: (context) => HomeScreen(order: widget.order)),
                 );
                 break;
               case 1:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                  MaterialPageRoute(builder: (context) => OrdersScreen(order: widget.order)),
                 );
                 break;
               case 2:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                  MaterialPageRoute(builder: (context) => ProfileScreen(order: widget.order)),
                 );
                 break;
               case 3:

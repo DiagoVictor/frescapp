@@ -45,9 +45,9 @@ def create_action():
     return jsonify({"status": "success", "message": "Action created successfully", "actionNumber": actionNumber}), 201
 
 # Listar todas las acciones
-@action_api.route('/actions', methods=['GET'])
-def list_actions():
-    actions = list(actions_collection.find({}, {'_id': 0}).sort('dateAction', -1))
+@action_api.route('/actions/<string:date>', methods=['GET'])
+def list_actions(date):
+    actions = list(actions_collection.find({"dateAction":date}, {'_id': 0}).sort('dateAction', -1))
     return jsonify(actions), 200
 
 # Obtener una acción específica por número

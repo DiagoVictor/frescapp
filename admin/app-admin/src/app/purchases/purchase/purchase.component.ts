@@ -36,6 +36,14 @@ export class PurchaseComponent {
   }
 
   ngOnInit(): void {
+    this.getPurchase();
+    this.supplierService.getSuppliers().subscribe(
+      (res: any) => {
+        this.suppliers = res;
+      }
+    );
+  }
+  getPurchase(){
     this.purchaseService.getPurchase(this.purchaseNumber).subscribe(
       (res: any) => {
         this.purchase = res;        
@@ -50,13 +58,7 @@ export class PurchaseComponent {
         });
       }
     );
-    this.supplierService.getSuppliers().subscribe(
-      (res: any) => {
-        this.suppliers = res;
-      }
-    );
   }
-
   filterProducts() {
     this.filteredProducts = this.purchase.products.filter((product: any) =>
       product.name.toLowerCase().includes(this.searchTerm.toLowerCase())
@@ -104,6 +106,8 @@ export class PurchaseComponent {
       sku: this.selectedProduct.sku,
       purchase_number: this.purchaseNumber,
       final_price_purchase: this.selectedProduct.final_price_purchase,
+      forecast: this.selectedProduct.forecast,
+      total_quantity: this.selectedProduct.total_quantity_ordered + this.selectedProduct.forecast - this.selectedProduct.inventory,
       proveedor: this.selectedProduct.proveedor,
       status: status 
     };
@@ -112,6 +116,7 @@ export class PurchaseComponent {
       (res: any) => {
         this.successMessage = 'Precio guardado exitosamente.';
         this.errorMessage = null;
+        this.getPurchase();
       },
       (error: any) => {
         this.successMessage = null;

@@ -18,7 +18,8 @@ import { StopsComponent  } from './ruta/stops/stops.component';
 import { ListRutasComponent  } from './ruta/list-rutas/list-rutas.component';
 import { PricingComponent  } from './pricing/pricing.component';
 import { CostsComponent  } from './costs/costs.component';
-
+import { InventoryComponent  } from './inventory/inventory.component';
+import { EditInventoryComponent  } from './inventory/edit-inventory/edit-inventory.component';
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent },
   { path: 'clientes', component: ClientesComponent },
@@ -37,7 +38,9 @@ const routes: Routes = [
   { path: 'rutas', component: ListRutasComponent },
   { path: 'precios', component: PricingComponent },
   { path: 'costos', component: CostsComponent },
+  { path: 'inventories', component: InventoryComponent },
   { path: 'stops/:route_number', component: StopsComponent },
+  { path: 'inventory/:id', component: EditInventoryComponent },
   { path: '', component: HomeComponent }
 ];
 

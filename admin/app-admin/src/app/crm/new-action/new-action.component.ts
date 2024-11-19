@@ -30,6 +30,8 @@ export class NewActionComponent implements OnInit {
   orders: any[] = []; 
   managers: string[] = [];
   searchText: string = '';
+  isCustomerExisting: boolean = true;
+
   constructor(
     private actionService: ActionService,
     private customerService: ClientesService,
@@ -82,7 +84,7 @@ export class NewActionComponent implements OnInit {
 
 
   createAction() {
-    if (!this.newActionObject.dateAction || !this.newActionObject.type || !this.newActionObject.customer.id) {
+    if (!this.newActionObject.dateAction || !this.newActionObject.type) {
       alert('Por favor, completa todos los campos obligatorios.');
       return;
     }
@@ -109,5 +111,21 @@ export class NewActionComponent implements OnInit {
   }
   backList(){
     this.router.navigate(['/crm'])
+  }
+  onCustomerExistsChange(): void {
+    if (!this.isCustomerExisting) {
+      this.newActionObject.customer =   {
+        "address": "",
+        "category": "",
+        "document": "",
+        "document_type": "",
+        "email": "",
+        "latitude": "",
+        "longitude": "",
+        "micro_category": "",
+        "name": "Cliente no existe",
+        "phone": ""
+      }
+    }
   }
 }

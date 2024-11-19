@@ -201,20 +201,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               case 0:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  MaterialPageRoute(builder: (context) => HomeScreen(order : widget.order)),
                 );
                 break;
               case 1:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                  MaterialPageRoute(builder: (context) => OrdersScreen(order: widget.order)),
                 );
                 break;
               case 2:
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ProfileScreen()),
+                      builder: (context) => ProfileScreen(order: widget.order)),
                 );
                 break;
               case 3:
