@@ -52,7 +52,7 @@
           {{ calculateFacturadaPercentage(purchase.products) }}%
         </td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">
-          {{ calculatetotalEstimate(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->
+          {{ calculateTotalEstimate(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->
         </td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">
           {{ calculatetotalReal(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->

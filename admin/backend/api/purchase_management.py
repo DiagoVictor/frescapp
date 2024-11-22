@@ -249,7 +249,8 @@ def get_report_purchase(purchase_number):
                 "name": "$products.name",
                 "category": "$products.category",
                 "unit": "$products.unit",
-                "price_purchase": "$products.price_purchase"
+                "price_purchase": "$products.price_purchase",
+                "total_quantity": "$products.total_quantity"  # Tomar directamente el valor de `total_quantity`
             },
             "date": {"$first": "$date"},  # Preservar la fecha original
             "clients_quantities": {
@@ -257,8 +258,7 @@ def get_report_purchase(purchase_number):
                     "client_name": "$products.clients.client_name",
                     "quantity": "$products.clients.quantity"
                 }
-            },
-            "total_quantity": {"$sum": "$products.clients.quantity"}
+            }
         }
     },
     {
@@ -266,7 +266,7 @@ def get_report_purchase(purchase_number):
             "_id": 0,
             "sku": "$_id.sku",
             "name": "$_id.name",
-            "total_quantity": "$total_quantity",
+            "total_quantity": "$_id.total_quantity",  # Directamente desde el producto
             "price_purchase": "$_id.price_purchase",
             "category": "$_id.category",
             "unit": "$_id.unit",
@@ -285,7 +285,7 @@ def get_report_purchase(purchase_number):
                                     "else": " - "
                                 }
                             },
-                            {"$concat": [ {"$toString": "$$this.quantity"}]}
+                            {"$toString": "$$this.quantity"}
                         ]
                     }
                 }
@@ -299,8 +299,8 @@ def get_report_purchase(purchase_number):
         }
     }
 ]
-    products = list(purchase_collection.aggregate(pipeline))
 
+    products = list(purchase_collection.aggregate(pipeline))
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
@@ -340,14 +340,15 @@ def get_report_purchase(purchase_number):
     for product in products:
         name = product['name'] + " - ( " + product['sku'] + " )"
         clients_quantities = Paragraph(product['clients_quantities'], word_wrap_style)
-        quantity = Paragraph(str(product.get('total_quantity')) + "  " + str(product.get('unit')), word_wrap_style)
+        quantity_value = max(product.get('total_quantity', 0), 0)
+        quantity = Paragraph(f"{quantity_value} {product.get('unit', '')}", word_wrap_style)
         price = locale.format_string('%.2f', round(product.get('price_purchase'),0), grouping=True)
         proveedor =  Paragraph('',word_wrap_style)
         name_paragraph = Paragraph(name, word_wrap_style)
         product_row = [name_paragraph, product.get('category'), quantity, clients_quantities, price,]
         product_data.append(product_row)
     
-    total = locale.format_string('%.2f',sum(round(float(product['total_quantity']) * float(product['price_purchase']),0) for product in products), grouping=True)
+    total = locale.format_string('%.2f',sum(round(float(max(product.get('total_quantity', 0), 0)) * float(product['price_purchase']),0) for product in products), grouping=True)
     product_data.extend([['', '', '', '', '',''],
                          ['', '', '', 'Total', total,'']])
     
@@ -372,5 +373,5 @@ def get_report_purchase(purchase_number):
     pdf.build(pdf_content)
     buffer.seek(0)
     response = Response(buffer, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = 'inline; filename=compra_num_{}_{}.pdf'.format(purchase_number, purchase_number)
+    response.headers['Content-Disposition'] = 'inline; filename=compra_num_{}_{}.pdf'.format(purchase_number, str(products[0].get('date')))
     return response

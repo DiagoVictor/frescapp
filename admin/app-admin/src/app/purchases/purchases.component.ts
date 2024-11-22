@@ -108,12 +108,14 @@ export class PurchasesComponent {
     const registeredCount = products.filter(product => product.status === 'Facturada').length;
     return Math.round((registeredCount / products.length) * 100);
   }
-  calculatetotalEstimate(products: any[]): number {
+  calculateTotalEstimate(products: any[]): number {
     return products.reduce((total, product) => {
-      const productTotal = (product.price_purchase || 0) * (product.total_quantity || 0);
+      const totalQuantity = Math.max(product.total_quantity || 0, 0); // Asegura que no sea menor a 0
+      const productTotal = (product.price_purchase || 0) * totalQuantity;
       return total + productTotal;
     }, 0);
-  }  
+  }
+   
   calculatetotalReal(products: any[]): number {
     return products.reduce((total, product) => {
       const productTotal = (product.final_price_purchase || 0) * (product.total_quantity_ordered || 0);
