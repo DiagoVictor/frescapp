@@ -79,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Usuario creado exitosamente')),
+        const SnackBar(content: Text('Usuario creado exitosamente')),
       );
       Navigator.push(
         // ignore: use_build_context_synchronously

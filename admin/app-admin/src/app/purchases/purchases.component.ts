@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { PurchaseService } from '../services/purchase.service';
+import { ProductService } from '../services/product.service';
 import { Router } from '@angular/router';
 import { AlegraService } from '../services/alegra.service';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -17,12 +18,20 @@ export class PurchasesComponent {
   fechaNewOrder: string = '';
   messagePurchase = '';
   statusCodePurchase = '';
+  productSelect:any = {};
+  quantityProdcutSelect:number = 0;
+  newItem:any = {};
+  products:any[] = [];
+  purchaseSelect:any =  '';
   pdfData:any;
+  product: any;
   constructor(
     private purchaseService: PurchaseService,
     private alegraService: AlegraService,
     private router: Router,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private productService: ProductService
+
   ){}
   ngOnInit(): void {
     this.getPurchases();
@@ -51,7 +60,7 @@ export class PurchasesComponent {
       },
       (error: any) => {
         this.messagePurchase = 'Fallo al crear la Orden de compra.';
-        this.statusCodePurchase = error.status || '500'; 
+        this.statusCodePurchase = error.status || '500';
         setTimeout(() => {
           this.messagePurchase = '';
         }, 3000);
@@ -80,7 +89,7 @@ export class PurchasesComponent {
       },
       (error: any) => {
         this.messagePurchase = 'Fallo al eliminar la Orden de compra.';
-        this.statusCodePurchase = error.status || '500'; 
+        this.statusCodePurchase = error.status || '500';
         setTimeout(() => {
           this.messagePurchase = '';
         }, 3000);
@@ -115,13 +124,13 @@ export class PurchasesComponent {
       return total + productTotal;
     }, 0);
   }
-   
+
   calculatetotalReal(products: any[]): number {
     return products.reduce((total, product) => {
       const productTotal = (product.final_price_purchase || 0) * (product.total_quantity_ordered || 0);
       return total + productTotal;
     }, 0);
-  }  
+  }
   downloadExcel(purchase: any) {
     const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
     const EXCEL_EXTENSION = '.xlsx';
@@ -136,11 +145,11 @@ export class PurchasesComponent {
       Total_Real: product.final_price_purchase * product.total_quantity_ordered,
       status : product.status
     }));
-  
+
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = { Sheets: { 'Productos': worksheet }, SheetNames: ['Productos'] };
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  
+
     // Descargar el archivo Excel
     const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
     const fileName = `Compra_${purchase.purchase_number}.xlsx`;
@@ -158,12 +167,65 @@ export class PurchasesComponent {
       },
       (error: any) => {
         this.messagePurchase = 'Fallo al sincronizar las Ordenes de compra.';
-        this.statusCodePurchase = error.status || '500'; 
+        this.statusCodePurchase = error.status || '500';
         setTimeout(() => {
           this.messagePurchase = '';
         }, 3000);
       }
     );
     this.getPurchases();
+   }
+   setPurchase(purchase: any) {
+    this.purchaseSelect = purchase;
+    this.productService.getProducts()
+      .subscribe(
+        (data: any) => {
+          // Filtrar productos donde root sea igual a 1
+          this.products = data.filter((product: any) => product.root === "1");
+        },
+        (error: any) => {
+          console.error("Error al obtener los productos:", error);
+        }
+      );
+  }
+   onProductSelect(product:any): void {
+    if (product) {
+      this.newItem.total_quantity_ordered = 0;
+      this.newItem.clients = [];
+      this.newItem.sku = product.sku;
+      this.newItem.name = product.name;
+      this.newItem.price_purchase = product.price_purchase;
+      this.newItem.proveedor = '';
+      this.newItem.category  = product.category;
+      this.newItem.unit = product.unit;
+      this.newItem.status = 'Creada';
+      this.newItem.link_document_support = '';
+      this.newItem.final_price_purchase = 0;
+      this.newItem.forecast = this.quantityProdcutSelect;
+      this.newItem.inventory = 0;
+      this.newItem.total_quantity = this.quantityProdcutSelect;
+    }
+  }
+   add_item(){
+    this.newItem.forecast = this.quantityProdcutSelect;
+    this.newItem.total_quantity = this.quantityProdcutSelect;
+    this.purchaseSelect.products.push(this.newItem);
+    this.purchaseService.updatePurchase(this.purchaseSelect).subscribe(
+      (res: any) => {
+        this.getPurchases();
+        this.messagePurchase = 'Orden de compra editada exitosamente!';
+        this.statusCodePurchase = res.statusCode || '200';
+        setTimeout(() => {
+          this.messagePurchase = '';
+        }, 3000);
+      },
+      (error: any) => {
+        this.messagePurchase = 'Fallo al editar la Orden de compra.';
+        this.statusCodePurchase = error.status || '500';
+        setTimeout(() => {
+          this.messagePurchase = '';
+        }, 3000);
+      }
+    );
    }
 }

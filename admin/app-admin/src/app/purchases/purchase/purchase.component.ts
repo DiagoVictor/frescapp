@@ -22,7 +22,7 @@ export class PurchaseComponent {
   successMessage: string | null = null;
   errorMessage: string | null = null;
   suppliers: any[] = [];
-  private priceTolerance = 0.4;
+  private priceTolerance = 2;
   isPriceValid: boolean = true;
   constructor(
     private route: ActivatedRoute,
@@ -46,7 +46,7 @@ export class PurchaseComponent {
   getPurchase(){
     this.purchaseService.getPurchase(this.purchaseNumber).subscribe(
       (res: any) => {
-        this.purchase = res;        
+        this.purchase = res;
         this.filteredProducts = this.purchase.products.sort((a: any, b: any) => {
           if (a.category.toLowerCase() < b.category.toLowerCase()) {
             return -1;
@@ -109,9 +109,9 @@ export class PurchaseComponent {
       forecast: this.selectedProduct.forecast,
       total_quantity: this.selectedProduct.total_quantity_ordered + this.selectedProduct.forecast - this.selectedProduct.inventory,
       proveedor: this.selectedProduct.proveedor,
-      status: status 
+      status: status
     };
-  
+
     this.purchaseService.updatePrice(data).subscribe(
       (res: any) => {
         this.successMessage = 'Precio guardado exitosamente.';

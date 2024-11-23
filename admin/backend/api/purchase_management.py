@@ -177,11 +177,11 @@ def get_purchase(purchaseNumber):
     purchase = purchase_collection.find_one({"purchase_number" : purchaseNumber}, {'_id': 0})
     return jsonify(purchase), 200
 
-@purchase_api.route('/purchase/<int:purchase_number>', methods=['PUT'])
-def edit_purchase(purchase_number):
-    data = request.json
+@purchase_api.route('/purchase', methods=['PUT'])
+def edit_purchase():
+    data = request.get_json()
     result = purchase_collection.update_one(
-        {"purchase_number": purchase_number},
+        {"purchase_number": data.get('purchase_number')},
         {"$set": data}
     )
     if result.matched_count:

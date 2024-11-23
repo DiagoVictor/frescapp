@@ -15,8 +15,8 @@ export class PurchaseService {
   getPurchase(purchaseNumber:any):Observable<any> {
     return this.http.get<any[]>(this.baseUrl+'api/purchase/purchase/'+purchaseNumber);
   }
-  updatePurchase(cliente: any)  {
-    return this.http.put(`${this.baseUrl}/${cliente._id}`, cliente);
+  updatePurchase(purchase: any)  {
+    return this.http.put(this.baseUrl +'api/purchase/purchase',purchase);
   }
 
   deletePurchase(purchase_number: string) {

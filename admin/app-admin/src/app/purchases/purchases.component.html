@@ -9,19 +9,19 @@
         <i class="fas fa-plus-circle fa-lg"></i>
         Nueva compra</button>
     </div>
-  
+
     <div class="col-auto">
       <button type="button" class="btn btn-primary"  routerLink="/suppliers">
         <i class="fas fa-user fa-lg"></i>
         Proveedores</button>
     </div>
   </div>
-  
+
   <div *ngIf="messagePurchase" class="alert alert-success alert-dismissible fade show" role="alert">
     {{ messagePurchase }}
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
-  
+
   <table class="table">
     <thead>
       <tr>
@@ -31,9 +31,9 @@
         <th>Porc. Registrado</th>
         <th>Porc. Registro Pacial</th>
         <th>Porc. Facturado</th>
-        <th>Total Estimado</th> 
-        <th>Total Real</th> 
-        <th>Estado</th> 
+        <th>Total Estimado</th>
+        <th>Total Real</th>
+        <th>Estado</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -60,10 +60,10 @@
         <td (click)="navigateToPurchase(purchase.purchase_number)">{{ purchase.status }}</td>
         <td>
           <div class="row">
-            <div class="col-auto">
-              <span (click)="openPdfModal(purchase.purchase_number)" style="cursor: pointer;" data-bs-toggle="modal"
-                data-bs-target="#pdfModal" data-bs-dismiss="modal">
-                <i class="fas fa-file-pdf fa-lg text-primary"></i>
+            <div class="col-auto" *ngIf="purchase.status == 'Creada'">
+              <span style="cursor: pointer;" data-bs-toggle="modal" (click)="setPurchase(purchase)"
+                data-bs-target="#addItem" data-bs-dismiss="modal">
+                <i class="fas fa-plus-circle fa-lg text-primary"></i>
               </span>
             </div>
             <div class="col-auto" *ngIf="purchase.status == 'Creada'">
@@ -121,6 +121,50 @@
         <iframe [src]="this.pdfData" type="application/pdf" width="100%" height="600px"></iframe>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="addItem" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" >Agregar producto a Orden de Compra</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ng-select
+        [items]="products"
+        bindLabel="name"
+        bindValue="id"
+        [searchable]="true"
+        [(ngModel)]="productSelect"
+        (change)="onProductSelect($event)">
+      </ng-select>
+      <br>
+      <div *ngIf="newItem.sku">
+        <label >SKU:</label>
+        <span class="form-control">{{ newItem?.sku }}</span>
+      </div>
+      <br>
+      <div *ngIf="newItem.sku">
+        <label>Unidad:</label>
+        <span class="form-control">{{ this.newItem?.unit }}</span>
+      </div>
+      <br>
+      <div *ngIf="newItem.sku">
+        <label>Precio de compra sugerido:</label>
+        <span class="form-control">{{ this.newItem?.price_purchase | currency:'USD' }}</span>
+      </div>
+      <br>
+      <div *ngIf="newItem.sku">
+        <label>Cantidad Pronóstico:</label>
+        <input type="number" class="form-control"  [(ngModel)]="this.quantityProdcutSelect" />
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="add_item()" [disabled]="!newItem.sku">Agregar</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
