@@ -5,9 +5,11 @@ from flask_bcrypt import Bcrypt
 from datetime import datetime
 from decimal import Decimal
 import pandas as pd
-import os
+import os, math
 import json, requests
 from pymongo import MongoClient
+
+
 product_history_api = Blueprint('products_history', __name__)
 
 @product_history_api.route('/products_history/<string:operation_date_start>/<string:operation_date_end>', methods=['GET'])
@@ -293,6 +295,57 @@ def products_history_new(operation_date):
         coleccion_historial.delete_many({"operation_date": operation_date})
         client.close()
 
+    def update_price_page():
+        consumer_key = 'ck_203177d4d7a291000f60cd669ab7cb98976b3620'
+        consumer_secret = 'cs_d660a52cd323666cad9b600a9d61ed6c577cd6f9'
+        base_url = 'https://www.buyfrescapp.com/wp-json/wc/v3/products'
+        # Conexión a MongoDB
+        client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
+        db = client['frescapp']
+        collection = db['products']
+        woo_products = []
+        for page in range(1, 5):  # Iterar tres páginas
+            url = f'{base_url}?consumer_key={consumer_key}&consumer_secret={consumer_secret}&per_page=100&page={page}'
+            response = requests.get(url)
+            if response.status_code == 200:
+                woo_products.extend(response.json())
+            else:
+                print(f"Error al obtener productos de WooCommerce en la página {page}: {response.status_code}")
+                break
+
+            # Obtener productos de MongoDB
+            mongo_products = list(collection.find({"status": "active"}, {"name": 1, "sku": 1, "price_sale": 1, "category": 1}))
+
+            # Hacer el emparejamiento por SKU
+            matched_products = []
+            for woo_product in woo_products:
+                woo_sku = woo_product.get("sku")
+                if woo_sku:
+                    # Buscar el producto en MongoDB por SKU
+                    mongo_product = next((prod for prod in mongo_products if prod.get("sku") == woo_sku), None)
+                    if mongo_product:
+                        matched_products.append({
+                            "id": woo_product.get("id"),
+                            "name": mongo_product.get("name"),
+                            "sku": mongo_product.get("sku"),
+                            "sale_price": mongo_product.get("price_sale"),
+                            "price": mongo_product.get("price_sale"),
+                            "regular_price": mongo_product.get("price_sale")
+                        })
+            # Enviar productos en lotes de 100
+            batch_size = 100
+            total_batches = math.ceil(len(matched_products) / batch_size)
+
+            for batch_index in range(total_batches):
+                start = batch_index * batch_size
+                end = start + batch_size
+                batch = matched_products[start:end]
+            
+            # Endpoint de actualización batch
+            url_update = f'{base_url}/batch?consumer_key={consumer_key}&consumer_secret={consumer_secret}'
+            actualizacion = requests.post(url_update, json={"update": batch})
+
+    
     uri = 'mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp'
     db_name = "frescapp"
     coleccion_origen = "products"
@@ -306,6 +359,7 @@ def products_history_new(operation_date):
     data = extractDataFromExcel(filepath, operation_date)
     copiar_productos_activos_y_actualizar(uri, db_name, coleccion_origen, coleccion_destino, operation_date, data)
     actualizar_precios_en_products(uri, db_name, coleccion_destino, operation_date)
+    update_price_page()
     if os.path.exists(filepath):
         os.remove(filepath)
     print("Fin del proceso / Productos actualizados.")
