@@ -8,7 +8,7 @@
     <thead>
       <tr>
         <th (click)="sortBy('name')">Producto</th>
-        <th (click)="sortBy('total_quantity_ordered')">Cantidad</th>
+        <th (click)="sortBy('total_quantity')">Cantidad</th>
       </tr>
     </thead>
     <tbody>
@@ -18,7 +18,7 @@
             'table-primary': product.status === 'Facturada'
           }">
         <td>{{ product.category.substring(0, 3).toUpperCase() + ' - ' + product.name }}</td>
-        <td>{{ product.total_quantity + ' ' + product.unit }}</td>
+        <td>{{ round(product.total_quantity) + ' ' + product.unit }}</td>
       </tr>
     </tbody>
   </table>
@@ -80,7 +80,7 @@
     </div>
     <div>
       <label>Pronóstico:</label>
-      <input type="number" [(ngModel)]="this.selectedProduct.forecast" 
+      <input type="number" [(ngModel)]="this.selectedProduct.forecast"
       class="form-control"/>
     </div>
   </div>

@@ -30,7 +30,7 @@ export class InventoryComponent {
       },
       (error: any) => {
         this.messageInventory = 'Fallo al crear el Inventario.';
-        this.statusCodeInventory = error.status || '500'; 
+        this.statusCodeInventory = error.status || '500';
         setTimeout(() => {
           this.messageInventory = '';
         }, 3000);
@@ -49,7 +49,7 @@ export class InventoryComponent {
       },
       (error: any) => {
         this.messageInventory = 'Fallo al eliminar el Inventario.';
-        this.statusCodeInventory = error.status || '500'; 
+        this.statusCodeInventory = error.status || '500';
         setTimeout(() => {
           this.messageInventory = '';
         }, 3000);
@@ -59,12 +59,15 @@ export class InventoryComponent {
   navigateToInventory(id:any){
     this.router.navigate(['/inventory', id]);
   }
-  getInventories(){
+  getInventories() {
     this.inventoryService.getInventories().subscribe(
       (res: any) => {
-        this.inventories = res;
+        // Ordenar los inventarios por close_date de mayor a menor
+        this.inventories = res.sort((a: any, b: any) => {
+          return new Date(b.close_date).getTime() - new Date(a.close_date).getTime();
+        });
       }
-      )
+    );
   }
 
   productsCost(products: any[]){

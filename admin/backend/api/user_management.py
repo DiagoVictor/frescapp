@@ -26,8 +26,7 @@ def login():
     bcrypt = Bcrypt()
     user_data = customers_collection.find_one({
         '$or': [
-            {'email': user},  # Busca el email tal como es
-            {'phone': user}   # Busca el teléfono tal como es
+            {'user': user}
         ]
     })  
     if user_data:

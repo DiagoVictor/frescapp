@@ -60,6 +60,12 @@
         <td (click)="navigateToPurchase(purchase.purchase_number)">{{ purchase.status }}</td>
         <td>
           <div class="row">
+            <div class="col-auto">
+              <span (click)="openPdfModal(purchase.purchase_number)" style="cursor: pointer;" data-bs-toggle="modal"
+                data-bs-target="#pdfModal" data-bs-dismiss="modal">
+                <i class="fas fa-file-pdf fa-lg text-primary"></i>
+              </span>
+            </div>
             <div class="col-auto" *ngIf="purchase.status == 'Creada'">
               <span style="cursor: pointer;" data-bs-toggle="modal" (click)="setPurchase(purchase)"
                 data-bs-target="#addItem" data-bs-dismiss="modal">

@@ -75,7 +75,12 @@ class Product:
             "factor_volumen" : self.factor_volumen,
             "sipsa_id" : self.sipsa_id,
             "last_price_purchase" : self.last_price_purchase,
-            "quantity" : self.quantity
+            "quantity" : int(self.quantity),
+            "root":self.root,
+            "child": self.child,
+            "step_unit":self.step_unit,
+            "proveedor" : self.proveedor,
+            "rate_root" : self.rate_root
         }
         result = products_collection.insert_one(product_data)
         return result.inserted_id
@@ -100,7 +105,13 @@ class Product:
                         "step_unit_sipsa" : self.step_unit_sipsa,
                         "factor_volumen" : self.factor_volumen,
                         "sipsa_id" : self.sipsa_id,
-                        "last_price_purchase" : self.last_price_purchase
+                        "last_price_purchase" : self.last_price_purchase,
+                        "quantity" : self.quantity,
+                        "root":self.root,
+                        "child": self.child,
+                        "step_unit":self.step_unit,
+                        "proveedor" : self.proveedor,
+                        "rate_root" : self.rate_root
                     }
             }
         )

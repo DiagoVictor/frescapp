@@ -17,24 +17,30 @@ product_api = Blueprint('product', __name__)
 @product_api.route('/product', methods=['POST'])
 def create_product():
     data = request.get_json()
+    print(data)
     name = data.get('name')
     unit = data.get('unit')
     category = data.get('category')
     sku = data.get('sku')  
-    price_sale = Decimal(data.get('price_sale')) if data.get('price_sale') else None
-    price_purchase = Decimal(data.get('price_purchase')) if data.get('price_purchase') else None
-    discount = Decimal(data.get('discount')) if data.get('discount') else None
-    margen = Decimal(data.get('margen')) if data.get('margen') else None
-    iva = data.get('iva').lower()  if data.get('iva') else None
-    iva_value = Decimal(data.get('iva_value')) if data.get('iva_value') else None
+    price_sale = float(data.get('price_sale')) if data.get('price_sale') else 0
+    price_purchase = float(data.get('price_purchase')) if data.get('price_purchase') else 0
+    discount = float(data.get('discount')) if data.get('discount') else 0
+    margen = float(data.get('margen')) if data.get('margen') else 0
+    iva = data.get('iva').lower()  if bool(data.get('iva')) else False
+    iva_value = float(data.get('iva_value')) if data.get('iva_value') else 0
     description = data.get('description')
     image = data.get('image')
     status = data.get('status')
     quantity = data.get('quantity')
+    step_unit = data.get('step_unit')
+    root = data.get('root')
+    child = data.get('child')
     step_unit_sipsa = data.get('step_unit_sipsa')
     factor_volumen = data.get('factor_volumen')
     sipsa_id = data.get('sipsa_id')
-    last_price_purchase = data.get('last_price_purchase') 
+    last_price_purchase = data.get('price_purchase') 
+    proveedor = ''
+    rate_root = 0
     if not sku or not name:
         return jsonify({'message': 'Missing required fields'}), 400
 
@@ -57,9 +63,15 @@ def create_product():
         status = status,
         quantity = quantity,
         step_unit_sipsa = step_unit_sipsa,
+        step_unit = step_unit,
         factor_volumen = factor_volumen,
         sipsa_id = sipsa_id,
-        last_price_purchase = last_price_purchase
+        last_price_purchase = last_price_purchase,
+        proveedor= proveedor,
+        rate_root = rate_root,
+        root = root,
+        child = child
+
     )
     product.save()
     return jsonify({'message': 'Product created successfully'}), 201
@@ -82,8 +94,12 @@ def update_product(product_id):
     image = data.get('image')
     status = data.get('status')
     quantity = data.get('quantity')
+    root   =   data.get('root')
+    child   =  data.get('child')
+    step_unit  = data.get('step_unit')
     last_price_purchase = data.get('last_price_purchase')
-
+    proveedor = data.get('proveedor')
+    rate_root = data.get('rate_root')
     product = Product.object(product_id)
     if not product:
         return jsonify({'message': 'Product not found'}), 404
@@ -104,6 +120,11 @@ def update_product(product_id):
     product.status = status or product.status
     product.quantity = quantity or product.quantity
     product.last_price_purchase = last_price_purchase or product.last_price_purchase
+    product.root = root or product.root
+    product.child = child or product.child
+    product.step_unit = step_unit or product.step_unit
+    product.proveedor = proveedor or product.proveedor
+    product.rate_root = rate_root or product.rate_root
     product.updated()
 
     return jsonify({'message': 'Product updated successfully'}), 200

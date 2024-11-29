@@ -49,7 +49,7 @@ def create_inventory(close_date):
             "quantity": 0,  
             "cost": product["price_purchase"]
         }
-        for product in products_data
+        for product in products_data if product.get("root") == "1" 
     ]
     item = Inventory(
         close_date=close_date,

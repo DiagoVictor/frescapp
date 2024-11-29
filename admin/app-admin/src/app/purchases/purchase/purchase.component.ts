@@ -131,5 +131,8 @@ export class PurchaseComponent {
     this.isPriceValid = this.selectedProduct.final_price_purchase >= minPrice &&
                         this.selectedProduct.final_price_purchase <= maxPrice;
   }
-
+  round(value: number): number {
+    // Redondea el número a un entero (una cifra)
+    return Math.round(value);
+  }
 }

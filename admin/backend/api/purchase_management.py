@@ -33,121 +33,147 @@ def create_purchase(date):
     date_object = datetime.strptime(date, "%Y-%m-%d")
     yesterday = date_object - timedelta(days=1)
     yesterday_str = yesterday.strftime("%Y-%m-%d")
+    
     pipeline = [ 
-    {
-        "$match": {
-            "delivery_date": date_str
-        }
-    },
-    {
-        "$unwind": "$products"
-    },
-    {
-        "$group": {
-            "_id": {
-                "sku": "$products.sku",
-                "client_name": "$customer_name"
-            },
-            "total_quantity_ordered": {"$sum": "$products.quantity"}
-        }
-    },
-    {
-        "$group": {
-            "_id": "$_id.sku",
-            "total_quantity_ordered": {"$sum": "$total_quantity_ordered"},
-            "clients": {
-                "$push": {
-                    "client_name": "$_id.client_name",
-                    "quantity": "$total_quantity_ordered"
+        {
+            "$match": {
+                "delivery_date": date_str
+            }
+        },
+        {
+            "$unwind": "$products"
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "products.sku",
+                "foreignField": "sku",
+                "as": "product_info"
+            }
+        },
+        {
+            "$unwind": "$product_info"
+        },
+        {
+            "$addFields": {
+                "is_child": {"$eq": ["$product_info.root", "0"]},
+                "parent_sku": "$product_info.child",
+                "adjusted_quantity": {
+                    "$cond": {
+                        "if": {"$eq": ["$product_info.root", "0"]},
+                        "then": {"$multiply": ["$products.quantity", "$product_info.step_unit"]},
+                        "else": "$products.quantity"
+                    }
                 }
             }
-        }
-    },
-    {
-        "$lookup": {
-            "from": "products",
-            "localField": "_id",
-            "foreignField": "sku",
-            "as": "product_info"
-        }
-    },
-    {
-        "$unwind": "$product_info"
-    },
-    {
-        "$lookup": {
-            "from": "inventory",
-            "let": {"sku": "$_id", "close_date": yesterday_str},
-            "pipeline": [
-                {
-                    "$match": {
-                        "$expr": {
-                            "$and": [
-                                {"$eq": ["$close_date", "$$close_date"]},
-                                {"$in": ["$$sku", "$products.sku"]}
-                            ]
+        },
+        {
+            "$group": {
+                "_id": {
+                    "sku": {"$cond": [{"$eq": ["$is_child", True]}, "$parent_sku", "$products.sku"]},
+                    "client_name": "$customer_name"
+                },
+                "total_quantity_ordered": {"$sum": "$adjusted_quantity"}
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id.sku",
+                "total_quantity_ordered": {"$sum": "$total_quantity_ordered"},
+                "clients": {
+                    "$push": {
+                        "client_name": "$_id.client_name",
+                        "quantity": "$total_quantity_ordered"
+                    }
+                }
+            }
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "_id",
+                "foreignField": "sku",
+                "as": "product_info"
+            }
+        },
+        {
+            "$unwind": "$product_info"
+        },
+        {
+            "$lookup": {
+                "from": "inventory",
+                "let": {"sku": "$_id", "close_date": yesterday_str},
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": ["$close_date", "$$close_date"]},
+                                    {"$in": ["$$sku", "$products.sku"]}
+                                ]
+                            }
+                        }
+                    },
+                    {"$unwind": "$products"},
+                    {
+                        "$match": {
+                            "$expr": {"$eq": ["$products.sku", "$$sku"]}
+                        }
+                    },
+                    {
+                        "$project": {
+                            "quantity": "$products.quantity",
+                            "_id": 0
                         }
                     }
-                },
-                {"$unwind": "$products"},
-                {
-                    "$match": {
-                        "$expr": {"$eq": ["$products.sku", "$$sku"]}
-                    }
-                },
-                {
-                    "$project": {
-                        "quantity": "$products.quantity",
-                        "_id": 0
-                    }
+                ],
+                "as": "inventory_info"
+            }
+        },
+        {
+            "$addFields": {
+                "inventory": {
+                    "$ifNull": [{"$arrayElemAt": ["$inventory_info.quantity", 0]}, 0]
                 }
-            ],
-            "as": "inventory_info"
-        }
-    },
-    {
-        "$addFields": {
-            "inventory": {
-                "$ifNull": [{"$arrayElemAt": ["$inventory_info.quantity", 0]}, 0]
+            }
+        },
+        {
+            "$addFields": {
+                "total_quantity": {
+                    "$add": [
+                        "$total_quantity_ordered",
+                        {"$ifNull": ["$forecast", 0]},
+                        {"$multiply": ["$inventory", -1]}
+                    ]
+                }
+            }
+        },
+        {
+            "$match": {
+                "total_quantity": {"$gt": 0}
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "sku": "$_id",
+                "name": "$product_info.name",
+                "total_quantity_ordered": 1,
+                "price_purchase": "$product_info.price_purchase",
+                "forecast": {"$literal": 0},
+                "inventory": 1,
+                "proveedor": "",
+                "total_quantity": 1,
+                "category": "$product_info.category",
+                "unit": "$product_info.unit",
+                "status": "Creada",
+                "link_document_support": "",
+                "final_price_purchase": {"$literal": 0.0},
+                "clients": 1
             }
         }
-    },
-    {
-        "$addFields": {
-            "total_quantity": {
-                "$add": [
-                    "$total_quantity_ordered",
-                    {"$ifNull": ["$forecast", 0]},
-                    {"$multiply": ["$inventory", -1]}  # Restamos la cantidad de inventario
-                ]
-            }
-        }
-    },
-    {
-        "$match": {  # Filtramos para incluir solo los documentos con `total_quantity` > 0
-            "total_quantity": {"$gt": 0}
-        }
-    },
-    {
-        "$project": {
-            "_id": 0,
-            "sku": "$_id",
-            "name": "$product_info.name",
-            "total_quantity_ordered": 1,
-            "price_purchase": "$product_info.price_purchase",
-            "forecast": {"$literal": 0},
-            "inventory": 1,
-            "proveedor": "",
-            "total_quantity": 1,
-            "category": "$product_info.category",
-            "unit": "$product_info.unit",
-            "status": "Creada",
-            "link_document_support": "",
-            "final_price_purchase": {"$literal": 0.0},
-            "clients": 1
-        }
-    }
-]
+    ]
+
     products = list(orders_collection.aggregate(pipeline))
     if products:
         purchase_number = db['counters'].find_one_and_update(

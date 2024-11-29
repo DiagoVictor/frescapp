@@ -16,7 +16,8 @@ export class ProductsComponent implements OnInit {
   actionTipo: any = '';
   successMessage: string = '';
   errorMessage: string = '';
-
+  sortColumn: string = '';
+  sortDirection: number = 1;
   constructor(private productService: ProductService, private router: Router) { }
 
   ngOnInit(): void {
@@ -50,9 +51,17 @@ export class ProductsComponent implements OnInit {
 
   filterProducts(): void {
     if (this.searchText.trim() !== '') {
+      const searchTextLower = this.searchText.toLowerCase();
+
       this.filteredProducts = this.products.filter(product => {
-        // Filtra los productos cuyo nombre contiene el texto de búsqueda
-        return product.name.toLowerCase().includes(this.searchText.toLowerCase());
+        // Verifica si el texto de búsqueda coincide con alguno de los atributos del producto
+        return (
+          product.name.toLowerCase().includes(searchTextLower) || // Coincidencia en el nombre
+          product.unit?.toLowerCase().includes(searchTextLower) || // Coincidencia en la descripción
+          product.category?.toLowerCase().includes(searchTextLower) || // Coincidencia en la categoría
+          product.sku?.toLowerCase().includes(searchTextLower) || // Coincidencia en el SKU
+          product.child?.toString().includes(searchTextLower) // Coincidencia en el precio
+        );
       });
     } else {
       // Si no hay texto de búsqueda, muestra todos los productos
@@ -96,40 +105,25 @@ export class ProductsComponent implements OnInit {
     // Convierte el campo iva a tipo boolean
     this.product.iva = this.product.iva === 'true' ? true : false;
     this.productService.createProduct(this.product).subscribe((data: any) => {
+      this.getProducts();
     });
-    this.getProducts(); // Actualiza la lista de productos después de crear uno
+
   }
   camposCompletos(): boolean {
     const { name, unit, category, sku, price_sale, price_purchase, discount, margen, iva, iva_value, description, image, status } = this.product;
     return !!name && !!unit && !!category && !!sku && !!price_sale && !!image && !!status;
   }
-  syncSheet(): void {
-    this.productService.syncSheet().subscribe((res:any) => {
-        if (res.status === 200 || res.status === undefined) {
-          this.successMessage = '¡Sincronización exitosa!';
-          this.getProducts();
-          setTimeout(() => {
-            this.successMessage = ''; // Reiniciar el mensaje después de unos segundos
-          }, 3000); // Mostrar el mensaje durante 3 segundos
-        } else {
-          this.errorMessage = 'Error en la sincronización.';
-          setTimeout(() => {
-            this.errorMessage = ''; // Reiniciar el mensaje después de unos segundos
-          }, 3000); // Mostrar el mensaje durante 3 segundos
-        }
-      })
-    }
     downloadProductFormat() {
       const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
       const EXCEL_EXTENSION = '.xlsx';
-      
+
       // Estructura de datos para las columnas requeridas
-      const worksheetData = this.products.map((product: { 
-        sku: any; 
-        name: any; 
-        category: string[]; 
-        unit: string[]; 
-        image: string[]; 
+      const worksheetData = this.products.map((product: {
+        sku: any;
+        name: any;
+        category: string[];
+        unit: string[];
+        image: string[];
         price_sale: number;
       }) => ({
         SKU: product.sku,
@@ -139,17 +133,35 @@ export class ProductsComponent implements OnInit {
         Etiquetas: product.unit,
         Imágenes: product.image
       }));
-    
+
       // Crear hoja de cálculo a partir del JSON
       const worksheet = XLSX.utils.json_to_sheet(worksheetData);
       const workbook = { Sheets: { 'Productos': worksheet }, SheetNames: ['Productos'] };
-    
+
       // Convertir el workbook en un array binario para descargar
       const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    
+
       // Crear archivo Blob y descargar
       const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
       const fileName = 'Productos_Format.xlsx';
       FileSaver.saveAs(data, fileName);
     }
+
+  sortBy(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = -this.sortDirection;
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 1;
+    }
+    this.filteredProducts.sort((a: any, b: any) => {
+      if (a[column] < b[column]) {
+        return -1 * this.sortDirection;
+      }
+      if (a[column] > b[column]) {
+        return 1 * this.sortDirection;
+      }
+      return 0;
+    });
+  }
 }

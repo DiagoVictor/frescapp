@@ -127,7 +127,7 @@ export class PurchasesComponent {
 
   calculatetotalReal(products: any[]): number {
     return products.reduce((total, product) => {
-      const productTotal = (product.final_price_purchase || 0) * (product.total_quantity_ordered || 0);
+      const productTotal = (product.final_price_purchase || 0) * (product.total_quantity || 0);
       return total + productTotal;
     }, 0);
   }

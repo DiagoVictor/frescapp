@@ -1,14 +1,8 @@
 <div class="container-fluid mt-5">
   <div class="row justify-right">
-    <!-- <div class="col-auto">
-      <button type="button" class="btn btn-success" (click)="updatePrice()">Actualizar precios</button>
-     </div> -->
-    <!-- <div class="col-auto">
-      <button type="button" class="btn btn-primary" (click)="syncSheet()">Sincronizar sheet</button>
-    </div> -->
     <div class="col-auto">
-      <button type="button" class="btn btn-primary" (click)="downloadProductFormat()">Descargar Plantilla Página</button>
-    </div> 
+      <button type="button" class="btn btn-primary" (click)="downloadProductFormat()">Descargar Catálogo</button>
+    </div>
     <div class="col-6">
       <input type="text" class="form-control" placeholder="Buscar producto..." [(ngModel)]="searchText"
         (keyup)="filterProducts()">
@@ -29,14 +23,17 @@
   <table class="table">
     <thead>
       <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Unidad</th>
-        <th>Categoria</th>
-        <th>Precio Compra</th>
-        <th>Precio Venta</th>
-        <th>Estado</th>
-        <th>Acciones</th>
+        <th (click)="sortBy('sku')">sku</th>
+        <th (click)="sortBy('name')">Nombre</th>
+        <th (click)="sortBy('unit')">Unidad</th>
+        <th (click)="sortBy('child')">Padre</th>
+        <th (click)="sortBy('category')">Categoria</th>
+        <th (click)="sortBy('price_purchase')">Precio Compra</th>
+        <th (click)="sortBy('price_sale')">Precio Venta</th>
+        <th (click)="sortBy('margen')">Margen</th>
+        <th (click)="sortBy('step_unit')">Step Unit</th>
+        <th (click)="sortBy('factor_volumen')">Factor de Volumen</th>
+        <th >Acciones</th>
       </tr>
     </thead>
     <tbody>
@@ -44,10 +41,13 @@
         <td>{{ product.sku }}</td>
         <td>{{ product.name }}</td>
         <td>{{ product.unit }}</td>
+        <td>{{ product.child }}</td>
         <td>{{ product.category }}</td>
         <td>{{ product.price_purchase | currency:'USD':'symbol':'1.0-0' }}</td>
         <td>{{ product.price_sale | currency:'USD':'symbol':'1.0-0' }}</td>
-        <td>{{ product.status }}</td>
+        <td>{{ product.margen }}</td>
+        <td>{{ product.step_unit }}</td>
+        <td>{{ product.factor_volumen }}</td>
         <td>
           <!-- Utiliza solo el ícono sin el marco del botón -->
           <span (click)="openEditModal(product,'update')" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#editProductModal" data-bs-dismiss="modal">
@@ -226,7 +226,7 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal" [disabled]="!camposCompletos()"
           *ngIf="actionTipo === 'update'" (click)="updated_product()">Guardar Cambios</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" [disabled]="!camposCompletos()"
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
           *ngIf="actionTipo === 'new'" (click)="created_product()">Nuevo Producto</button>
       </div>
     </div>
