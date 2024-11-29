@@ -84,7 +84,7 @@ class Customer:
         return customers_collection.find()
     @staticmethod
     def object(id):
-        customer_data = customers_collection.find_one({'_id': ObjectId(id) }, {'_id': 0},{'user':0})
+        customer_data = customers_collection.find_one({'_id': ObjectId(id) }, {'_id': 0, 'user': 0})
         if customer_data:
             return Customer(**customer_data)
         else:
