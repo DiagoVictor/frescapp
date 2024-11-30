@@ -20,7 +20,7 @@ export class ProductService {
   createProduct(product_data:any): Observable<any[]> {
     return this.httpClient.post<any[]>(this.baseUrl + 'api/product/product',product_data);
   }
-  syncSheet(): Observable<any>{
-    return this.httpClient.post<any>(this.baseUrl+'api/product/products/syncsheet',{});
+  updateCatalogoPage(): Observable<any>{
+    return this.httpClient.get<any>(this.baseUrl+'api/product/syn_products_page');
   }
 }

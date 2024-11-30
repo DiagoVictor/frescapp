@@ -101,7 +101,7 @@ export class ProductsComponent implements OnInit {
     // Convierte los campos price_sale y price_purchase a tipo number
     this.product.price_sale = +this.product.price_sale;
     this.product.price_purchase = +this.product.price_purchase;
-
+    this.product.quantity = 0;
     // Convierte el campo iva a tipo boolean
     this.product.iva = this.product.iva === 'true' ? true : false;
     this.productService.createProduct(this.product).subscribe((data: any) => {
@@ -113,38 +113,9 @@ export class ProductsComponent implements OnInit {
     const { name, unit, category, sku, price_sale, price_purchase, discount, margen, iva, iva_value, description, image, status } = this.product;
     return !!name && !!unit && !!category && !!sku && !!price_sale && !!image && !!status;
   }
-    downloadProductFormat() {
-      const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-      const EXCEL_EXTENSION = '.xlsx';
-
-      // Estructura de datos para las columnas requeridas
-      const worksheetData = this.products.map((product: {
-        sku: any;
-        name: any;
-        category: string[];
-        unit: string[];
-        image: string[];
-        price_sale: number;
-      }) => ({
-        SKU: product.sku,
-        Nombre: product.name,
-        Precio_normal: product.price_sale,
-        Categorías: product.category,
-        Etiquetas: product.unit,
-        Imágenes: product.image
-      }));
-
-      // Crear hoja de cálculo a partir del JSON
-      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-      const workbook = { Sheets: { 'Productos': worksheet }, SheetNames: ['Productos'] };
-
-      // Convertir el workbook en un array binario para descargar
-      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-
-      // Crear archivo Blob y descargar
-      const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
-      const fileName = 'Productos_Format.xlsx';
-      FileSaver.saveAs(data, fileName);
+  updateCataloPage() {
+    this.productService.updateCatalogoPage().subscribe((data: any) => {
+    });
     }
 
   sortBy(column: string) {

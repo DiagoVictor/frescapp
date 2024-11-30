@@ -11,13 +11,15 @@ import os
 import json
 from pymongo import MongoClient
 from openpyxl import Workbook
+import math
+import requests
+
 product_api = Blueprint('product', __name__)
 
 # Ruta para crear un nuevo product
 @product_api.route('/product', methods=['POST'])
 def create_product():
     data = request.get_json()
-    print(data)
     name = data.get('name')
     unit = data.get('unit')
     category = data.get('category')
@@ -207,96 +209,77 @@ def list_product_customer(customer_email):
     # Devolver la respuesta JSON con el código de estado 200 (OK)
     return products_json, 200
 
-@product_api.route('/products/update_prices', methods=['PUT'])
-def update_product_prices():
-    data = request.get_json()
-    sku_price_list = data.get('sku_price_list')
-    if not sku_price_list:
-        return jsonify({'message': 'No SKU price list provided'}), 400
+@product_api.route('/syn_products_page', methods=['GET'])
+def syn_products_page():
+    consumer_key = 'ck_203177d4d7a291000f60cd669ab7cb98976b3620'
+    consumer_secret = 'cs_d660a52cd323666cad9b600a9d61ed6c577cd6f9'
+    base_url = 'https://www.buyfrescapp.com/wp-json/wc/v3/products'
 
-    for sku_price in sku_price_list:
-        sku = sku_price.get('sku')
-        price_sale = float(sku_price.get('price_sale'))
-        if not sku:
-            return jsonify({'message': 'SKU is missing in SKU price list'}), 400
-        product = Product.find_by_sku(sku=sku)
+    # Conexión a MongoDB
+    client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
+    db = client['frescapp']
+    collection = db['products']
 
-        if not product:
-            return jsonify({'message': f'Product with SKU {sku} not found'}), 404
-        product.price_sale = float(price_sale)
-        product.id = sku_price.get('id')
-        product.updated()
-    return jsonify({'message': 'Prices updated successfully'}), 200
+    # Obtener IDs de todos los productos existentes para eliminar
+    product_ids = []
+    for page in range(1, 5):  # Iterar sobre las páginas
+        url = f'{base_url}?consumer_key={consumer_key}&consumer_secret={consumer_secret}&per_page=100&page={page}'
+        response = requests.get(url)
+        if response.status_code == 200:
+            products = response.json()
+            if not products:  # Detenerse si no hay más productos
+                break
+            product_ids.extend([product['id'] for product in products])  # Agregar IDs al arreglo
+        else:
+            print(f"Error al obtener productos de WooCommerce en la página {page}: {response.status_code}")
+            break
 
-@product_api.route('/products/syncsheet', methods=['POST'])
-def syncsheet():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
-    def authenticate():
-        try:
-            if os.name == 'posix':  # Linux o macOS
-                path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
-            elif os.name == 'nt':  # Windows
-                path_file = 'C:/Users/USUARIO/Documents/frescapp/admin/backend/utils/'
-            else:
-                raise EnvironmentError("Unsupported OS")
-                
-            credential_path = os.path.join(path_file, 'credentials_spread.json')
-            if not os.path.exists(credential_path):
-                raise FileNotFoundError(f"El archivo de credenciales no se encontró en {credential_path}")
-            
-            creds = Credentials.from_service_account_file(credential_path, scopes=scope)
-            return creds
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-    try:
-        credentials = authenticate()
-        if isinstance(credentials, tuple):
-            return credentials  # If authenticate returned an error response
-        client = gspread.authorize(credentials)
-    except Exception as e:
-        return jsonify({'error': f"Error al autorizar con Google Sheets: {str(e)}"}), 500
-    try:
-        spreadsheet_id = "1efvIDyxsO0n2A4P_lZj1BUNy-SV_5d5zm9m8CMUI9mc"
-        spreadsheet = client.open_by_key(spreadsheet_id)
-        worksheet = spreadsheet.get_worksheet(1)
-        records = worksheet.get_all_records()
-    except Exception as e:
-        return jsonify({'error': f"Error al acceder a Google Sheets: {str(e)}"}), 500
-    try:
-        df = pd.DataFrame(records)
-        df = df[df['status'] == 'active']
-        df = df.drop(columns=['pricing'], errors='ignore')
-        df['iva'] = df['iva'].astype(bool)
-        df['quantity'] = 0
-        json_data = df.to_json(orient='records', date_format='iso')
-    except Exception as e:
-        return jsonify({'error': f"Error al procesar datos de Google Sheets: {str(e)}"}), 500
+    print(f"Se encontraron {len(product_ids)} productos para eliminar.")
+    print(product_ids  )
+    # Preparar productos para crear desde MongoDB
+    products_to_create = []
+    mongo_products = collection.find({"status": "active"})  # Consultar todos los productos en MongoDB
+
+    for product in mongo_products:
+        producto = {
+            "name": product["name"],
+            "sku": product["sku"],
+            "sale_price": str(product["price_sale"]),
+            "price": str(product["price_sale"]),
+            "regular_price": str(product["price_sale"]),
+            "categories": [{"name": product["category"]}],
+            "tags": [{"name": product["unit"]}],
+            "images": [{"src": product["image"]}]
+        }
+        products_to_create.append(producto)
+
+    print(f"Se prepararon {len(products_to_create)} productos para crear.")
+
+    # Dividir en lotes y procesar batch (eliminar y crear)
+    batch_size = 100
+    total_batches = math.ceil(len(product_ids) / batch_size)
+    created_batches = math.ceil(len(products_to_create) / batch_size)
+
+    # Eliminar en lotes
+    for batch_index in range(total_batches):
+        start = batch_index * batch_size
+        end = start + batch_size
+        batch = product_ids[start:end]
+        
+        # Endpoint de actualización batch
+        url_update = f'{base_url}/batch?consumer_key={consumer_key}&consumer_secret={consumer_secret}'
+        payload = {"delete": batch}  # Preparar datos para batch delete
+        response = requests.post(url_update, json=payload)
+        
+        if response.status_code == 200:
+            print(f"Lote {batch_index + 1} de {total_batches} eliminado correctamente.")
+        else:
+            print(f"Error al eliminar el lote {batch_index + 1}: {response.status_code}, {response.text}")
+
+    # Crear productos en lotes
+    for product_to_create in products_to_create:
+        url_update = f'{base_url}?consumer_key={consumer_key}&consumer_secret={consumer_secret}'
+        response = requests.post(url_update, json=product_to_create)
+        print(product_to_create["sku"] + " - "+str(response.status_code))
+    return f"Creado exitosamente", 200
     
-    try:
-        mongo_client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
-        db = mongo_client['frescapp']
-        collection = db['products']
-        collection.delete_many({})
-        data = json.loads(json_data)
-        collection.insert_many(data)
-        collection.update_many(
-            {},
-            [
-                { '$set': { 'price_sale': { '$toDouble': "$price_sale" } } },
-                { '$set': { 'discount': { '$toDouble': "$discount" } } },
-                { '$set': { 'margen': { '$toDouble': "$margen" } } },
-                { '$set': { 'iva_value': { '$toDouble': "$iva_value" } } },
-                { '$set': { 'price_purchase': { '$toDouble': "$price_purchase" } } },
-                { '$set': { 'description': { '$toString': "$description" } } },
-                { '$set': { 'root': { '$toString': "$root" } } },
-                { '$set': { 'rate': { '$toDouble': "$rate" } } },
-                { '$set': { 'quantity': { '$toDouble': "$quantity" } } },
-                { '$set': { 'step_unit': { '$toDouble': "$step_unit" } } },
-                { '$set': { 'rate_root': { '$toDouble': "$rate_root" } } }
-            ]
-        )
-    except Exception as e:
-        return jsonify({'error': f"Error al interactuar con MongoDB: {str(e)}"}), 500
-    return jsonify({"message": "Productos actualizados."}),  200
-
-
