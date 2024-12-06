@@ -126,7 +126,11 @@ class Product:
     @staticmethod
     def objects_customer(status, customer_email):
         if customer_email == 'undefined':
-            customer_product_skus = []
+            customer_product_skus = ['BOG-CAT001-00002','BOG-CAT001-00007','BOG-CAT001-00004','BOG-CAT002-00001','BOG-CAT001-00005',
+'BOG-CAT004-00001','BOG-CAT004-00003','BOG-CAT001-00001','BOG-CAT001-00003','BOG-CAT001-00006','BOG-CAT001-00013','BOG-CAT004-00011',
+'BOG-CAT001-00017','BOG-CAT001-00008','BOG-CAT003-00005','BOG-CAT002-00007','BOG-CAT004-00004','BOG-CAT003-00003','BOG-CAT001-00015',
+'BOG-CAT001-00020','BOG-CAT004-00024','BOG-CAT002-00008','BOG-CAT001-00042','BOG-CAT002-00004','BOG-CAT001-00057','BOG-CAT001-00014',
+'BOG-CAT002-00036','BOG-CAT004-00006','BOG-CAT002-00002','BOG-CAT001-00009']
         else:
             customer = customers_collection.find_one({"email": customer_email})
             customer_product_skus = customer.get('list_products', [])
