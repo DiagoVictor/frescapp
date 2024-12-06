@@ -73,7 +73,7 @@ def send_new_order(subject, cuerpo, customer_email):
     send_message('me', message, 'New order', customer_email, cuerpo)
 
 def send_restore_password(user_data):
-    url = "https://admin.buyfrescapp.com/restore/"+str(ObjectId(user_data['_id']))
+    url = "https://admin.buyfrescapp.com/#/restore/"+str(ObjectId(user_data['_id']))
     cuerpo = f"""
 <!DOCTYPE html>
 <html lang="es" style="height: 100%; position: relative;" height="100%">

@@ -34,15 +34,17 @@ class MyApp extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Muestra una pantalla de carga mientras se verifica el token
-            return const CircularProgressIndicator();
+             return Scaffold(
+            body: Center(
+              child: Image.asset(
+                'images/icon-app.png', // Cambia a la ruta de tu logo
+                width: 150,              // Ajusta el tamaño según prefieras
+                height: 150,
+              ),
+            ),
+          );
           } else {
-            // Si hay un error al verificar el token, muestra la pantalla de inicio de sesión
-            if (snapshot.hasError || !snapshot.data!) {
-              return LoginScreen();
-            } else {
-              // Si el token es válido, muestra la pantalla de inicio
-              return const HomeScreen();
-            }
+            return const HomeScreen();
           }
         },
       ),

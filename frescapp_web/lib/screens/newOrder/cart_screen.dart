@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:frescapp/screens/newOrder/home_screen.dart';
 import 'package:frescapp/screens/orders/orders_screen.dart';
 import 'package:frescapp/screens/profile/profile_screen.dart';
-import 'package:frescapp/models/product.dart' ;
+import 'package:frescapp/models/product.dart';
 import 'package:frescapp/screens/newOrder/detail_cart_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:frescapp/models/order.dart' as orden;
+import 'package:frescapp/api_routes.dart';
+import 'package:http/http.dart' as http;
+import 'package:frescapp/screens/login_screen.dart';
 
 class CartScreen extends StatefulWidget {
   final List<Product> productsInCart;
@@ -17,8 +20,8 @@ class CartScreen extends StatefulWidget {
   const CartScreen(
       {super.key,
       required this.productsInCart,
-      required void Function(int value) updateCounter, required this.order}
-      );
+      required void Function(int value) updateCounter,
+      required this.order});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -26,6 +29,14 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  late bool _userActive = false;
+  @override
+  void initState() {
+    _checkTokenValidity();
+
+    super.initState();
+  }
+
   void _openWhatsApp(BuildContext context) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     try {
@@ -58,19 +69,45 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  Future<void> _checkTokenValidity() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token != null) {
+      final response = await http.post(
+        Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/check_token'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      setState(() {
+        _userActive = response.statusCode == 200;
+      });
+    } else {
+      setState(() {
+        _userActive = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Filtra los productos con una cantidad mayor a cero
-    final List<Product> productsWithQuantity = widget.productsInCart 
-        .where((product) => product.quantity! > 0).cast<Product>()
+    final List<Product> productsWithQuantity = widget.productsInCart
+        .where((product) => product.quantity! > 0)
+        .cast<Product>()
         .toList();
 
     // Calcula el total del pedido
     double total = 0;
     for (var product in productsWithQuantity) {
       total += product.quantity! *
-          product.priceSale!; // Multiplica la cantidad por el precio de venta y lo suma al total
-    }    return Scaffold(
+          product
+              .priceSale!; // Multiplica la cantidad por el precio de venta y lo suma al total
+    }
+    return Scaffold(
       appBar: AppBar(
         title: const Text('Tu Pedido'),
       ),
@@ -116,7 +153,7 @@ class _CartScreenState extends State<CartScreen> {
                   subtitle: Text(product.category ?? ''),
                   onTap: () {
                     showDialog(
-                     context: context,
+                      context: context,
                       builder: (context) {
                         return StatefulBuilder(
                           builder:
@@ -219,71 +256,90 @@ class _CartScreenState extends State<CartScreen> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
-                onPressed:  total >= 100000 ?() {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OrderDetailScreen(
-                          productsInCart: productsWithQuantity,
-                          order : widget.order),
-                    ),
-                  );
-                } : null,
+                onPressed: total >= 100000
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrderDetailScreen(
+                                productsInCart: productsWithQuantity,
+                                order: widget.order),
+                          ),
+                        );
+                      }
+                    : null,
                 child: const Text('Confirmar Pedido'),
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        selectedItemColor:
-            Colors.lightGreen.shade900, // Color de los iconos seleccionados
-        unselectedItemColor:
-            Colors.grey, // Color de los iconos no seleccionados
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Pedidos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat), // Icono de WhatsApp
-            label: 'WhatsApp', // Etiqueta para el botón
-          ),
-        ],
-        onTap: (int index) {
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen(order: widget.order)),
-              );
-              break;
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => OrdersScreen(order: widget.order)),
-              );
-              break;
-            case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfileScreen(order: widget.order)),
-              );
-              break;
-            case 3:
-              _openWhatsApp(context); // Función para abrir WhatsApp
-              break;
-          }
-        },
+      bottomNavigationBar: SafeArea(
+        child: BottomNavigationBar(
+          currentIndex: 0,
+          selectedItemColor: Colors.lightGreen.shade900,
+          unselectedItemColor: Colors.grey,
+          items: [
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Inicio',
+            ),
+            if (_userActive)
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart),
+                label: 'Pedidos',
+              ),
+            if (!_userActive)
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Login',
+              ),
+            if (_userActive)
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Perfil',
+              ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.message_rounded),
+              label: 'WhatsApp',
+            ),
+          ],
+          onTap: (int index) {
+            // Lista de funciones para cada botón
+            final actions = [
+              () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HomeScreen(order: widget.order)),
+                  ),
+              if (_userActive)
+                () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              OrdersScreen(order: widget.order)),
+                    ),
+              if (!_userActive)
+                () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                    ),
+              if (_userActive)
+                () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              ProfileScreen(order: widget.order)),
+                    ),
+              () => _openWhatsApp(context),
+            ];
+
+            // Ejecutar la acción correspondiente si existe
+            if (index < actions.length && actions[index] != null) {
+              actions[index]();
+            }
+          },
+        ),
       ),
     );
   }

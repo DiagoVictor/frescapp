@@ -391,32 +391,39 @@ void _openWhatsApp(BuildContext context) async {
     }
   }
 
-  void _logout(BuildContext context) async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String? token = prefs.getString('token');
-      if (token != null) {
-        final response = await http.post(
-          Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/logout'),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-            'Authorization': 'Bearer $token',
-          },
-        );
-        if (response.statusCode == 200) {
-          // Eliminar el token de las preferencias compartidas
-          await prefs.remove('token');
-          // Redirigir al usuario a la pantalla de inicio de sesión
-          // ignore: use_build_context_synchronously
-          Navigator.of(context).pushReplacementNamed('/login');
-        } else {
-          throw Exception('Failed to logout');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error logging out: $e');
+void _logout(BuildContext context) async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('token');
+
+    // Realizar solicitud de logout si el token existe
+    if (token != null) {
+      final response = await http.post(
+        Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/logout'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to logout');
       }
     }
+
+    // Limpiar preferencias y caché
+    await prefs.clear();
+
+    // Redirigir al usuario a la pantalla de inicio de sesión
+    Navigator.of(context).pushReplacementNamed('/login');
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error during logout: $e');
+    }
+
+    // En caso de error, redirigir igualmente al login
+    Navigator.of(context).pushReplacementNamed('/login');
   }
+}
+
 }

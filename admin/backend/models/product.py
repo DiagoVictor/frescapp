@@ -125,10 +125,11 @@ class Product:
         return products_collection.find({"status": status})
     @staticmethod
     def objects_customer(status, customer_email):
-        customer = customers_collection.find_one({"email": customer_email})
-        if not customer:
-            raise ValueError("Customer not found")
-        customer_product_skus = customer.get('list_products', [])
+        if customer_email == 'undefined':
+            customer_product_skus = []
+        else:
+            customer = customers_collection.find_one({"email": customer_email})
+            customer_product_skus = customer.get('list_products', [])
         
         all_active_products = list(products_collection.find({"status": status}))
         

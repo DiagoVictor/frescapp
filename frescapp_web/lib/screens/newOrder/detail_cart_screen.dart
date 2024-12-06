@@ -10,6 +10,9 @@ import 'package:frescapp/services/order_service.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:http/http.dart' as http;
+import 'package:frescapp/api_routes.dart';
+import 'package:frescapp/screens/login_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final List<Product> productsInCart;
@@ -26,6 +29,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   late DateTime selectedDate;
   String? selectedDeliverySlot;
   String? selectedPaymentMethod;
+  late bool _userActive = false;
   late List<String> paymentMethods = [];
   late List<String> deliverySlots = [];
   final OrderService orderService = OrderService();
@@ -36,6 +40,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     selectedDeliverySlot = 'Horario de entrega';
     selectedPaymentMethod = 'Método de pago';
     getOrderDetailsFromSharedPreferences();
+    _checkTokenValidity();
+
   }
 
   void getOrderDetailsFromSharedPreferences() async {
@@ -84,6 +90,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+Future<void> _checkTokenValidity() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
+  
+  if (token != null) {
+    final response = await http.post(
+      Uri.parse('${ApiRoutes.baseUrl}${ApiRoutes.user}/check_token'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    setState(() {
+      _userActive = response.statusCode == 200;
+    });
+  } else {
+    setState(() {
+      _userActive = false;
+    });
+  }
+}
   @override
   Widget build(BuildContext context) {
     double total = widget.productsInCart.fold(
@@ -174,52 +202,66 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       bottomNavigationBar: SafeArea(
         child: BottomNavigationBar(
           currentIndex: 0,
-          selectedItemColor:
-              Colors.lightGreen.shade900, // Color de los iconos seleccionados
-          unselectedItemColor:
-              Colors.grey, // Color de los iconos no seleccionados
-          items: const [
-            BottomNavigationBarItem(
+          selectedItemColor: Colors.lightGreen.shade900,
+          unselectedItemColor: Colors.grey,
+          items: [
+            const BottomNavigationBarItem(
               icon: Icon(Icons.home),
               label: 'Inicio',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart),
-              label: 'Pedidos',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Perfil',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat), // Icono de WhatsApp
-              label: 'WhatsApp', // Etiqueta para el botón
+            if (_userActive)
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart),
+                label: 'Pedidos',
+              ),
+            if (!_userActive)
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Login',
+              ),
+            if (_userActive)
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Perfil',
+              ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.message_rounded),
+              label: 'WhatsApp',
             ),
           ],
           onTap: (int index) {
-            switch (index) {
-              case 0:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen(order : widget.order)),
-                );
-                break;
-              case 1:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => OrdersScreen(order: widget.order)),
-                );
-                break;
-              case 2:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ProfileScreen(order: widget.order)),
-                );
-                break;
-              case 3:
-                _openWhatsApp(context); // Función para abrir WhatsApp
-                break;
+            // Lista de funciones para cada botón
+            final actions = [
+              () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HomeScreen(order: widget.order)),
+                  ),
+              if (_userActive)
+                () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              OrdersScreen(order: widget.order)),
+                    ),
+              if (!_userActive)
+                () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                    ),
+              if (_userActive)
+                () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              ProfileScreen(order: widget.order)),
+                    ),
+              () => _openWhatsApp(context),
+            ];
+
+            // Ejecutar la acción correspondiente si existe
+            if (index < actions.length && actions[index] != null) {
+              actions[index]();
             }
           },
         ),

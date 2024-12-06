@@ -28,6 +28,14 @@ class LoginScreen extends StatelessWidget {
     prefs.setString('user_category', user['user_data']['category']);
     prefs.setString('token', user['token']);
   }
+  Future<void> _catalogo(BuildContext context)async {
+            Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen(
+          )),
+        );
+  }
+
 
   Future<void> _login(BuildContext context, String email, String password) async {
     if (email.isEmpty || password.isEmpty) {
@@ -129,6 +137,19 @@ class LoginScreen extends StatelessWidget {
                     child: const Text(
                       'Iniciar sesión',
                       style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: () {
+                      _catalogo(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                    ),
+                    child: const Text(
+                      'Explorar el catálogo',
+                      style: TextStyle(color: Colors.green),
                     ),
                   ),
                   const SizedBox(height: 20),

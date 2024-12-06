@@ -23,6 +23,7 @@ def create_customer():
     updated_at = data.get('updated_at')
     password = data.get('password')
     category = data.get('category')
+    user = data.get('user', email )
     bcrypt = Bcrypt()
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     if not phone or not email:
@@ -45,7 +46,8 @@ def create_customer():
         password = hashed_password,
         category = category,
         list_products = "",
-        role = "Cliente"
+        role = "Cliente",
+        user = user
     )
     customer.save()
     message = """

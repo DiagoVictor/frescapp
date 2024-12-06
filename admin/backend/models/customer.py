@@ -21,7 +21,8 @@ class Customer:
                  password,
                  category,
                  list_products,
-                 role):
+                 role,
+                 user):
         self.phone = phone
         self.name = name
         self.document = document
@@ -36,6 +37,7 @@ class Customer:
         self.category = category
         self.list_products = list_products,
         self.role = role
+        self.user = user
     def save(self):
         customer_data = {
             "phone": self.phone,
@@ -51,7 +53,8 @@ class Customer:
             "password" : self.password,
             "category" : self.category,
             "list_products" : self.list_products,
-            "role" : self.role
+            "role" : self.role,
+            "user" : self.user
         }
         result = customers_collection.insert_one(customer_data)
         return result.inserted_id
@@ -84,7 +87,7 @@ class Customer:
         return customers_collection.find()
     @staticmethod
     def object(id):
-        customer_data = customers_collection.find_one({'_id': ObjectId(id) }, {'_id': 0, 'user': 0})
+        customer_data = customers_collection.find_one({'_id': ObjectId(id) }, {'_id': 0})
         if customer_data:
             return Customer(**customer_data)
         else:
