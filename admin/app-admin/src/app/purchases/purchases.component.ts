@@ -209,6 +209,7 @@ export class PurchasesComponent {
    add_item(){
     this.newItem.forecast = this.quantityProdcutSelect;
     this.newItem.total_quantity = this.quantityProdcutSelect;
+    this.newItem.clients = [{"client_name":"Inventario","quantity":this.quantityProdcutSelect}]
     this.purchaseSelect.products.push(this.newItem);
     this.purchaseService.updatePurchase(this.purchaseSelect).subscribe(
       (res: any) => {

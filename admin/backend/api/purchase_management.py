@@ -140,11 +140,13 @@ def create_purchase(date):
         {
             "$addFields": {
                 "total_quantity": {
-                    "$add": [
-                        "$total_quantity_ordered",
-                        {"$ifNull": ["$forecast", 0]},
-                        {"$multiply": ["$inventory", -1]}
-                    ]
+                    "$ceil": {
+                        "$add": [
+                            "$total_quantity_ordered",
+                            {"$ifNull": ["$forecast", 0]},
+                            {"$multiply": ["$inventory", -1]}
+                        ]
+                    }
                 }
             }
         },
@@ -258,7 +260,6 @@ def update_price():
     else:
         return jsonify({"status": "failure", "message": "Purchase not found."}), 404
 
-
 @purchase_api.route('/purchase/report/<string:purchase_number>', methods=['GET'])
 def get_report_purchase(purchase_number):
     pipeline = [
@@ -291,8 +292,12 @@ def get_report_purchase(purchase_number):
             "date": {"$first": "$date"},  # Preservar la fecha original
             "clients_quantities": {
                 "$push": {
-                    "client_name": "$products.clients.client_name",
-                    "quantity": "$products.clients.quantity"
+                    "client_name": {
+                        "$ifNull": ["$products.clients.client_name", "Sin Cliente"]
+                    },
+                    "quantity": {
+                        "$ifNull": ["$products.clients.quantity", "0"]
+                    }
                 }
             }
         }
