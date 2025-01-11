@@ -1,0 +1,31 @@
+<div class="container-fluid mt-5">
+  <div class="row justify-right">
+    <div class="col-6">
+      <input type="text" class="form-control" placeholder="Buscar producto..." [(ngModel)]="searchText"
+        (keyup)="filterProducts()"/>
+    </div>
+  </div>
+  <br>
+  <table class="table">
+    <thead>
+      <tr>
+        <th (click)="sortBy('name')">Nombre</th>
+        <th (click)="sortBy('price_sale_today	')">Hoy</th>
+        <th (click)="sortBy('price_sale_yesterday')">Ayer</th>
+        <th (click)="sortBy('price_sale_last_tuesday')">Semana Pasada</th>
+        <th (click)="sortBy('variation_yesterday_today')">% Ayer</th>
+        <th (click)="sortBy('variation_last_week_today')">% Semana Pasada</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let product of this.filteredProducts">
+        <td>{{ product.name }}</td>
+        <td>{{ product.price_sale_today | currency:'USD':'symbol':'1.0-0'  }}</td>
+        <td>{{ product.price_sale_yesterday | currency:'USD':'symbol':'1.0-0'  }}</td>
+        <td>{{ product.price_sale_last_tuesday | currency:'USD':'symbol':'1.0-0'  }}</td>
+        <td>{{ product.variation_yesterday_today }}</td>
+        <td>{{ product.variation_last_week_today}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

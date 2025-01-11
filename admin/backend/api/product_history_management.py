@@ -16,7 +16,6 @@ product_history_api = Blueprint('products_history', __name__)
 @product_history_api.route('/products_history/<string:operation_date_start>/<string:operation_date_end>', methods=['GET'])
 def list_products_history(operation_date_start,operation_date_end):
     products_cursor = ProductHistory.objects(operation_date_start,operation_date_end)
-
     product_data = [
         {
             "id": str(product["_id"]), 
@@ -70,10 +69,12 @@ def products_history_analytics():
         last_tuesday_price = products_last_tuesday_dict.get(sku, {}).get("price_sale", None)
 
         variation_yesterday_today = (
-            ((product_today["price_sale"] - yesterday_price) / yesterday_price * 100) if yesterday_price else None
+            round(((product_today["price_sale"] - yesterday_price) / yesterday_price * 100), 1)
+            if yesterday_price else None
         )
         variation_last_week_today = (
-            ((product_today["price_sale"] - last_tuesday_price) / last_tuesday_price * 100) if last_tuesday_price else None
+            round(((product_today["price_sale"] - last_tuesday_price) / last_tuesday_price * 100), 1)
+            if last_tuesday_price else None
         )
 
         product_data.append({
@@ -81,9 +82,9 @@ def products_history_analytics():
             "name": product_today["name"],
             "unit": product_today["unit"],
             "sku": product_today["sku"],
-            "price_sale_today": product_today["price_sale"],
-            "price_sale_yesterday": yesterday_price,
-            "price_sale_last_tuesday": last_tuesday_price,
+            "price_sale_today": round(product_today["price_sale"], 1) if product_today["price_sale"] else None,
+            "price_sale_yesterday": round(yesterday_price, 1) if yesterday_price else None,
+            "price_sale_last_tuesday": round(last_tuesday_price, 1) if last_tuesday_price else None,
             "variation_yesterday_today": variation_yesterday_today,
             "variation_last_week_today": variation_last_week_today,
         })
@@ -91,6 +92,7 @@ def products_history_analytics():
     # Convertir a JSON y retornar
     products_json = json.dumps(product_data)
     return products_json, 200
+
 @product_history_api.route('/products_history_new/<string:operation_date>', methods=['GET'])
 def products_history_new(operation_date):
     def obtenerSipsa(operation_date:str,path_destino: str):

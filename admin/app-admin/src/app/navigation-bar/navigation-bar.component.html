@@ -4,7 +4,7 @@
     <!-- <span class="navbar-toggler-icon"></span> -->
     <img src="assets\icon_app.png" alt="Logo" width="30" >
   </button>
-  
+
   <!-- Contenido del menú -->
   <div class="collapse navbar-collapse" [ngClass]="{'show': !isMenuCollapsed}" id="navbarNav">
     <ul class="navbar-nav">
@@ -26,9 +26,9 @@
       <li class="nav-item" *ngIf="role == 'administrador'">
         <a class="nav-link" routerLink="/inventories" routerLinkActive="active">Inventario</a>
       </li>
-      <li class="nav-item" *ngIf="role == 'administrador' || role == 'comercial'">
+      <!-- <li class="nav-item" *ngIf="role == 'administrador' || role == 'comercial'">
         <a class="nav-link" routerLink="/crm" routerLinkActive="active">CRM</a>
-      </li>
+      </li> -->
       <li class="nav-item" *ngIf="role == 'administrador' || role == 'comercial'">
         <a class="nav-link" routerLink="/precios" routerLinkActive="active">Precios</a>
       </li>
@@ -37,6 +37,9 @@
       </li>
       <li class="nav-item" *ngIf="role == 'administrador'">
         <a class="nav-link" routerLink="/costos" routerLinkActive="active">Costos</a>
+      </li>
+      <li class="nav-item" *ngIf="role == 'administrador' || role == 'comercial'">
+        <a class="nav-link" routerLink="/products-analytics" routerLinkActive="active">Análisis</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" (click)="logout()">Cerrar Sesión</a>

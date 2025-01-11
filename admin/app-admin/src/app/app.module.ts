@@ -29,6 +29,7 @@ import { PricingComponent  } from './pricing/pricing.component';
 import { CostsComponent  } from './costs/costs.component';
 import { InventoryComponent  } from './inventory/inventory.component';
 import { EditInventoryComponent  } from './inventory/edit-inventory/edit-inventory.component';
+import { ProductsAnalyticsComponent } from './products-analytics/products-analytics.component';
 
 
 @NgModule({
@@ -54,7 +55,8 @@ import { EditInventoryComponent  } from './inventory/edit-inventory/edit-invento
     PricingComponent,
     CostsComponent,
     InventoryComponent,
-    EditInventoryComponent
+    EditInventoryComponent,
+    ProductsAnalyticsComponent
   ],
   bootstrap: [AppComponent],
   imports: [

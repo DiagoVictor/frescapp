@@ -20,6 +20,7 @@ import { PricingComponent  } from './pricing/pricing.component';
 import { CostsComponent  } from './costs/costs.component';
 import { InventoryComponent  } from './inventory/inventory.component';
 import { EditInventoryComponent  } from './inventory/edit-inventory/edit-inventory.component';
+import { ProductsAnalyticsComponent } from './products-analytics/products-analytics.component';
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent },
   { path: 'clientes', component: ClientesComponent },
@@ -41,7 +42,8 @@ const routes: Routes = [
   { path: 'inventories', component: InventoryComponent },
   { path: 'stops/:route_number', component: StopsComponent },
   { path: 'inventory/:id', component: EditInventoryComponent },
-  { path: '', component: HomeComponent }
+  { path: '', component: HomeComponent },
+  { path: 'products-analytics', component: ProductsAnalyticsComponent }
 ];
 
 @NgModule({
