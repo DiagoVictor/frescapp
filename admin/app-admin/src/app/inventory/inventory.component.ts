@@ -77,4 +77,21 @@ export class InventoryComponent {
     const registeredCount = products.filter(product => product.quantity > 0).length;
     return Math.round(registeredCount);
   }
+  productsValue(products: any[]): number {
+    if (products.length === 0) {
+      return 0;
+    }
+
+    // Calcular el valor total multiplicando cantidad y costo, luego sumando
+    const totalValue = products.reduce((sum, product) => {
+      if (product.quantity > 0 && product.cost > 0) {
+        return sum + product.quantity * product.cost;
+      }
+      return sum;
+    }, 0);
+
+    // Retornar el total redondeado
+    return Math.round(totalValue);
+  }
+
 }

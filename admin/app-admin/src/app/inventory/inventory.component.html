@@ -7,17 +7,18 @@
           Nuevo Inventario</button>
       </div>
     </div>
-    
+
     <div *ngIf="messageInventory" class="alert alert-success alert-dismissible fade show" role="alert">
       {{ messageInventory }}
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    
+
     <table class="table">
       <thead>
         <tr>
           <th>Fecha</th>
           <th>Productos Registrados</th>
+          <th>Costo</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -26,7 +27,10 @@
           <td>{{ inventory.close_date }}</td>
           <td id="product-count">
             {{ productsCost(inventory.products) }}
-          </td>          <td>
+          </td>
+          <td id="cost">
+            {{ productsValue(inventory.products) | currency:'USD':'symbol':'1.2-2' }}
+          <td>
             <div class="row">
               <div class="col-auto">
                 <span (click)="navigateToInventory(inventory.id)" style="cursor: pointer;" >
