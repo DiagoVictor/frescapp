@@ -8,6 +8,7 @@ import pandas as pd
 import os, math
 import json, requests
 from pymongo import MongoClient
+from datetime import datetime, timedelta
 
 
 product_history_api = Blueprint('products_history', __name__)
@@ -45,6 +46,51 @@ def list_products_history(operation_date_start,operation_date_end):
     products_json = json.dumps(product_data)
     return products_json, 200
 
+@product_history_api.route('/products_history_analytics', methods=['GET'])
+def products_history_analytics():
+    # Fechas necesarias
+    today = datetime.now()
+    yesterday = today - timedelta(days=1)
+    last_tuesday = today - timedelta(days=today.weekday() + 6)  # El martes de la semana pasada
+
+    # Consultas a la base de datos
+    products_today = ProductHistory.objects(today.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d"))
+    products_yesterday = ProductHistory.objects(yesterday.strftime("%Y-%m-%d"), yesterday.strftime("%Y-%m-%d"))
+    products_last_tuesday = ProductHistory.objects(last_tuesday.strftime("%Y-%m-%d"), last_tuesday.strftime("%Y-%m-%d"))
+
+    # Convertir resultados en diccionarios para facilitar el acceso por SKU
+    products_today_dict = {product["sku"]: product for product in products_today}
+    products_yesterday_dict = {product["sku"]: product for product in products_yesterday}
+    products_last_tuesday_dict = {product["sku"]: product for product in products_last_tuesday}
+
+    # Generar datos enriquecidos con variaciones porcentuales
+    product_data = []
+    for sku, product_today in products_today_dict.items():
+        yesterday_price = products_yesterday_dict.get(sku, {}).get("price_sale", None)
+        last_tuesday_price = products_last_tuesday_dict.get(sku, {}).get("price_sale", None)
+
+        variation_yesterday_today = (
+            ((product_today["price_sale"] - yesterday_price) / yesterday_price * 100) if yesterday_price else None
+        )
+        variation_last_week_today = (
+            ((product_today["price_sale"] - last_tuesday_price) / last_tuesday_price * 100) if last_tuesday_price else None
+        )
+
+        product_data.append({
+            "id": str(product_today["_id"]),
+            "name": product_today["name"],
+            "unit": product_today["unit"],
+            "sku": product_today["sku"],
+            "price_sale_today": product_today["price_sale"],
+            "price_sale_yesterday": yesterday_price,
+            "price_sale_last_tuesday": last_tuesday_price,
+            "variation_yesterday_today": variation_yesterday_today,
+            "variation_last_week_today": variation_last_week_today,
+        })
+
+    # Convertir a JSON y retornar
+    products_json = json.dumps(product_data)
+    return products_json, 200
 @product_history_api.route('/products_history_new/<string:operation_date>', methods=['GET'])
 def products_history_new(operation_date):
     def obtenerSipsa(operation_date:str,path_destino: str):
@@ -294,7 +340,6 @@ def products_history_new(operation_date):
         coleccion_historial = db["products_history"]
         coleccion_historial.delete_many({"operation_date": operation_date})
         client.close()
-
     def update_price_page():
         consumer_key = 'ck_203177d4d7a291000f60cd669ab7cb98976b3620'
         consumer_secret = 'cs_d660a52cd323666cad9b600a9d61ed6c577cd6f9'
