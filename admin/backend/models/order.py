@@ -137,7 +137,9 @@ class Order:
     @staticmethod
     def objects():
         return orders_collection.find()
-
+    @staticmethod
+    def objects_date(stratDate, endDate):
+        return orders_collection.find({"delivery_date": {"$gte": stratDate, "$lte": endDate}})
     @staticmethod
     def object(id):
         if isinstance(id, str):
