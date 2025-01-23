@@ -9,7 +9,7 @@ import os, math
 import json, requests
 from pymongo import MongoClient
 from datetime import datetime, timedelta
-
+import time
 
 product_history_api = Blueprint('products_history', __name__)
 
@@ -98,7 +98,7 @@ def products_history_new(operation_date):
     def obtenerSipsa(operation_date:str,path_destino: str):
             # URL de la API para obtener el uuid
         url = "https://apps.dane.gov.co/pentaho/plugin/cda/api/doQuery"
-
+        timeout = 120 
         # Cabeceras HTTP para la primera solicitud
         headers = {
             "Accept": "text/plain, */*; q=0.01",
@@ -159,10 +159,8 @@ def products_history_new(operation_date):
             "settingattachmentName": "sipsaexporta.xls",
             "wrapItUp": "true"
         }
-
         # Realizar la primera solicitud POST para obtener el uuid
-        response = requests.post(url, headers=headers, data=payload)
-
+        response = requests.post(url, headers=headers, data=payload, timeout =timeout)
         if response.status_code == 200:
             uuid = response.text  # Ajustar según el formato exacto de la respuesta si es necesario
             # Realizar la segunda solicitud GET usando el uuid
@@ -178,16 +176,19 @@ def products_history_new(operation_date):
             })
 
             # Realizar la solicitud GET para descargar el archivo
-            response_get = requests.get(url_get, headers=headers_get)
+            response_get = requests.get(url_get, headers=headers_get, get_timeout =timeout)
             if response_get.status_code == 200:
                 # Guardar el contenido como un archivo Excel
                 with open(path_destino, 'wb') as file:
                     file.write(response_get.content)
                 print("Archivo descargado exitosamente.")
+                return True
             else:
                 print(f"Error al realizar la solicitud GET: {response_get.status_code}")
+                return False
         else:
             print(f"Error en la primera solicitud: {response.status_code}")
+            return False
 
     def extractDataFromExcel(filepath: str, filter_date: str) -> object:
         # Lee el archivo Excel
@@ -262,7 +263,6 @@ def products_history_new(operation_date):
             # Obtiene el SKU del producto
             sku = producto.get("sku")
             precio_compra_dia = precio_familia_compra(uri, db_name, sku, operation_date)
-
             # Encuentra la equivalencia
             equivalence_match = next(
                 (
@@ -401,13 +401,16 @@ def products_history_new(operation_date):
     filepath = os.path.join(os.path.dirname(__file__), f"sipsaexporta_{operation_date}.xls")
 
 
-    obtenerSipsa(operation_date,filepath)
+    sipsa = obtenerSipsa(operation_date,filepath)
     delete_product_history(operation_date)
-    data = extractDataFromExcel(filepath, operation_date)
+    print("Historial de productos eliminado.")
+    if sipsa:
+        data = extractDataFromExcel(filepath, operation_date)
+    else:
+        data = []
     copiar_productos_activos_y_actualizar(uri, db_name, coleccion_origen, coleccion_destino, operation_date, data)
     actualizar_precios_en_products(uri, db_name, coleccion_destino, operation_date)
     update_price_page()
     if os.path.exists(filepath):
         os.remove(filepath)
-    print("Fin del proceso / Productos actualizados.")
     return jsonify({"message": "Productos actualizados."}),  200

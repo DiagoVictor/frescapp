@@ -125,8 +125,8 @@ def obtener_compras_agrupadas(fecha):
             "purchases": {"items": purchase['items']},
             "stamp": {"generateStamp": True},
             "billOperationType": "INDIVIDUAL",
-            "date": fecha,
-            "dueDate": fecha,
+            "date": '2025-01-16',
+            "dueDate": '2025-01-16',
             "provider": int(purchase['proveedor_id']),
             "paymentMethod": "CASH",
             "paymentType": "CASH",
@@ -134,7 +134,7 @@ def obtener_compras_agrupadas(fecha):
             "payments": [
                 {
                     "account": { "id": 1 },
-                    "date": fecha,
+                    "date": '2025-01-16',
                     "amount": total,
                     "paymentMethod": "cash"
                 }
@@ -163,5 +163,7 @@ def obtener_compras_agrupadas(fecha):
             )
         else:
             print(f"Error al crear factura: {response.text}")
-
-obtener_compras_agrupadas('2024-10-23')
+list_days = ['2025-01-18']
+for day in list_days:
+    print(f"Procesando compras del día {day}")
+    obtener_compras_agrupadas(day)
