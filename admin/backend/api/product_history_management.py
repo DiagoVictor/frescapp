@@ -160,7 +160,7 @@ def products_history_new(operation_date):
             "wrapItUp": "true"
         }
         # Realizar la primera solicitud POST para obtener el uuid
-        response = requests.post(url, headers=headers, data=payload, timeout =timeout)
+        response = requests.post(url, headers=headers, data=payload)
         if response.status_code == 200:
             uuid = response.text  # Ajustar según el formato exacto de la respuesta si es necesario
             # Realizar la segunda solicitud GET usando el uuid
