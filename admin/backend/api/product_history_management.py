@@ -176,7 +176,7 @@ def products_history_new(operation_date):
             })
 
             # Realizar la solicitud GET para descargar el archivo
-            response_get = requests.get(url_get, headers=headers_get, get_timeout =timeout)
+            response_get = requests.get(url_get, headers=headers_get)
             if response_get.status_code == 200:
                 # Guardar el contenido como un archivo Excel
                 with open(path_destino, 'wb') as file:
