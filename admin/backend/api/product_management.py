@@ -130,7 +130,7 @@ def update_product(product_id):
     product.step_unit = step_unit or product.step_unit
     product.proveedor = proveedor or product.proveedor
     product.rate_root = rate_root or product.rate_root
-    product.is_visible = is_visible or product.is_visible
+    product.is_visible = is_visible if is_visible is not None else product.is_visible
     product.updated()
 
     return jsonify({'message': 'Product updated successfully'}), 200

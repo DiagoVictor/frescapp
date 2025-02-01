@@ -81,10 +81,9 @@ export class ProductsComponent implements OnInit {
     this.product.margen = parseFloat(this.product.margen);
     this.product.discount = parseFloat(this.product.discount);
     this.product.iva_value = parseFloat(this.product.iva_value);
-
+    this.product.is_visible = this.product.is_visible === 'true' ? true : false;
     // Convierte el campo iva a tipo boolean
     this.product.iva = this.product.iva === 'true' ? true : false;
-
     // Llama al servicio para actualizar el producto
     this.productService.updateProduct(this.product.id, this.product).subscribe((data: any) => {
       // Lógica después de actualizar el producto, si es necesario
