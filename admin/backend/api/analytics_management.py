@@ -4,6 +4,8 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta
 from models.order import Order
 from models.product import Product
+import json
+from bson import ObjectId, json_util
 
 
 analytics_api = Blueprint('analytics', __name__)
@@ -105,61 +107,78 @@ def gest_cost():
 
     return jsonify(result), 200
 
+
 @analytics_api.route('/orders', methods=['GET'])
 def get_orders():
+    # Definir el rango de fechas
     fecha_fin = datetime.now()
     fecha_inicio = fecha_fin - timedelta(days=120)
 
-    # Convertir las fechas a formato de cadena para MongoDB
+    # Convertir las fechas a objetos datetime para MongoDB
     fecha_inicio_str = fecha_inicio.strftime('%Y-%m-%d')
     fecha_fin_str = fecha_fin.strftime('%Y-%m-%d')
-    orders_cursor = Order.objects_date(fecha_inicio_str, fecha_fin_str)
-
-    # Crear una lista para almacenar las órdenes duplicadas por producto
-    orders_data = []
-
-    for order in orders_cursor:
-        # Información general de la orden
-        base_order_data = {
-            "order_id": str(order["_id"]),
-            "order_number": order.get("order_number", order.get("orderNumber", "N/A")),
-            "customer_email": order.get("customer_email", order.get("customerEmail", "N/A")),
-            "customer_phone": order.get("customer_phone", order.get("customerPhone", "N/A")),
-            "customer_document_number": order.get("customer_documentNumber", order.get("customerDocumentNumber", "N/A")),
-            "customer_document_type": order.get("customer_documentType", order.get("customerDocumentType", "N/A")),
-            "customer_name": order.get("customer_name", order.get("customerName", "N/A")),
-            "delivery_date": order.get("delivery_date", order.get("deliveryDate", "N/A")),
-            "status": order.get("status", "N/A"),
-            "created_at": order.get("created_at", "N/A"),
-            "updated_at": order.get("updated_at", "N/A"),
-            "total": order.get("total", 0),
-            "delivery_slot": order.get("deliverySlot", "N/A"),
-            "payment_method": order.get("paymentMethod", "N/A"),
-            "delivery_address": order.get("deliveryAddress", "N/A"),
-            "delivery_address_details": order.get("deliveryAddressDetails", "N/A")
-        }
-
-        # Crear un documento por cada producto en la orden
-        for product in order.get("products", []):
-            product_data = {
-                "sku": product.get("sku", ""),
-                "name": product.get("name", "Unknown"),
-                "quantity": product.get("quantity", 0),
-                "price_sale": product.get("price_sale", 0),
-                "price_purchase": product.get("price_purchase", "N/A"),
-                "category": product.get("category", "N/A"),
-                "root": product.get("root", "N/A"),
-                "child": product.get("child", "N/A"),
-                "discount": product.get("discount", "N/A"),
-                "margen": product.get("margen", "N/A"),
-                "iva": product.get("iva", "N/A"),
-                "iva_value": product.get("iva_value", "N/A"),
-                "step_unit": product.get("step_unit", "N/A")            
+    # Pipeline de agregación
+    pipeline = [
+        {
+            "$match": {
+                "delivery_date": {
+                    "$gte": fecha_inicio_str,
+                    "$lte": fecha_fin_str
+                }
             }
-
-            # Combinar la información de la orden con la del producto
-            combined_data = {**base_order_data, **product_data}
-            orders_data.append(combined_data)
-
-    # Retornar los datos en formato JSON
-    return jsonify(orders_data)
+        },
+        {
+            "$unwind": "$products"  # Descomponer el array de productos
+        },
+        {
+            "$lookup": {
+                "from": "products",  # Colección a unir
+                "localField": "products.child",  # Campo en `orders`
+                "foreignField": "sku",  # Campo en `products`
+                "as": "product_info"  # Nombre del campo donde se almacenará la información del producto
+            }
+        },
+        {
+            "$unwind": "$product_info"  # Descomponer el array resultante de `$lookup`
+        },
+        {
+            "$project": {
+                "order_number": 1,
+                "customer_email": 1,
+                "customer_phone": 1,
+                "customer_document_number": "$customer_documentNumber",
+                "customer_document_type": "$customer_documentType",
+                "customer_name": 1,
+                "delivery_date": 1,
+                "status": 1,
+                "created_at": 1,
+                "updated_at": 1,
+                "total": 1,
+                "delivery_slot": "$deliverySlot",
+                "payment_method": "$paymentMethod",
+                "delivery_address": "$deliveryAddress",
+                "delivery_address_details": "$deliveryAddressDetails",
+                "sku": "$products.sku",
+                "name": "$products.name",
+                "name_root" :"$product_info.name",
+                "quantity": "$products.quantity",
+                "price_sale": "$products.price_sale",
+                "price_purchase": "$product_info.price_purchase",
+                "category": "$product_info.category",
+                "root": "$product_info.root",
+                "child": "$product_info.child",
+                "discount": "$products.discount",
+                "margen": "$product_info.margen",
+                "iva": "$products.iva",
+                "iva_value": "$products.iva_value",
+                "step_unit": "$products.step_unit",
+                "quantity_root": {
+                    "$multiply": ["$products.quantity", "$products.step_unit"]
+                }
+            }
+        }
+    ]
+    # Ejecutar la agregación
+    orders_data = list(orders_collection.aggregate(pipeline))
+    orders_data_json = json.loads(json_util.dumps(orders_data))
+    return jsonify(orders_data_json)
