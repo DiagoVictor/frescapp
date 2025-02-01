@@ -31,7 +31,8 @@ class Product:
                  proveedor,
                  rate_root,
                  last_price_purchase,
-                 quantity):
+                 quantity,
+                 is_visible):
         self.name = name
         self.unit = unit
         self.category = category
@@ -55,6 +56,7 @@ class Product:
         self.sipsa_id = sipsa_id
         self.last_price_purchase = last_price_purchase
         self.quantity = quantity
+        self.is_visible = is_visible
 
     def save(self):
         product_data = {
@@ -80,7 +82,8 @@ class Product:
             "child": self.child,
             "step_unit":self.step_unit,
             "proveedor" : self.proveedor,
-            "rate_root" : self.rate_root
+            "rate_root" : self.rate_root,
+            "is_visible" : self.is_visible
         }
         result = products_collection.insert_one(product_data)
         return result.inserted_id
@@ -111,7 +114,8 @@ class Product:
                         "child": self.child,
                         "step_unit":self.step_unit,
                         "proveedor" : self.proveedor,
-                        "rate_root" : self.rate_root
+                        "rate_root" : self.rate_root,
+                        "is_visible" : self.is_visible
                     }
             }
         )
@@ -124,7 +128,7 @@ class Product:
     def objects(status):
         return products_collection.find({"status": status})
     @staticmethod
-    def objects_customer(status, customer_email):
+    def objects_customer( customer_email):
         if customer_email == 'undefined':
             customer_product_skus = ['BOG-CAT003-00029','BOG-CAT001-00002','BOG-CAT001-00007','BOG-CAT001-00004','BOG-CAT002-00001','BOG-CAT001-00005',
 'BOG-CAT004-00001','BOG-CAT004-00003','BOG-CAT001-00001','BOG-CAT001-00003','BOG-CAT001-00006','BOG-CAT001-00013','BOG-CAT004-00011',
@@ -135,7 +139,7 @@ class Product:
             customer = customers_collection.find_one({"email": customer_email})
             customer_product_skus = customer.get('list_products', [])
         
-        all_active_products = list(products_collection.find({"status": status}))
+        all_active_products = list(products_collection.find({"is_visible": True}))
         
         product_dict = {product['sku']: product for product in all_active_products}
         

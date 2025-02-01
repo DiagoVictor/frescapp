@@ -43,6 +43,7 @@ def create_product():
     last_price_purchase = data.get('price_purchase') 
     proveedor = ''
     rate_root = 0
+    is_visible = True
     if not sku or not name:
         return jsonify({'message': 'Missing required fields'}), 400
 
@@ -72,7 +73,8 @@ def create_product():
         proveedor= proveedor,
         rate_root = rate_root,
         root = root,
-        child = child
+        child = child,
+        is_visible = is_visible
 
     )
     product.save()
@@ -102,6 +104,7 @@ def update_product(product_id):
     last_price_purchase = data.get('last_price_purchase')
     proveedor = data.get('proveedor')
     rate_root = data.get('rate_root')
+    is_visible = data.get('is_visible')
     product = Product.object(product_id)
     if not product:
         return jsonify({'message': 'Product not found'}), 404
@@ -127,6 +130,7 @@ def update_product(product_id):
     product.step_unit = step_unit or product.step_unit
     product.proveedor = proveedor or product.proveedor
     product.rate_root = rate_root or product.rate_root
+    product.is_visible = is_visible or product.is_visible
     product.updated()
 
     return jsonify({'message': 'Product updated successfully'}), 200
@@ -160,7 +164,8 @@ def list_product():
             "sipsa_id" : product["sipsa_id"],
             "root" : product["root"],
             "child" : product["child"],
-            "last_price_purchase" : product["last_price_purchase"]
+            "last_price_purchase" : product["last_price_purchase"],
+            "is_visible" : product["is_visible"]
         }
         for product in products_cursor
     ]
@@ -174,7 +179,7 @@ def list_product():
 @product_api.route('/products_customer/<string:customer_email>', methods=['GET'])
 def list_product_customer(customer_email):
     # Filtrar solo los productos con status "active"
-    products_cursor = Product.objects_customer(status="active",customer_email=customer_email)
+    products_cursor = Product.objects_customer(customer_email=customer_email)
 
     # Construir los datos del producto para la respuesta JSON
     product_data = [
