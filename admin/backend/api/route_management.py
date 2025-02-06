@@ -200,3 +200,13 @@ def get_evidence(filename):
 
     # Enviar el archivo como respuesta
     return send_from_directory(UPLOAD_FOLDER, filename)
+
+@route_api.route('/stop_order_number/<string:order_number>', methods=['GET'])
+def get_stop_order(order_number):
+    order = Order.find_by_order_number(order_number)
+    route = Route.find_by_date(order.delivery_date)
+    stops = route.get("stops")
+    for stop in stops:
+        if stop.get("order_number") == str(order_number):
+            return jsonify(stop), 200        
+    return None, 400

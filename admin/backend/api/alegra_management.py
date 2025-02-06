@@ -6,6 +6,7 @@ from datetime import datetime
 import requests
 from datetime import datetime
 from pymongo import MongoClient
+from models.order import Order
 
 alegra_api = Blueprint('alegra', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
@@ -117,6 +118,7 @@ def transform_and_send_invoice(order, client, items):
         "termsConditions": "Esta factura se asimila en todos sus efectos a una letra de cambio de conformidad con el Art. 774 del código de comercio. Autorizo que en caso de incumplimiento de esta obligación sea reportado a las centrales de riesgo, se cobraran intereses por mora.",
         "status": "draft",
         "client": client_data,
+        "purchaseOrderNumber":  str(order["order_number"]),
         "numberTemplate": {
             "id": "16",
             "prefix": "FRES",
@@ -222,7 +224,7 @@ def send_invoice(order_number):
             if str(res.status_code) == '201':
                 collection.update_one(
                     {"order_number": order_number},
-                    {"$set": {"status": "Facturada"}}
+                    {"$set": {"alegra_id":res.json().get("id")}}
                 )
                 return jsonify({"message": res.text}), res.status_code
             else:
@@ -232,6 +234,15 @@ def send_invoice(order_number):
 
     else:
         return jsonify({"message": f"No se encontró la orden con número {order_number}"}), 400
+@alegra_api.route('/get_invoice/<string:order_number>', methods=['GET'])
+def get_invoice(order_number):
+    orden = Order.find_by_order_number(order_number)
+    url = f"https://api.alegra.com/api/v1/invoices/{orden.alegra_id}?fields=pdf"
+    headers = {
+        "authorization": "Basic dm1kaWFnb3ZAZ21haWwuY29tOjBmZmQ1YzdiM2NiMWI5OWVjNDA0"
+    }
+    response = requests.get(url, headers=headers, stream=True)
+    return jsonify(response.json().get('pdf'))
 
 @alegra_api.route('/send_purchase/<string:fecha>', methods=['GET'])
 def send_purchase(fecha):

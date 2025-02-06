@@ -119,66 +119,94 @@ def get_orders():
     fecha_fin_str = fecha_fin.strftime('%Y-%m-%d')
     # Pipeline de agregación
     pipeline = [
-        {
-            "$match": {
-                "delivery_date": {
-                    "$gte": fecha_inicio_str,
-                    "$lte": fecha_fin_str
-                }
-            }
-        },
-        {
-            "$unwind": "$products"  # Descomponer el array de productos
-        },
-        {
-            "$lookup": {
-                "from": "products",  # Colección a unir
-                "localField": "products.child",  # Campo en `orders`
-                "foreignField": "sku",  # Campo en `products`
-                "as": "product_info"  # Nombre del campo donde se almacenará la información del producto
-            }
-        },
-        {
-            "$unwind": "$product_info"  # Descomponer el array resultante de `$lookup`
-        },
-        {
-            "$project": {
-                "order_number": 1,
-                "customer_email": 1,
-                "customer_phone": 1,
-                "customer_document_number": "$customer_documentNumber",
-                "customer_document_type": "$customer_documentType",
-                "customer_name": 1,
-                "delivery_date": 1,
-                "status": 1,
-                "created_at": 1,
-                "updated_at": 1,
-                "total": 1,
-                "delivery_slot": "$deliverySlot",
-                "payment_method": "$paymentMethod",
-                "delivery_address": "$deliveryAddress",
-                "delivery_address_details": "$deliveryAddressDetails",
-                "sku": "$products.sku",
-                "name": "$products.name",
-                "name_root" :"$product_info.name",
-                "quantity": "$products.quantity",
-                "price_sale": "$products.price_sale",
-                "price_purchase": "$product_info.price_purchase",
-                "category": "$product_info.category",
-                "root": "$product_info.root",
-                "child": "$product_info.child",
-                "discount": "$products.discount",
-                "margen": "$product_info.margen",
-                "iva": "$products.iva",
-                "iva_value": "$products.iva_value",
-                "step_unit": "$products.step_unit",
-                "quantity_root": {
-                    "$multiply": ["$products.quantity", "$products.step_unit"]
-                }
+    {
+        "$match": {
+            "delivery_date": {
+                "$gte": fecha_inicio_str,
+                "$lte": fecha_fin_str
             }
         }
-    ]
-    # Ejecutar la agregación
+    },
+    {
+        "$unwind": "$products"  # Descomponer el array de productos
+    },
+    {
+        "$lookup": {
+            "from": "products",  # Colección a unir
+            "localField": "products.child",  # Campo en `orders`
+            "foreignField": "sku",  # Campo en `products`
+            "as": "product_info"  # Nombre del campo donde se almacenará la información del producto
+        }
+    },
+    {
+        "$unwind": "$product_info"  # Descomponer el array resultante de `$lookup`
+    },
+    {
+        "$lookup": {
+            "from": "products_history",  # Colección a unir
+            "let": {
+                "child": "$product_info.child",  # Campo `child` de `products`
+                "delivery_date": "$delivery_date"  # Campo `delivery_date` de `orders`
+            },
+            "pipeline": [
+                {
+                    "$match": {
+                        "$expr": {
+                            "$and": [
+                                { "$eq": ["$child", "$$child"] },  # Unir por `child`
+                                { "$eq": ["$operation_date", "$$delivery_date"] }  # Unir por `date`
+                            ]
+                        }
+                    }
+                }
+            ],
+            "as": "product_history_info"  # Nombre del campo donde se almacenará la información del historial del producto
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$product_history_info",
+            "preserveNullAndEmptyArrays": True  # Permite que no haya coincidencias en `product_history`
+        }
+    },
+    {
+        "$project": {
+            "order_number": 1,
+            "customer_email": 1,
+            "customer_phone": 1,
+            "customer_document_number": "$customer_documentNumber",
+            "customer_document_type": "$customer_documentType",
+            "customer_name": 1,
+            "delivery_date": 1,
+            "status": 1,
+            "created_at": 1,
+            "updated_at": 1,
+            "total": 1,
+            "delivery_slot": "$deliverySlot",
+            "payment_method": "$paymentMethod",
+            "delivery_address": "$deliveryAddress",
+            "delivery_address_details": "$deliveryAddressDetails",
+            "sku": "$products.sku",
+            "name": "$products.name",
+            "name_root": "$product_info.name",
+            "quantity": "$products.quantity",
+            "price_sale": "$products.price_sale",
+            "price_purchase": "$product_info.price_purchase",
+            "category": "$product_info.category",
+            "root": "$product_info.root",
+            "child": "$product_info.child",
+            "discount": "$products.discount",
+            "margen": "$product_info.margen",
+            "iva": "$products.iva",
+            "iva_value": "$products.iva_value",
+            "step_unit": "$products.step_unit",
+            "quantity_root": {
+                "$multiply": ["$products.quantity", "$products.step_unit"]
+            },
+            "price_purchase_real": "$product_history_info.last_price_purchased"
+        }
+    }
+]
     orders_data = list(orders_collection.aggregate(pipeline))
     orders_data_json = json.loads(json_util.dumps(orders_data))
     return jsonify(orders_data_json)

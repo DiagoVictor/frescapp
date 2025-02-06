@@ -47,6 +47,7 @@ def create_order(order_number=None):
     deliveryAddressDetails = data.get('deliveryAddressDetails') or ''
     deliveryCost = data.get('deliveryCost', 0.0)
     discount = data.get("discount", 0.0)
+    alegra_id = data.get('alegra_id') or data.get('alegra_id') or '000'
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
 
@@ -69,7 +70,8 @@ def create_order(order_number=None):
         deliveryAddress = deliveryAddress,
         deliveryAddressDetails = deliveryAddressDetails,
         deliveryCost = deliveryCost,
-        discount=discount
+        discount=discount,
+        alegra_id = alegra_id
     )
     finded_order = Order.find_by_order_number(order_number=order_number)
     if finded_order:
@@ -103,8 +105,9 @@ def list_orders(startDate,endDate):
          "total": order["total"], 
          "deliverySlot": order["deliverySlot"], 
          "paymentMethod": order["paymentMethod"],
-         "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
-         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
+         "deliveryAddress": order["deliveryAddress"], 
+         "deliveryAddressDetails": order["deliveryAddressDetails"] ,
+         "alegra_id" :order["alegra_id"]
          }
         for order in orders_cursor
     ]
@@ -131,7 +134,8 @@ def list_ordersByStats(status):
          "deliverySlot": order["deliverySlot"], 
          "paymentMethod": order["paymentMethod"],
          "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
-         "deliveryAddressDetails": order["deliveryAddressDetails"]  # Nuevo campo: Detalle dirección
+         "deliveryAddressDetails": order["deliveryAddressDetails"],
+        "alegra_id" :order["alegra_id"]
          }
         for order in orders_cursor
     ]
@@ -285,7 +289,8 @@ def list_orders_customer(email):
          "deliverySlot": order["deliverySlot"], 
          "paymentMethod": order["paymentMethod"], 
          "deliveryAddress": order['deliveryAddress'],
-         "deliveryAddressDetails" : order['deliveryAddressDetails']
+         "deliveryAddressDetails" : order['deliveryAddressDetails'],
+        "alegra_id" :order["alegra_id"]
          }
         for order in orders_cursor
     ]

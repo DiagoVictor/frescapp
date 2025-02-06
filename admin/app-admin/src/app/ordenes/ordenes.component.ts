@@ -1,6 +1,7 @@
 import { Component,  OnInit } from '@angular/core';
 import { OrderService } from '../services/order.service';
 import { Router } from '@angular/router';
+import { RoutesService } from '../services/routes.service';
 import { ProductService } from '../services/product.service';
 import { ClientesService } from '../services/clientes.service';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -50,6 +51,9 @@ export class OrdenesComponent implements OnInit {
   sortDirection: string = 'asc';
   orderNumbertosync :string = '';
   order_numer_sug:string = Math.floor(10000 + Math.random() * 90000).toString();
+  evidence:any = '';
+  titleEvidence:any = '';
+  typeEvidence:any = '';
   constructor(
     private orderService: OrderService
     ,private router: Router
@@ -59,6 +63,7 @@ export class OrdenesComponent implements OnInit {
     ,private alegraService: AlegraService
     ,private datePipe: DatePipe
     ,private wooService: WooService
+    ,private routeService : RoutesService
   ) { }
 
   ngOnInit(): void {
@@ -261,14 +266,13 @@ export class OrdenesComponent implements OnInit {
       }
     );
   }
-  get_invoice(id: any){
-    this.alegraService.get_invoice('215').subscribe(
+  get_invoice(order_number: any){
+    this.alegraService.get_invoice(order_number).subscribe(
       (res: any) => {
-        console.log(res.text)
+        this.facturaData = this.sanitizer.bypassSecurityTrustResourceUrl(res);
 
       }
     );
-    //this.facturaData =
   }
   delete_order(id: any){
     this.orderService.deleteOrder(id).subscribe(
@@ -278,7 +282,6 @@ export class OrdenesComponent implements OnInit {
     );
   }
   sort(column: string) {
-    console.log(column)
     if (!this.filteredOrders || this.filteredOrders.length === 0) {
       return; // No hacer nada si filteredOrders es indefinido o está vacío
     }
@@ -315,6 +318,49 @@ export class OrdenesComponent implements OnInit {
         this.getOrders('date')
       }
     });
+  }
+  getEvidence(orderNumber:any){
+    this.routeService.getStopNumber(orderNumber).subscribe(
+      (res: any) => {
+        this.titleEvidence = res.payment_method;
+        if(res.evidence == undefined){
+          this.evidence == 'Sin evidencia'
+          this.titleEvidence = 'Sin evidencia'
+        }else{
+            this.evidence = this.sanitizer.bypassSecurityTrustResourceUrl("https://app.buyfrescapp.com:5000/api/route/route/evidence/"+res.evidence);
+            const fileExtension = res.evidence.split('.').pop().toLowerCase();
+            let mimeType: string;
+            switch (fileExtension) {
+              case 'pdf':
+                mimeType = 'application/pdf';
+                break;
+              case 'jpg':
+              case 'jpeg':
+                mimeType = 'image/jpeg';
+                break;
+              case 'png':
+                mimeType = 'image/png';
+                break;
+              case 'gif':
+                mimeType = 'image/gif';
+                break;
+              case 'txt':
+                mimeType = 'text/plain';
+                break;
+              case 'html':
+                mimeType = 'text/html';
+                break;
+              // Agrega más casos según sea necesario
+              default:
+                mimeType = 'application/octet-stream'; // Tipo MIME por defecto para archivos desconocidos
+                break;
+            }
+
+            // Asignar el tipo de evidencia y la URL segura
+            this.typeEvidence = mimeType;
+          }
+      }
+    );
   }
 }
 

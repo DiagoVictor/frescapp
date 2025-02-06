@@ -57,6 +57,14 @@ class Route:
         if route:
             route['id'] = str(route['_id'])
         return route
+    @staticmethod
+    def find_by_date(date):
+        route = routes_collection.find_one({"close_date": date})
+        if route:
+            route['id'] = str(route['_id'])
+            return route
+        else:
+            return None
     
     def delete_route(self):
         result = routes_collection.delete_one({"_id": ObjectId(self.id)})

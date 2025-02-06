@@ -27,7 +27,8 @@ class Order:
                  deliveryAddress=None,
                  deliveryAddressDetails=None,
                  discount=0,
-                 deliveryCost=None):
+                 deliveryCost=None,
+                 alegra_id=None):
         self.id = id
         self.order_number = order_number
         self.customer_email = customer_email
@@ -47,6 +48,7 @@ class Order:
         self.deliveryAddressDetails = deliveryAddressDetails
         self.discount = discount  # Default value is 0
         self.deliveryCost = deliveryCost if deliveryCost is not None else 0
+        self.alegra_id = alegra_id if alegra_id is not None else "000"
 
     def save(self):
         order_data = {

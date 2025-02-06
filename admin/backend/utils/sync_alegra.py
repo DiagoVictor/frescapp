@@ -122,6 +122,7 @@ def transform_and_send_invoice(order, client, items):
             "formattedNumber": order["order_number"],
             "isElectronic": True
         },
+        "purchaseOrderNumber":  str(order["order_number"]),
         "subtotal": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
         "discount": order["discount"],
         "tax": 0,
@@ -138,7 +139,6 @@ def transform_and_send_invoice(order, client, items):
         "operationType": "STANDARD",
         "paymentForm": "CASH",
         "paymentMethod": "CASH",
-
         "seller": None,
         "priceList": {
             "id": 1,
@@ -165,10 +165,10 @@ def transform_and_send_invoice(order, client, items):
             "name": "Clásico (Carta electrónica)",
             "pageSize": "letter"
         }
+
     }
     # URL y cabeceras para la API de Alegra
     url_invoice = "https://api.alegra.com/api/v1/invoices/"
-    print(invoice_data)
     response = requests.post(url_invoice, headers=headers, json=invoice_data)
     return response
 
@@ -184,15 +184,12 @@ def send_invoice(order_number):
             if str(res.status_code) == '201':
                 collection.update_one(
                     {"order_number": order_number},
-                    {"$set": {"status": "Facturada"}}
+                    {"$set": {"status": "Facturada", "alegra_id":res.json().get("id")}}
                 )
-                print(res.text)
-            else:
-                print(res.text)
         else:
             print(f"No se encontró un cliente con identificación {order['customer_documentNumber']}")
 
     else:
         print(f"No se encontró la orden con número {order_number}")
 
-send_invoice("62743")
+send_invoice("11927")
