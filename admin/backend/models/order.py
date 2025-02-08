@@ -69,7 +69,8 @@ class Order:
             "deliveryAddress" : self.deliveryAddress,
             "deliveryAddressDetails" : self.deliveryAddressDetails,
             "discount" : self.discount,
-            "deliveryCost" : self.deliveryCost
+            "deliveryCost" : self.deliveryCost,
+            "alegra_id" :self.alegra_id
         }
         result = orders_collection.insert_one(order_data)
         return result.inserted_id
