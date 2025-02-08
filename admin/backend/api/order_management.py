@@ -46,7 +46,7 @@ def create_order(order_number=None):
     deliveryAddressDetails = data.get('deliveryAddressDetails') or ''
     deliveryCost = data.get('deliveryCost', 0.0)
     discount = data.get("discount", 0.0)
-    alegra_id = data.get('alegra_id') or data.get('alegra_id') or '000'
+    alegra_id = data.get('alegra_id','000')
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
 
