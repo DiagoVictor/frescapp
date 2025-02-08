@@ -95,7 +95,8 @@ class Order:
                 "paymentMethod" : self.paymentMethod,
                 "deliveryAddress" : self.deliveryAddress,
                 "deliveryAddressDetails" : self.deliveryAddressDetails,
-                "discount" : self.discount
+                "discount" : self.discount,
+                "alegra_id" :self.alegra_id
             }}
         )
     def to_json(self):
@@ -117,7 +118,8 @@ class Order:
             "deliveryAddress": self.deliveryAddress,
             "deliveryAddressDetails": self.deliveryAddressDetails,
             "discount": self.discount,
-            "deliveryCost": self.deliveryCost
+            "deliveryCost": self.deliveryCost,
+            "alegra_id" : self.alegra_id
         }
         return json.dumps(order_data)
     def delete_order(self):
