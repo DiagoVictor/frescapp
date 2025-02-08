@@ -59,7 +59,8 @@ def transform_order(order):
         "deliveryAddress": order["shipping"]["address_1"],
         "deliveryAddressDetails": order["shipping"]["address_2"],
         "discount": 0,
-        "deliveryCost": 0
+        "deliveryCost": 0,
+        "alegra_id" : "000"
     }
     return transformed_order
 
