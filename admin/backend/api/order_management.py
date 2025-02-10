@@ -24,6 +24,7 @@ from models.product import Product
 
 order_api = Blueprint('order', __name__)
 
+@order_api.route('/order', methods=['POST'])
 @order_api.route('/order/<string:order_number>', methods=['POST'])
 def create_order(order_number=None):
     data = request.get_json()
