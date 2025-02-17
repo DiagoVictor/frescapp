@@ -173,10 +173,7 @@ class Order:
     def find_by_status(status):
         return orders_collection.find({"status": status})
     @staticmethod
-    def find_by_date(startDate, endDate):
-
-        
-        # Realiza la consulta para obtener los pedidos en el rango de fechas
+    def find_by_date(startDate, endDate):        
         return orders_collection.find({
             "delivery_date": {
                 "$gte": startDate,  # Mayor o igual que startDate

@@ -30,10 +30,13 @@ import { CostsComponent  } from './costs/costs.component';
 import { InventoryComponent  } from './inventory/inventory.component';
 import { EditInventoryComponent  } from './inventory/edit-inventory/edit-inventory.component';
 import { ProductsAnalyticsComponent } from './products-analytics/products-analytics.component';
+import { CierresComponent } from './cierres/cierres.component';
+import { MoneyFormatPipe } from './money-format.pipe';
 
 
 @NgModule({
   declarations: [
+    MoneyFormatPipe,
     AppComponent,
     NavigationBarComponent,
     ProductsComponent,
@@ -56,7 +59,8 @@ import { ProductsAnalyticsComponent } from './products-analytics/products-analyt
     CostsComponent,
     InventoryComponent,
     EditInventoryComponent,
-    ProductsAnalyticsComponent
+    ProductsAnalyticsComponent,
+    CierresComponent
   ],
   bootstrap: [AppComponent],
   imports: [

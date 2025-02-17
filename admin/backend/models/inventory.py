@@ -47,3 +47,32 @@ class Inventory:
     @staticmethod
     def delete_by_id(item_id):
         return inventory_collection.delete_one({"_id": ObjectId(item_id)}).deleted_count
+    
+    @staticmethod
+    def get_by_date(fecha):
+        item = inventory_collection.find_one({"close_date": fecha})
+        if item:
+            return Inventory(
+                close_date=item.get("close_date"),
+                products=item.get("products"),
+                _id=str(item["_id"])
+            )
+        return None
+    @staticmethod
+    def total_by_date(fecha):
+        try:
+            inventory = inventory_collection.find_one({"close_date": fecha})
+            if not inventory:
+                return 0  # Si no hay inventario para esa fecha, retornar 0
+            
+            products = inventory.get("products", [])
+            
+            total = sum(
+                (product.get("cost") or 0) * (product.get("quantity") or 0) 
+                for product in products
+            )
+            
+            return total
+        except Exception as e:
+            print(f"Error al calcular el total para la fecha {fecha}: {e}")
+            return 0

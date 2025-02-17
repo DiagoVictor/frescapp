@@ -58,3 +58,23 @@ class Cost:
             print("Cost deleted successfully.")
         else:
             print("Cost not found.")
+    
+    @staticmethod
+    def total_by_date_type(fecha):
+        try:
+            # Buscar todos los documentos en costs_collection que coincidan con la fecha
+            costs = costs_collection.find({'period': fecha})
+            
+            total = 0  # Inicializar el total en 0
+            
+            # Recorrer cada documento de costos
+            for cost in costs:
+                # Verificar si el campo typecost es igual a "aux_ops"
+                if cost.get("typecost") == "perssonel":
+                    # Sumar el campo amount al total
+                    total += cost.get("amount", 0)
+            
+            return total
+        except Exception as e:
+            print(f"Error al calcular el total para la fecha {fecha}: {e}")
+            return 0

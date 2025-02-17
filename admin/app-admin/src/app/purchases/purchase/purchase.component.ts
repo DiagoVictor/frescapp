@@ -22,7 +22,7 @@ export class PurchaseComponent {
   successMessage: string | null = null;
   errorMessage: string | null = null;
   suppliers: any[] = [];
-  private priceTolerance = 2;
+  private priceTolerance:number = 1;
   isPriceValid: boolean = true;
   constructor(
     private route: ActivatedRoute,
@@ -126,11 +126,12 @@ export class PurchaseComponent {
   }
   validatePrice() {
     const suggestedPrice = this.selectedProduct.price_purchase;
-    const minPrice = suggestedPrice * (1 - this.priceTolerance);
+    const minPrice = Math.max(suggestedPrice * (1 - this.priceTolerance), 0);
     const maxPrice = suggestedPrice * (1 + this.priceTolerance);
+
     this.isPriceValid = this.selectedProduct.final_price_purchase >= minPrice &&
                         this.selectedProduct.final_price_purchase <= maxPrice;
-  }
+}
   round(value: number): number {
     // Redondea el número a un entero (una cifra)
     return Math.round(value);

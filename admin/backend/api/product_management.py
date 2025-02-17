@@ -240,19 +240,28 @@ def syn_products_page():
             break
 
     print(f"Se encontraron {len(product_ids)} productos para eliminar.")
-    print(product_ids  )
     # Preparar productos para crear desde MongoDB
     products_to_create = []
-    mongo_products = collection.find({"status": "active"})  # Consultar todos los productos en MongoDB
-
+    mongo_products = collection.find({"is_visible": True})  # Consultar todos los productos en MongoDB
     for product in mongo_products:
+        categoria_id = "0"
+        if product["category"] == 'Hotalizas':
+            categoria_id = "16"
+        if product["category"] == 'Tubérculos':
+            categoria_id = "43"
+        if product["category"] == 'Frutas':
+            categoria_id = "32"
+        if product["category"] == 'Verduras':
+            categoria_id = "33"
+        if product["category"] == 'Abarrotes':
+            categoria_id = 44
         producto = {
             "name": product["name"],
             "sku": product["sku"],
             "sale_price": str(product["price_sale"]),
             "price": str(product["price_sale"]),
             "regular_price": str(product["price_sale"]),
-            "categories": [{"name": product["category"]}],
+            "categories": [{"id": categoria_id, "name": product["category"]}],
             "tags": [{"name": product["unit"]}],
             "images": [{"src": product["image"]}]
         }
@@ -285,6 +294,6 @@ def syn_products_page():
     for product_to_create in products_to_create:
         url_update = f'{base_url}?consumer_key={consumer_key}&consumer_secret={consumer_secret}'
         response = requests.post(url_update, json=product_to_create)
-        print(product_to_create["sku"] + " - "+str(response.status_code))
+        #print(product_to_create["sku"] + " - "+str(response.status_code))
     return f"Creado exitosamente", 200
     

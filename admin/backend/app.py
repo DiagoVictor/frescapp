@@ -19,6 +19,7 @@ from api.ue_management import ue_api
 from api.cost_management import cost_api
 from api.inventory_management import inventory_api
 from api.analytics_management import analytics_api
+from api.cierre_management import cierres_api
 
 if __name__ == '__main__':
     app = Flask(__name__)
@@ -46,6 +47,7 @@ if __name__ == '__main__':
     app.register_blueprint(cost_api, url_prefix='/api/cost')
     app.register_blueprint(inventory_api, url_prefix='/api/inventory')
     app.register_blueprint(analytics_api, url_prefix='/api/analytics')
+    app.register_blueprint(cierres_api, url_prefix='/api/cierres')
 
 
     @app.route('/api/shared/<path:filename>')

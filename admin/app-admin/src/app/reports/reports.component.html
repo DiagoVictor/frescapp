@@ -1,61 +1,49 @@
-<div class="container-fluid mt-5">
-  <div class="row justify-content-end">
-    <div class="col-auto">
-      <input type="date" id="fechaFin" class="form-control" [(ngModel)]="ueDate">
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-3 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Unit Economics</h5>
+          <p class="card-text">Reporte mensual y semanal de los UE.</p>
+          <a href="https://lookerstudio.google.com/s/kxOw_FZPZ-o" class="btn btn-primary btn-block" target="_blank">
+            Unit Economics Reporte
+          </a>
+        </div>
+      </div>
     </div>
-    <div class="col-auto">
-      <button type="button" class="btn btn-primary" (click)="updateUnitEconomics()">
-        <i class="fas fa-plus-circle fa-lg"></i>
-        Actualizar UE
-      </button>
+    <div class="col-md-3 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Gestión de clientes</h5>
+          <p class="card-text">Comportamiento de compras por cliente y día de la semana</p>
+          <a href="hhttps://lookerstudio.google.com/s/v4vfRS28WbU" class="btn btn-primary btn-block" target="_blank">
+            Gestión de clientes
+          </a>
+        </div>
+      </div>
     </div>
-    <div class="col-10">
-      <a href="https://app.buyfrescapp.com:5000/api/order/orders/csv">Ordenes en CSV</a>
+    <div class="col-md-3 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Pronóstico de compras</h5>
+          <p class="card-text">Reporte de pronóstico para planear compras semanales.</p>
+          <a href="https://lookerstudio.google.com/s/o4_RMjL0HI0" class="btn btn-primary btn-block" target="_blank">
+            Pronóstico de compras
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Cash Margin por producto</h5>
+          <p class="card-text">Reporte para evaluar cada producto.</p>
+          <a href="https://lookerstudio.google.com/s/mqG0GRi2nII" class="btn btn-primary btn-block" target="_blank">
+            Cash Margin
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-<br><br>
-<!-- Tabla de Datos Mensuales -->
-<div class="container">
-  <div class="row">
-    <h4>Datos Mensuales</h4>
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col">Tipo de UE</th>
-          <th *ngFor="let mes of monthlyData['GMV']?.Mensual | keyvalue ">{{ mes.key }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Itera sobre cada métrica y muestra los valores de cada mes -->
-        <tr
-          *ngFor="let metric of ['GMV', 'COGS', 'Gross Profit', 'Gross Profit as % of GMV','Opex','WH Rent', 'Last Mile', 'Tech Cost', 'Others Cost', 'Supply Cost', 'Sales Force', 'Perssonel', 'Net Profit', 'Orders', 'Lines', 'AOV','ALV','MUA']">
-          <td>{{ metric }}</td>
-          <td *ngFor="let mes  of monthlyData[metric]?.Mensual | keyvalue">{{ mes.value }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <br><br>
-  <!-- Tabla de Datos Semanales -->
-  <div class="row">
-    <h4>Datos Semanales</h4>
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col">Tipo de UE</th>
-          <!-- Itera sobre los periodos semanales (semanas) de los datos pivotados -->
-          <th *ngFor="let semana of weeklyData['GMV']?.Semanal | keyvalue">{{ semana.key }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Itera sobre cada métrica y muestra los valores de cada semana -->
-        <tr
-          *ngFor="let metric of ['GMV', 'COGS', 'Gross Profit', 'Gross Profit as % of GMV','Opex','WH Rent', 'Last Mile', 'Tech Cost', 'Others Cost', 'Supply Cost', 'Sales Force', 'Perssonel', 'Net Profit', 'Orders', 'Lines', 'AOV','ALV','MUA']">
-          <td>{{ metric }}</td>
-          <td *ngFor="let semana of weeklyData[metric]?.Semanal | keyvalue">{{ semana.value }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+

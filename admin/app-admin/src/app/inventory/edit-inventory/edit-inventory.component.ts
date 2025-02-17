@@ -17,7 +17,7 @@ export class EditInventoryComponent {
     private inventoryService : InventoryService,
     private route: ActivatedRoute,
 
-  ){    
+  ){
     this.route.params.subscribe(params => {
     this.inventoryId = params['id'];
   });
@@ -26,13 +26,13 @@ export class EditInventoryComponent {
   ngOnInit(): void {
     this.getInventory();
   }
-  getInventory(){
+  getInventory() {
     this.inventoryService.getInventory(this.inventoryId).subscribe(
       (res: any) => {
         this.inventory = res;
-        this.filteredProducts = this.inventory.products;
+        this.filteredProducts = this.inventory.products.sort((a:any, b:any) => b.quantity - a.quantity);
       }
-      )
+    );
   }
   filterProducts() {
     this.filteredProducts = this.inventory.products.filter((product: any) =>
@@ -54,7 +54,7 @@ export class EditInventoryComponent {
       }
       return product; // Mantener productos que no estén en filteredProducts
     });
-  
+
     // Llamada al servicio para actualizar el inventario
     this.inventoryService.updateInventory(this.inventory).subscribe(
       (res: any) => {
@@ -65,7 +65,7 @@ export class EditInventoryComponent {
       }
     );
   }
-  
+
 
   // Regresar a la página anterior
   goBack(): void {
