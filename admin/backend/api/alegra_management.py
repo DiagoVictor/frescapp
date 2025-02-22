@@ -116,7 +116,7 @@ def transform_and_send_invoice(order, client, items):
         "observations": None,
         "anotation": "",
         "termsConditions": "Esta factura se asimila en todos sus efectos a una letra de cambio de conformidad con el Art. 774 del código de comercio. Autorizo que en caso de incumplimiento de esta obligación sea reportado a las centrales de riesgo, se cobraran intereses por mora.",
-        "status": "draft",
+        "status": "open",
         "client": client_data,
         "purchaseOrderNumber":  str(order["order_number"]),
         "numberTemplate": {
@@ -145,21 +145,14 @@ def transform_and_send_invoice(order, client, items):
         "operationType": "STANDARD",
         "paymentForm": "CASH",
         "paymentMethod": "CASH",
-        "payments": [
-        {
-            "amount": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
-            "paymentMethod": "cash",
-            "date": order["delivery_date"],
-            "account": { "id": 1 },
-        }
-        ],
+
         "seller": None,
         "priceList": {
             "id": 1,
             "name": "General"
         },
         "stamp": {
-            "legalStatus": "STAMPED_AND_ACCEPTED_WITH_OBSERVATIONS",
+            "legalStatus": "PENDING",
             "cufe": "216598b481686b59cc4681f36faeb20228f1f53521c1c605b98722abee530405264984a51544241708d8bf4de7ef3bee",
             "barCodeContent": "NumFac: FRES1281\nFecFac: 2024-07-10\nHorFac: 21:29:49-05:00\nNitFac: 901387528\nDocAdq: 1020808385\nValFac: 165000.00\nValIva: 0.00\nValOtroIm: 0.00\nValTolFac: 165000.00\nCUFE: 216598b481686b59cc4681f36faeb20228f1f53521c1c605b98722abee530405264984a51544241708d8bf4de7ef3bee\nQRCode: https:\/\/catalogo-vpfe.dian.gov.co\/document\/searchqr?documentkey=216598b481686b59cc4681f36faeb20228f1f53521c1c605b98722abee530405264984a51544241708d8bf4de7ef3bee\n",
             "date": "2024-07-10 21:30:52",
@@ -228,6 +221,7 @@ def send_invoice(order_number):
                 )
                 return jsonify({"message": res.text}), res.status_code
             else:
+                print(res.text + " : "+ str(res.status_code))
                 return jsonify({"message": res.text}), res.status_code
         else:
             return jsonify({"message": f"No se encontró un cliente con identificación {order['customer_documentNumber']}"}), 400
@@ -260,14 +254,14 @@ def send_purchase(fecha):
             item_alegra = find_item_by_reference(items, producto['sku'])
             
             if proveedor_alegra and item_alegra and producto['final_price_purchase'] > 0 and producto['status'] == 'Registrado' and producto['proveedor']['typeSupport'] == 'Documento soporte':
-                subtotal = producto['final_price_purchase'] * producto['total_quantity_ordered']
+                subtotal = producto['final_price_purchase'] * producto['total_quantity']
 
                 # Crear el item del producto
                 item_info = {
                     "id": item_alegra['id'],
                     "name": item_alegra['name'],
                     "price": producto['final_price_purchase'],
-                    "quantity": producto['total_quantity_ordered'],
+                    "quantity": producto['total_quantity'],
                     "subtotal": subtotal,
                     "total": subtotal
                 }

@@ -22,6 +22,6 @@ export class InventoryService {
     return this.http.delete(this.baseUrl +'api/inventory/inventory/'+ close_date);
   }
   createInventory(close_date:any){
-    return this.http.post<any[]>(this.baseUrl+'api/inventory/create/'+close_date,{});
+    return this.http.get<any[]>(this.baseUrl+'api/inventory/create/'+close_date);
   }
 }

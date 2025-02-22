@@ -32,7 +32,7 @@ def get_inventory(inventory_id):
                 "sku": product.get("sku"),
                 "name": product.get("name"),
                 "category": product.get("category"),
-                "quantity": round(product.get("quantity", 0),1),
+                "quantity": product.get("quantity", 0),
                 "cost": product.get("cost", 0)
             }
             for product in item.products
@@ -63,6 +63,7 @@ def create_inventory(close_date):
             "name": product["name"],
             "category": product["category"],
             "quantity": 0,  
+            "quantity_auto": 0,
             "cost": product["price_purchase"]
         }
         for product in products_data if product.get("root") == "1" 
@@ -77,10 +78,12 @@ def create_inventory(close_date):
             producto_ayer = next((p for p in inventory_ayer.products if p["sku"] == sku), None)
             if producto_ayer:
                 product["quantity"] = round(producto_ayer["quantity"],1)
+                product["quantity_auto"] = round(producto_ayer["quantity"],1)
         if compras_hoy.products:
             compras_sku = [c for c in compras_hoy.products if c["sku"] == sku]
             for compra in compras_sku:
-                product["quantity"] += round(compra.get("total_quantity_ordered",0),1)
+                product["quantity"] += round(compra.get("total_quantity",0),1)
+                product["quantity_auto"] += round(compra.get("total_quantity",0),1)
         if ventas_hoy:
             ventas_hoy = Order.find_by_date(close_date,close_date)
             for orden in ventas_hoy:
@@ -92,6 +95,7 @@ def create_inventory(close_date):
                     if str(product.get("sku")) == str(sku_root):
                         quantity_sold = productOrder.get("quantity", 0)
                         product["quantity"] -= round((quantity_sold * step_unit),1)
+                        product["quantity_auto"] -= round((quantity_sold * step_unit),1)
     item.save()
     return jsonify({"message": "Inventory item added successfully", "id": item.id}), 201
 

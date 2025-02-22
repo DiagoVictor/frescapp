@@ -216,8 +216,8 @@ def list_product_customer(customer_email):
 
 @product_api.route('/syn_products_page', methods=['GET'])
 def syn_products_page():
-    consumer_key = 'ck_203177d4d7a291000f60cd669ab7cb98976b3620'
-    consumer_secret = 'cs_d660a52cd323666cad9b600a9d61ed6c577cd6f9'
+    consumer_key = 'ck_4bf46790d37d0d9b58d0412564c8be7431496ef1'
+    consumer_secret = 'cs_a638277a5fc58e9c8c98a23e6efc88a51ae91fb7'
     base_url = 'https://www.buyfrescapp.com/wp-json/wc/v3/products'
 
     # Conexión a MongoDB
