@@ -79,7 +79,7 @@ def create_inventory(close_date):
             if producto_ayer:
                 product["quantity"] = round(producto_ayer["quantity"] or 0,1)
                 product["quantity_auto"] = round(producto_ayer["quantity"] or 0,1)
-        if compras_hoy.products:
+        if compras_hoy:
             compras_sku = [c for c in compras_hoy.products if c["sku"] == sku]
             for compra in compras_sku:
                 product["quantity"] += round(compra.get("total_quantity",0),1)
