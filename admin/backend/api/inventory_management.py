@@ -77,8 +77,8 @@ def create_inventory(close_date):
         if inventory_ayer:
             producto_ayer = next((p for p in inventory_ayer.products if p["sku"] == sku), None)
             if producto_ayer:
-                product["quantity"] = round(producto_ayer["quantity"],1)
-                product["quantity_auto"] = round(producto_ayer["quantity"],1)
+                product["quantity"] = round(producto_ayer["quantity"] or 0,1)
+                product["quantity_auto"] = round(producto_ayer["quantity"] or 0,1)
         if compras_hoy.products:
             compras_sku = [c for c in compras_hoy.products if c["sku"] == sku]
             for compra in compras_sku:
