@@ -15,6 +15,7 @@ routes_collection = db['routes']
 purchases_collection = db['purchases']
 orders_collection = db['orders']
 costs_collection = db['costs']
+inventory_collection = db['inventory']
 
 @analytics_api.route('/health')
 def health_check():
@@ -210,3 +211,158 @@ def get_orders():
     orders_data = list(orders_collection.aggregate(pipeline))
     orders_data_json = json.loads(json_util.dumps(orders_data))
     return jsonify(orders_data_json)
+
+@analytics_api.route('/products_consolidated', methods=['GET'])
+def get_products_consolidated():
+    # Definir el rango de fechas
+    fecha_fin = datetime.now()
+    fecha_inicio = fecha_fin - timedelta(days=30)
+    pipeline = [
+    {
+        "$match": {
+            "delivery_date": {
+                "$gte": fecha_inicio.strftime('%Y-%m-%d'),  # Fecha de inicio (hace 30 días)
+                "$lte": fecha_fin.strftime('%Y-%m-%d')     # Fecha de fin (hoy)
+            }
+        }
+    },
+    {
+        "$unwind": "$products"
+    },
+    {
+        "$lookup": {
+            "from": "products",
+            "localField": "products.sku",
+            "foreignField": "sku",
+            "as": "product_info"
+        }
+    },
+    {
+        "$unwind": "$product_info"
+    },
+    {
+        "$lookup": {
+            "from": "products",
+            "localField": "product_info.child",
+            "foreignField": "sku",
+            "as": "child_product_info"
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$child_product_info",
+            "preserveNullAndEmptyArrays": True
+        }
+    },
+    {
+        "$lookup": {
+            "from": "purchases",
+            "let": { "sku": "$child_product_info.sku", "delivery_date": "$delivery_date" },
+            "pipeline": [
+                { "$unwind": "$products" },  # Desenrollar el array de productos en purchase
+                { "$match":
+                    { "$expr":
+                        { "$and":
+                            [
+                                { "$eq": [ "$products.sku", "$$sku" ] },  # Comparar SKU
+                                { "$eq": [ "$date", "$$delivery_date" ] }  # Comparar fecha
+                            ]
+                        }
+                    }
+                }
+            ],
+            "as": "purchase_info"
+        }
+    },
+    {
+        "$lookup": {
+            "from": "inventory",
+            "let": { "sku": "$child_product_info.sku", "delivery_date": "$delivery_date" },
+            "pipeline": [
+                { "$unwind": "$products" }, 
+                { "$match":
+                    { "$expr":
+                        { "$and":
+                            [
+                                { "$eq": [ "$products.sku", "$$sku" ] },  # Comparar SKU
+                                { "$eq": [ "$close_date", { "$dateToString": { "format": "%Y-%m-%d", "date": { "$dateSubtract": { "startDate": { "$toDate": "$$delivery_date" }, "unit": "day", "amount": 1 } } } } ] }
+                            ]
+                        }
+                    }
+                }
+            ],
+            "as": "inventory_info"
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$purchase_info",
+            "preserveNullAndEmptyArrays": True  # Mantener documentos aunque no haya coincidencias
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$inventory_info",
+            "preserveNullAndEmptyArrays": True  # Mantener documentos aunque no haya coincidencias
+        }
+    },
+    {
+        "$group": {
+            "_id": {
+                "fecha": "$delivery_date",
+                "sku": "$child_product_info.sku"
+            },
+            "name": {"$first": "$child_product_info.name"},  # Nombre del child
+            "categoria": {"$first": "$child_product_info.category"},
+            "cantidad_vendida": {
+                "$sum": {
+                    "$multiply": ["$products.quantity", "$product_info.step_unit"]
+                }
+            },
+            "cantidad_comprada": {
+                "$first":  {
+                    "$ifNull": ["$purchase_info.products.total_quantity", 0]
+                }
+            },
+            "cantidad_inventario": {
+                "$first": {
+                     "$ifNull": ["$inventory_info.products.quantity",0]
+                }
+            },
+            "precio_compra": {
+                "$first": {
+                    "$ifNull": ["$purchase_info.products.final_price_purchase", "$product_info.price_purchase"]
+                }
+            },
+            "precio_venta": {
+                "$avg": {
+                    "$divide": ["$products.price_sale", "$product_info.step_unit"]  
+                }
+            },
+            "lineas": {"$sum": 1}
+        }
+    },
+    {
+        "$project": {
+            "_id": 0,  # Excluir el campo _id
+            "fecha": "$_id.fecha",
+            "sku": "$_id.sku",
+            "name": 1,  # Nombre del child
+            "categoria": 1,
+            "cantidad_vendida": 1,
+            "cantidad_comprada": 1,
+            "cantidad_inventario": 1,
+            "precio_compra": 1,
+            "precio_venta": 1,
+            "lineas": 1
+        }
+    },
+    {
+        "$sort": {
+            "fecha": 1  # Ordenar por fecha ascendente
+        }
+    }
+]
+    result = list(orders_collection.aggregate(pipeline))
+    result_data_json = json.loads(json_util.dumps(result))
+    return jsonify(result_data_json)

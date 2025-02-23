@@ -145,7 +145,14 @@ def transform_and_send_invoice(order, client, items):
         "operationType": "STANDARD",
         "paymentForm": "CASH",
         "paymentMethod": "CASH",
-
+        "payments": [
+        {
+            "amount": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
+            "paymentMethod": "cash",
+            "date": order["delivery_date"],
+            "account": { "id": 1 },
+        }
+        ],
         "seller": None,
         "priceList": {
             "id": 1,
