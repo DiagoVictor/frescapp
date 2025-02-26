@@ -329,6 +329,11 @@ def get_products_consolidated():
                      "$ifNull": ["$inventory_info.products.quantity",0]
                 }
             },
+            "precio_inventario": {
+                "$first": {
+                     "$ifNull": ["$inventory_info.products.cost",0]
+                }
+            },
             "precio_compra": {
                 "$first": {
                     "$ifNull": ["$purchase_info.products.final_price_purchase", "$product_info.price_purchase"]
@@ -352,6 +357,7 @@ def get_products_consolidated():
             "cantidad_vendida": 1,
             "cantidad_comprada": 1,
             "cantidad_inventario": 1,
+            "precio_inventario": 1,
             "precio_compra": 1,
             "precio_venta": 1,
             "lineas": 1
