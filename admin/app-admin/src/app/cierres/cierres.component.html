@@ -92,23 +92,23 @@
                 <h6 class="text-success text-center">Ingresos</h6>
                 <div class="form-group mb-3">
                   <label for="efectivo">Efectivo</label>
-                  <input type="text" class="form-control" [ngModel]="currentCierre.efectivo | moneyFormat" disabled="true">
+                  <input type="text" class="form-control" [ngModel]="currentCierre.efectivo | moneyFormat" >
                 </div>
                 <div class="form-group mb-3">
                   <label for="davivienda">Davivienda</label>
-                  <input type="text" class="form-control" [ngModel]="currentCierre.davivienda | moneyFormat" disabled="true">
+                  <input type="text" class="form-control" [ngModel]="currentCierre.davivienda | moneyFormat">
                 </div>
                 <div class="form-group mb-3">
                   <label for="bancolombia">Bancolombia</label>
-                  <input type="text" class="form-control" [ngModel]="currentCierre.bancolombia | moneyFormat" disabled="true">
+                  <input type="text" class="form-control" [ngModel]="currentCierre.bancolombia | moneyFormat">
                 </div>
                 <div class="form-group mb-3">
                   <label for="cartera">Cartera</label>
-                  <input type="text" class="form-control" [ngModel]="currentCierre.cartera | moneyFormat" disabled="true">
+                  <input type="text" class="form-control" [ngModel]="currentCierre.cartera | moneyFormat">
                 </div>
                 <div class="form-group mb-3">
                   <label for="inventario_hoy">Inventario Hoy</label>
-                  <input type="text" class="form-control" [ngModel]="currentCierre.inventario_hoy | moneyFormat" disabled="true">
+                  <input type="text" class="form-control" [ngModel]="currentCierre.inventario_hoy | moneyFormat">
                 </div>
                 <label class="text-success"><b>Total: {{ (currentCierre.efectivo + currentCierre.davivienda + currentCierre.bancolombia + currentCierre.cartera + currentCierre.inventario_hoy) | moneyFormat }}</b></label>
               </div>
@@ -116,19 +116,19 @@
                 <h6 class="text-danger text-center">Gastos</h6>
                 <div class="form-group mb-3">
                   <label for="ruta">Ruta</label>
-                  <input type="text" class="form-control" [ngModel]="currentCierre.ruta | moneyFormat" disabled="true">
+                  <input type="text" class="form-control" [ngModel]="currentCierre.ruta | moneyFormat">
                 </div>
                 <div class="form-group mb-3">
                   <label for="aux_ops">Auxiliar Ops</label>
-                  <input type="text" class="form-control" [ngModel]="currentCierre.aux_ops | moneyFormat" disabled="true">
+                  <input type="text" class="form-control" [ngModel]="currentCierre.aux_ops | moneyFormat">
                 </div>
                 <div class="form-group mb-3">
                   <label for="cogs">COGS</label>
-                  <input type="text" class="form-control" [ngModel]="currentCierre.cogs | moneyFormat" disabled="true">
+                  <input type="text" class="form-control" [ngModel]="currentCierre.cogs | moneyFormat">
                 </div>
                 <div class="form-group mb-3">
                   <label for="inventario_ayer">Inventario Ayer</label>
-                  <input type="text" class="form-control" [ngModel]="currentCierre.inventario_ayer | moneyFormat" disabled="true">
+                  <input type="text" class="form-control" [ngModel]="currentCierre.inventario_ayer | moneyFormat">
                 </div>
                 <br><br><br>
                 <label class="text-danger"><b>Total: {{ (currentCierre.ruta + currentCierre.aux_ops + currentCierre.cogs + currentCierre.inventario_ayer) | moneyFormat }}</b></label>
@@ -155,11 +155,11 @@
             </div>
             <div class="form-group mb-3">
               <label for="cartera_total">Cartera Total</label>
-              <input type="text" class="form-control" [ngModel]="currentCierre.cartera_total | moneyFormat" disabled="true">
+              <input type="text" class="form-control" [ngModel]="currentCierre.cartera_total | moneyFormat">
             </div>
             <div class="form-group mb-3">
               <label for="cartera_total">Inventario Hoy</label>
-              <input type="text" class="form-control" [ngModel]="currentCierre.inventario_hoy| moneyFormat" disabled="true">
+              <input type="text" class="form-control" [ngModel]="currentCierre.inventario_hoy| moneyFormat">
             </div>
             <div class="form-group mb-3">
               <label for="bancolombia_total">Deuda Total</label>
@@ -167,7 +167,7 @@
             </div>
             <div class="form-group mb-3">
               <label for="cierre_total">Cierre Total</label>
-              <input type="text" class="form-control" [ngModel]="currentCierre.efectivo_total + currentCierre.davivienda_total + currentCierre.bancolombia_total + currentCierre.cartera_total  +currentCierre.inventario_hoy - currentCierre.deuda_total | moneyFormat" disabled="true">
+              <input type="text" class="form-control" [ngModel]="currentCierre.efectivo_total + currentCierre.davivienda_total + currentCierre.bancolombia_total + currentCierre.cartera_total  +currentCierre.inventario_hoy - currentCierre.deuda_total | moneyFormat">
             </div>
           </div>
         </div>

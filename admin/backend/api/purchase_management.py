@@ -19,6 +19,7 @@ import locale
 import certifi
 import urllib.request
 from datetime import datetime, timedelta
+from models.purchase import Purchase
 
 
 purchase_api = Blueprint('purchase', __name__)
@@ -188,7 +189,8 @@ def create_purchase(date):
             "date": date,
             "purchase_number": str(purchase_number),
             "status": "Creada",
-            "products": products
+            "products": products,
+            "comments" :""
         }
         purchase_collection.insert_one(purchase_document)
         return jsonify({"status": "success", "message": "Purchase document saved.", "purchase_number": purchase_number}), 201
@@ -342,6 +344,7 @@ def get_report_purchase(purchase_number):
 ]
 
     products = list(purchase_collection.aggregate(pipeline))
+    purchase = Purchase.get_by_number(str(purchase_number))
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
@@ -407,7 +410,11 @@ def get_report_purchase(purchase_number):
         ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),
         ('BOX', (0, 0), (-1, -1), 0.5, colors.black)
     ]))
-    
+    comments = Paragraph(
+        '<para bgColor="#FFD700" textColor="black" fontSize="12" leading="14" spaceAfter="12" align="center"><b>{}</b></para>'.format(str(purchase.comments)),
+        centered_style
+    )
+    pdf_content.append(comments)
     pdf_content.append(product_table)
     pdf_content.append(PageBreak())
 

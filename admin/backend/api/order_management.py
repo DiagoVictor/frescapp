@@ -20,6 +20,8 @@ from utils.email_utils import send_new_order
 from io import StringIO
 import csv
 from models.product import Product
+from models.customer import Customer
+
 
 
 order_api = Blueprint('order', __name__)
@@ -41,16 +43,17 @@ def create_order(order_number=None):
     updated_at = data.get('updated_at', None)
     products = data.get('products', [])
     total = data.get('total', 0.0)
-    deliverySlot = data.get('deliverySlot', '09:00-12:00')
     paymentMethod = data.get('paymentMethod', 'Cash')
     deliveryAddress = data.get('deliveryAddress', 'Default Address')
     deliveryAddressDetails = data.get('deliveryAddressDetails') or ''
     deliveryCost = data.get('deliveryCost', 0.0)
     discount = data.get("discount", 0.0)
     alegra_id = data.get('alegra_id','000')
+    deliverySlot = data.get('deliverySlot', '09:00-12:00')
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
-
+    customer = Customer.find_by_email(customer_email)
+    open_hour_customer = customer.get('open_hour')
     order = Order(      
         id = id,  
         order_number = order_number,
@@ -71,7 +74,8 @@ def create_order(order_number=None):
         deliveryAddressDetails = deliveryAddressDetails,
         deliveryCost = deliveryCost,
         discount=discount,
-        alegra_id = alegra_id
+        alegra_id = alegra_id,
+        open_hour=open_hour_customer
     )
     finded_order = Order.find_by_order_number(order_number=order_number)
     if finded_order:
@@ -144,10 +148,8 @@ def list_ordersByStats(status):
 @order_api.route('/generate_pdf/<string:id_order>', methods=['GET'])
 def generate_remision(id_order):
     order = Order.object(id_order)
-
     if not order:
         return jsonify({'message': 'Order not found'}), 404
-
     buffer = BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
@@ -190,7 +192,7 @@ def generate_remision(id_order):
     # Datos de la orden
     order_data = [
         ['Nombre', Paragraph(order.customer_name, word_wrap_style), 'Teléfono del Cliente', Paragraph(order.customer_phone, word_wrap_style)],
-        ['Método de pago', Paragraph(order.paymentMethod, word_wrap_style), 'Horario de entrega', Paragraph(order.deliverySlot, word_wrap_style)],
+        ['Método de pago', Paragraph(order.paymentMethod, word_wrap_style), 'Horario de entrega', Paragraph(order.deliverySlot + ' (' + order.open_hour + ')', word_wrap_style)],
         ['Dirección de entrega', Paragraph(order.deliveryAddress, word_wrap_style), 'Detalle de entrega', Paragraph(order.deliveryAddressDetails, word_wrap_style)]
     ]
 

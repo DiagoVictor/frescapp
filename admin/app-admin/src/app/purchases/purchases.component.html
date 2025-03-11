@@ -77,6 +77,11 @@
                 <i class="fas fa-trash fa-lg text-danger"></i>
               </span>
             </div>
+            <div class="col-auto" *ngIf="purchase.status == 'Creada'">
+              <span (click)="setPurchase(purchase)" style="cursor: pointer;" data-bs-target="#addcomments" data-bs-dismiss="modal" data-bs-toggle="modal">
+                <i class="fas fa-message fa-lg text-warning"></i>
+              </span>
+            </div>
             <div class="col-auto">
               <span (click)="downloadExcel(purchase)" style="cursor: pointer;">
                 <i class="fas fa-file-excel fa-lg text-success"></i> <!-- Icono de Excel -->
@@ -94,6 +99,23 @@
   </table>
 </div>
 
+<div class="modal fade" id="addcomments" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" >Agregar comentario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" [(ngModel)]="purchaseSelect.comments" class="form-control">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="comments()">Agregar Comentario</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="modal fade" id="newPurchase" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">

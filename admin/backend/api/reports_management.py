@@ -20,6 +20,7 @@ from pymongo import MongoClient
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak
 import locale
+from models.customer import Customer
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 report_api = Blueprint('report', __name__)
@@ -52,7 +53,6 @@ def get_picking(startDate,endDate):
             centered_style
         )
         green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
-
         # Tabla contenedora de la imagen y la caja verde
         content_table = Table([
             [logo, green_box]
@@ -68,7 +68,7 @@ def get_picking(startDate,endDate):
         # Datos de la orden
         order_data = [
             ['Nombre', Paragraph(order['customer_name'], word_wrap_style), 'Teléfono del Cliente', Paragraph(order['customer_phone'], word_wrap_style)],
-            ['Método de pago', Paragraph(order['paymentMethod'], word_wrap_style), 'Horario de entrega', Paragraph(order['deliverySlot'], word_wrap_style)],
+            ['Método de pago', Paragraph(order['paymentMethod'], word_wrap_style), 'Horario de entrega', Paragraph(order['deliverySlot'] + ' (' + order['open_hour'] + ')', word_wrap_style)],
             ['Dirección de entrega', Paragraph(order['deliveryAddress'], word_wrap_style), 'Detalle de entrega', Paragraph(order['deliveryAddressDetails'], word_wrap_style)]
         ]
 

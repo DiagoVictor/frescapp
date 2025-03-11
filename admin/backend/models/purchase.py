@@ -11,11 +11,13 @@ class Purchase:
                  purchase_number=None, 
                  status=None,
                  products = None,
+                 comments =None,
                  _id=None):
         self.date = date
         self.purchase_number = purchase_number
         self.status = status
         self.products = products if products is not None else [] 
+        self.comments = comments if comments is not None else ""
         self.id = _id
     @staticmethod
     def total_by_date(fecha):
@@ -42,6 +44,20 @@ class Purchase:
                 purchase_number=purchase.get("purchase_number"),
                 status=purchase.get("status"),
                 products=purchase.get("products"),
+                comments = purchase.get("comments"),
+                _id=str(purchase["_id"])
+            )
+        return None
+    @staticmethod
+    def get_by_number(purchase_number):
+        purchase = purchase_collection.find_one({"purchase_number": purchase_number})
+        if purchase:
+            return Purchase(
+                date=purchase.get("date"),
+                purchase_number=purchase.get("purchase_number"),
+                status=purchase.get("status"),
+                products=purchase.get("products"),
+                comments = purchase.get("comments"),
                 _id=str(purchase["_id"])
             )
         return None

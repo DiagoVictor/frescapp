@@ -13,11 +13,14 @@ from pymongo import MongoClient
 from openpyxl import Workbook
 import math
 import requests
+import csv
+from io import StringIO
+from flask import Response
 
 product_api = Blueprint('product', __name__)
 
 # Ruta para crear un nuevo product
-@product_api.route('/product', methods=['POST'])
+@product_api.route('/product/', methods=['POST'])
 def create_product():
     data = request.get_json()
     name = data.get('name')
@@ -104,8 +107,9 @@ def update_product(product_id):
     last_price_purchase = data.get('last_price_purchase')
     proveedor = data.get('proveedor')
     rate_root = data.get('rate_root')
-    is_visible = data.get('is_visible')
+    is_visible = bool(data.get('is_visible'))
     product = Product.object(product_id)
+
     if not product:
         return jsonify({'message': 'Product not found'}), 404
 
@@ -130,12 +134,13 @@ def update_product(product_id):
     product.step_unit = step_unit or product.step_unit
     product.proveedor = proveedor or product.proveedor
     product.rate_root = rate_root or product.rate_root
-    product.is_visible = is_visible if is_visible is not None else product.is_visible
+    product.is_visible = bool(is_visible) if is_visible is not None else bool(product.is_visible)
+    print(product.is_visible)
     product.updated()
 
     return jsonify({'message': 'Product updated successfully'}), 200
 
-@product_api.route('/products', methods=['GET'])
+@product_api.route('/products/', methods=['GET'])
 def list_product():
     # Filtrar solo los productos con status "active"
     products_cursor = Product.objects(status="active")
@@ -297,3 +302,43 @@ def syn_products_page():
         #print(product_to_create["sku"] + " - "+str(response.status_code))
     return f"Creado exitosamente", 200
     
+@product_api.route('/product/institucion/', methods=['GET'])
+def list_product_institucion():
+    def contenct_csv():
+        products_cursor = Product.objects(status="active")
+
+        # Crear un buffer en memoria para escribir el CSV
+        csv_buffer = StringIO()
+        csv_writer = csv.writer(csv_buffer)
+
+        # Escribir la cabecera del CSV
+        headers = [
+            "name", "unit", "category", "sku", "price_purchase"
+        ]
+        csv_writer.writerow(headers)
+
+        # Escribir los datos de cada producto en el CSV
+        for product in products_cursor:
+            row = [
+                product["name"], 
+                product["unit"], 
+                product["category"], 
+                product["sku"], 
+                round(product["price_purchase"]*(1 + (product["margen"]-0.08)))
+            ]
+            csv_writer.writerow(row)
+
+        # Obtener el contenido del buffer como una cadena CSV
+        csv_content = csv_buffer.getvalue()
+        csv_buffer.close()
+
+        return csv_content
+    csv_content = contenct_csv()
+
+    # Crear una respuesta HTTP con el archivo CSV
+    response = Response(
+        csv_content,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=products_institucion.csv"}
+    )
+    return response

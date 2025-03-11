@@ -115,7 +115,7 @@ class Product:
                         "step_unit":self.step_unit,
                         "proveedor" : self.proveedor,
                         "rate_root" : self.rate_root,
-                        "is_visible" : self.is_visible
+                        "is_visible" : bool(self.is_visible)
                     }
             }
         )

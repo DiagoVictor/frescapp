@@ -61,9 +61,9 @@ export class CierresComponent {
   getCierres() {
     this.cierreService.getCierres().subscribe(
       (res: any) => {
-        // Ordenar los inventarios por close_date de mayor a menor
+        // Ordenar los cierres por close_date de mayor a menor (fecha más reciente primero)
         this.cierres = res.sort((a: any, b: any) => {
-          return new Date(b.close_date).getTime() - new Date(a.close_date).getTime();
+          return new Date(b.fecha).getTime() - new Date(a.fecha).getTime();
         });
       }
     );

@@ -54,7 +54,6 @@ def send_message( user_id, cuerpo, type, to, body):
     service = build('gmail', 'v1', credentials=credentials)
     try:
         message = (service.users().messages().send(userId=user_id, body=cuerpo).execute())
-        print('Message Id: %s' % message['id'])
         now = datetime.now()  # Obtiene la fecha y hora actuales
         created_at = now.strftime("%Y-%m-%d %H:%M:%S") 
         notification = {

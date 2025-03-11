@@ -28,7 +28,8 @@ class Order:
                  deliveryAddressDetails=None,
                  discount=0,
                  deliveryCost=None,
-                 alegra_id=None):
+                 alegra_id=None,
+                 open_hour=None):
         self.id = id
         self.order_number = order_number
         self.customer_email = customer_email
@@ -49,6 +50,7 @@ class Order:
         self.discount = discount  # Default value is 0
         self.deliveryCost = deliveryCost if deliveryCost is not None else 0
         self.alegra_id = alegra_id if alegra_id is not None else "000"
+        self.open_hour = open_hour if open_hour is not None else ""
 
     def save(self):
         order_data = {
@@ -96,7 +98,8 @@ class Order:
                 "deliveryAddress" : self.deliveryAddress,
                 "deliveryAddressDetails" : self.deliveryAddressDetails,
                 "discount" : self.discount,
-                "alegra_id" :self.alegra_id
+                "alegra_id" :self.alegra_id,
+                "open_hour" :self.open_hour or ''
             }}
         )
     def to_json(self):
@@ -119,7 +122,8 @@ class Order:
             "deliveryAddressDetails": self.deliveryAddressDetails,
             "discount": self.discount,
             "deliveryCost": self.deliveryCost,
-            "alegra_id" : self.alegra_id
+            "alegra_id" : self.alegra_id,
+            "open_hour" : self.open_hour
         }
         return json.dumps(order_data)
     def delete_order(self):

@@ -47,6 +47,12 @@
                     </div>
                     <br>
                     <div class="form-group">
+                        <label for="address">Horario:</label>
+                        <input type="address" class="form-control" id="address" name="address"
+                            [(ngModel)]="stopSelect.address" disabled>
+                    </div>
+                    <br>
+                    <div class="form-group">
                         <label for="cost">Total a pagar:</label>
                         <input type="text" class="form-control" id="cost" name="cost"
                             [value]="stopSelect.total_to_charge | currency:'USD':'symbol'" disabled>
@@ -76,7 +82,7 @@
                     <br>
                     <div class="form-group">
                         <label for="evidence">Evidencia (archivo o foto):</label>
-                        <input type="file" class="form-control" id="evidence" name="evidence" 
+                        <input type="file" class="form-control" id="evidence" name="evidence"
                                (change)="onFileSelected($event)">
                     </div>
                     <br>

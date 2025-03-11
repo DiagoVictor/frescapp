@@ -229,4 +229,23 @@ export class PurchasesComponent {
       }
     );
    }
+   comments(){
+    this.purchaseService.updatePurchase(this.purchaseSelect).subscribe(
+      (res: any) => {
+        this.getPurchases();
+        this.messagePurchase = 'Orden de compra editada exitosamente!';
+        this.statusCodePurchase = res.statusCode || '200';
+        setTimeout(() => {
+          this.messagePurchase = '';
+        }, 3000);
+      },
+      (error: any) => {
+        this.messagePurchase = 'Fallo al editar la Orden de compra.';
+        this.statusCodePurchase = error.status || '500';
+        setTimeout(() => {
+          this.messagePurchase = '';
+        }, 3000);
+      }
+    );
+   }
 }

@@ -22,7 +22,8 @@ class Customer:
                  category,
                  list_products,
                  role,
-                 user):
+                 user,
+                 open_hour=''):
         self.phone = phone
         self.name = name
         self.document = document
@@ -38,6 +39,7 @@ class Customer:
         self.list_products = list_products,
         self.role = role
         self.user = user
+        self.open_hour = open_hour
     def save(self):
         customer_data = {
             "phone": self.phone,
