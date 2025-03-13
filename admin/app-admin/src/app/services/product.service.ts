@@ -6,8 +6,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ProductService {
-  private baseUrl = 'https://app.buyfrescapp.com:5000/';
-  //private baseUrl = 'http://localhost:5000/';
+  //private baseUrl = 'https://app.buyfrescapp.com:5000/';
+  private baseUrl = 'http://localhost:5000/';
 
   constructor(private httpClient: HttpClient) { }
 
@@ -18,7 +18,7 @@ export class ProductService {
     return this.httpClient.put<any[]>(this.baseUrl + 'api/product/products/'+product_id,product_data);
   }
   createProduct(product_data:any): Observable<any[]> {
-    return this.httpClient.post<any[]>(this.baseUrl + 'api/product/product',product_data);
+    return this.httpClient.post<any[]>(this.baseUrl + 'api/product/product/',product_data);
   }
   updateCatalogoPage(): Observable<any>{
     return this.httpClient.get<any>(this.baseUrl+'api/product/syn_products_page');
