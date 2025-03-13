@@ -53,7 +53,7 @@ def create_order(order_number=None):
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
     customer = Customer.find_by_email(customer_email)
-    open_hour_customer = customer.get('open_hour') or ''
+    open_hour_customer = customer.get('open_hour','') or ''
     order = Order(      
         id = id,  
         order_number = order_number,
