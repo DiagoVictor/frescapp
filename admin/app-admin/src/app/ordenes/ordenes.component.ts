@@ -28,7 +28,7 @@ export class OrdenesComponent implements OnInit {
   searchStartDate = `${this.yyyy}-${this.mm}-${this.dd}`;
   searchEndDate = `${this.yyyy}-${this.mm}-${this.dd}`;
   searchStatus = 'Estado'
-  statusOrders: string[] = ['Estado','Creada','Pagada','Facturada','Por entregar', 'Pendiente de pago'];
+  statusOrders: string[] = ['Estado','Creada','Por entregar','Pagada','Pendiente de pago'];
   order: any = {};
   product: any = {};
   customers: any[]  = [];
@@ -39,7 +39,6 @@ export class OrdenesComponent implements OnInit {
   documentTypes: string[] = [];
   paymentMethods: string[] = [];
   deliverySlots: string[] = [];
-  orderStatus: string[] = ['Creada', 'Confirmada', 'Despachada', 'Entregada', 'Facturada', 'Archivada'];
   products: any[] = [];
   selectedProductId: number | undefined;
   selectedsku: string = '';

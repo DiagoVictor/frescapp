@@ -21,7 +21,7 @@ inventory_collection = db['inventory']
 def health_check():
     return "OK", 200
 @analytics_api.route('/costs', methods=['GET'])
-def gest_cost():
+def get_cost():
     # Calcular las fechas de inicio y fin de los últimos 3 meses
     fecha_fin = datetime.now()
     fecha_inicio = fecha_fin - timedelta(days=120)
@@ -38,19 +38,171 @@ def gest_cost():
             daily_summary[fecha] = {
                 "date": fecha,
                 "logistics_cost": 0,
-                "cogs": 0,
+                "cogs": 0,  # COGS (Costo de los Bienes Vendidos)
                 "gmv": 0,
                 "total_orders": 0,
                 "total_lines": 0,
-                "unique_clients": set(),
-                "cost_tech": 0,
+                "cost_tech": 6250,
                 "cost_others": 0,
-                "wh_rent": 0,
-                "sales_force": 0
+                "wh_rent": 52080
             }
 
+    # Pipeline para calcular el costo total de los productos vendidos por día
+    pipeline = [
+        {
+            "$match": {
+                "delivery_date": {
+                    "$gte": fecha_inicio_str,
+                    "$lte": fecha_fin_str
+                }
+            }
+        },
+        {
+            "$unwind": "$products"
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "products.sku",
+                "foreignField": "sku",
+                "as": "product_info"
+            }
+        },
+        {
+            "$unwind": "$product_info"
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "product_info.child",
+                "foreignField": "sku",
+                "as": "child_product_info"
+            }
+        },
+        {
+            "$unwind": {
+                "path": "$child_product_info",
+                "preserveNullAndEmptyArrays": True
+            }
+        },
+        {
+            "$lookup": {
+                "from": "purchases",
+                "let": { "sku": "$child_product_info.sku", "delivery_date": "$delivery_date" },
+                "pipeline": [
+                    { "$unwind": "$products" },
+                    { "$match":
+                        { "$expr":
+                            { "$and":
+                                [
+                                    { "$eq": [ "$products.sku", "$$sku" ] },
+                                    { "$eq": [ "$date", "$$delivery_date" ] }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "as": "purchase_info"
+            }
+        },
+        {
+            "$lookup": {
+                "from": "inventory",
+                "let": { "sku": "$child_product_info.sku", "delivery_date": "$delivery_date" },
+                "pipeline": [
+                    { "$unwind": "$products" },
+                    { "$match":
+                        { "$expr":
+                            { "$and":
+                                [
+                                    { "$eq": [ "$products.sku", "$$sku" ] },
+                                    { "$eq": [ "$close_date", { "$dateToString": { "format": "%Y-%m-%d", "date": { "$dateSubtract": { "startDate": { "$toDate": "$$delivery_date" }, "unit": "day", "amount": 1 } } } } ] }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "as": "inventory_info"
+            }
+        },
+        {
+            "$unwind": {
+                "path": "$purchase_info",
+                "preserveNullAndEmptyArrays": True
+            }
+        },
+        {
+            "$unwind": {
+                "path": "$inventory_info",
+                "preserveNullAndEmptyArrays": True
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "fecha": "$delivery_date",
+                    "sku": "$child_product_info.sku"
+                },
+                "cantidad_vendida": {
+                    "$sum": {
+                        "$multiply": ["$products.quantity", "$product_info.step_unit"]
+                    }
+                },
+                "cantidad_inventario": {
+                    "$first": {
+                        "$ifNull": ["$inventory_info.products.quantity", 0]
+                    }
+                },
+                "precio_inventario": {
+                    "$first": {
+                        "$ifNull": ["$inventory_info.products.cost", 0]
+                    }
+                },
+                "precio_compra": {
+                    "$first": {
+                        "$ifNull": ["$purchase_info.products.final_price_purchase", "$product_info.price_purchase"]
+                    }
+                }
+            }
+        },
+        {
+            "$addFields": {
+                "costo_total": {
+                    "$cond": [
+                        { "$gte": ["$cantidad_inventario", "$cantidad_vendida"] },
+                        { "$multiply": ["$cantidad_vendida", "$precio_inventario"] },
+                        {
+                            "$add": [
+                                { "$multiply": ["$cantidad_inventario", "$precio_inventario"] },
+                                { "$multiply": [
+                                    { "$subtract": ["$cantidad_vendida", "$cantidad_inventario"] },
+                                    "$precio_compra"
+                                ]}
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id.fecha",
+                "cogs": { "$sum": "$costo_total" }  # Sumar el costo total por día
+            }
+        }
+    ]
+
+    # Ejecutar el pipeline para obtener el COGS por día
+    cogs_por_dia = db.orders.aggregate(pipeline)
+
+    # Procesar los resultados del pipeline y actualizar el daily_summary
+    for item in cogs_por_dia:
+        fecha = item["_id"]
+        initialize_daily_summary(fecha)
+        daily_summary[fecha]["cogs"] += item["cogs"]
+
     # Procesar rutas para costos logísticos
-    rutas = routes_collection.find({"close_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}})
+    rutas = db.routes.find({"close_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}})
     for ruta in rutas:
         fecha = ruta.get('close_date')
         if isinstance(fecha, str):
@@ -59,23 +211,8 @@ def gest_cost():
         initialize_daily_summary(fecha)
         daily_summary[fecha]["logistics_cost"] += ruta.get('cost', 0)
 
-    # Procesar compras para calcular COGS
-    compras = purchases_collection.find({"date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}})
-    for compra in compras:
-        fecha = compra.get('date')
-        if isinstance(fecha, str):
-            fecha = datetime.strptime(fecha, '%Y-%m-%d').strftime('%Y-%m-%d')
-
-        initialize_daily_summary(fecha)
-        for producto in compra.get('products', []):
-            precio = producto.get('final_price_purchase')
-            cantidad = producto.get('total_quantity_ordered')
-            if precio is not None and cantidad is not None:
-                daily_summary[fecha]["cogs"] += round(float(precio) * float(cantidad), 2)
-
-
     # Procesar órdenes para GMV, órdenes, líneas y clientes
-    ordenes = orders_collection.find({"delivery_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}})
+    ordenes = db.orders.find({"delivery_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}})
     for orden in ordenes:
         fecha = orden.get('delivery_date')
         if isinstance(fecha, str):
@@ -83,13 +220,13 @@ def gest_cost():
 
         initialize_daily_summary(fecha)
         daily_summary[fecha]["total_orders"] += 1
-        daily_summary[fecha]["unique_clients"].add(orden.get('customer_email'))
+
+
         for producto in orden.get('products', []):
             daily_summary[fecha]["total_lines"] += 1
             daily_summary[fecha]["gmv"] += producto.get('price_sale', 0) * producto.get('quantity', 0)
-
     # Procesar costos adicionales de la colección 'costs'
-    costs = costs_collection.find({"typePeriod": "Diario"})
+    costs = db.costs.find({"typePeriod": "Diario"})
     for cost in costs:
         fecha = cost.get('period')
         if isinstance(fecha, str):
@@ -100,15 +237,55 @@ def gest_cost():
         if tipo_costo in daily_summary[fecha]:
             daily_summary[fecha][tipo_costo] += cost.get('amount', 0)
 
-    # Construir el resultado final
+    # Construir el resultado final con la estructura deseada
     result = []
     for fecha, data in daily_summary.items():
-        data["unique_clients"] = len(data["unique_clients"])
-        result.append(data)
-
+        # Agregar el costo de renta de almacén como 'warehouse'
+        result.append({
+            "fecha": fecha,
+            "variable": "warehouse",
+            "valor": data["wh_rent"]
+        })
+        
+        # Agregar otros costos si es necesario
+        result.append({
+            "fecha": fecha,
+            "variable": "logistics_cost",
+            "valor": data["logistics_cost"]
+        })
+        
+        # Agregar COGS
+        result.append({
+            "fecha": fecha,
+            "variable": "cogs",
+            "valor": float(data["cogs"])
+        })
+        result.append({
+            "fecha": fecha,
+            "variable": "gmv",
+            "valor": float(data["gmv"])
+        })
+        result.append({
+            "fecha": fecha,
+            "variable": "total_orders",
+            "valor": float(data["total_orders"])
+        })
+        result.append({
+            "fecha": fecha,
+            "variable": "total_lines",
+            "valor": float(data["total_lines"])
+        })
+        result.append({
+            "fecha": fecha,
+            "variable": "cost_tech",
+            "valor": float(data["cost_tech"])
+        })
+        result.append({
+            "fecha": fecha,
+            "variable": "cost_others",
+            "valor": float(data["cost_others"])
+        })
     return jsonify(result), 200
-
-
 @analytics_api.route('/orders', methods=['GET'])
 def get_orders():
     # Definir el rango de fechas

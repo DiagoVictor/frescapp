@@ -49,10 +49,9 @@ def create_route():
             "phone": order.get('customer_phone'),
             "client_name": order.get('customer_name'),
             "total_charged": sum(item['price_sale'] * item['quantity'] for item in order['products']), 
-            "payment_method": "",
-            "checkin_time": "",
-            "checkin_latitude": "",
-            "checkin_longitude": "",
+            "payment_method": order["paymentMethod"],
+            "slot" : order["deliverySlot"],
+            "open_hour" : order["open_hour"],
             "order": index,
             "order_number" : order.get('order_number'),
             "status": "Por entregar"

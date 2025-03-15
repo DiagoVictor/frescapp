@@ -72,7 +72,8 @@ class Order:
             "deliveryAddressDetails" : self.deliveryAddressDetails,
             "discount" : self.discount,
             "deliveryCost" : self.deliveryCost,
-            "alegra_id" :self.alegra_id
+            "alegra_id" :self.alegra_id,
+            "open_hour" :self.open_hour or ''
         }
         result = orders_collection.insert_one(order_data)
         return result.inserted_id
@@ -138,10 +139,6 @@ class Order:
             raise ValueError(f"Invalid ID type: {type(self.id)}")
 
         result = orders_collection.delete_one({"_id": self.id})
-        if result.deleted_count > 0:
-            print("Order deleted successfully.")
-        else:
-            print("Order not found.")
 
     @staticmethod
     def objects():

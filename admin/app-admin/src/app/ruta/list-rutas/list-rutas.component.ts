@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { RoutesService } from '../../services/routes.service';
 import { Router } from '@angular/router';
+import { toInteger } from '@ng-bootstrap/ng-bootstrap/util/util';
 
 @Component({
   selector: 'app-list-rutas',
@@ -15,7 +16,7 @@ export class ListRutasComponent {
   public newRouteDate: string = '';
   public newRouteDriver: string = '';
   public newCost : number = 0;
-  public drivers: string[] = ['Carlos Julio Lopez']
+  public drivers: string[] = ['Carlos Julio Lopez','Oscar Garcia', 'Jhony']
   public selectedRoute:any = '';
 
   constructor(
@@ -72,15 +73,28 @@ export class ListRutasComponent {
       route.stops.forEach((stop: any) => {
         total += stop.total_to_charge; // Sumar el total a cobrar de cada parada
       });
-      return total; 
+      return total;
     }
     return 0
   }
-  
+  calculateTotalPayment(routeId: string,tipo:String){
+    const route = this.filteredRoutes.find((route: any) => route.id === routeId);
+    if (route) {
+      let total = 0;
+      route.stops.forEach((stop: any) => {
+        if(stop.payment_method == tipo){
+          total += Number(stop.total_charged);
+        }
+      });
+      return total;
+    }
+    return 0
+  }
+
   calculateTotalStops(routeId: string) {
     const route = this.filteredRoutes.find((route: any) => route.id === routeId);
     if (route) {
-      return route.stops.length; 
+      return route.stops.length;
     }
     return 0
   }

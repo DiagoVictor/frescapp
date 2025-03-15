@@ -21,6 +21,7 @@ from io import StringIO
 import csv
 from models.product import Product
 from models.customer import Customer
+from models.route import Route
 
 
 
@@ -81,17 +82,57 @@ def create_order(order_number=None):
         open_hour=open_hour_customer
     )
     finded_order = Order.find_by_order_number(order_number=order_number)
+    ruta = Route.find_by_date(delivery_date)
     if finded_order:
         order.updated()
     else:
         order.save()
         send_order_email(order_number, customer_email, delivery_date, products, total)
+    if ruta:
+        for stop in ruta.get('stops'):
+            if stop["order_number"] == order_number:
+                stop["total_charged"] = sum(item['price_sale'] * item['quantity'] for item in order.products)
+                stop["total_to_charge"] = sum(item['price_sale'] * item['quantity'] for item in order.products)
+                stop["quantity_sku"] = len(order.products)
+                stop["payment_method"] = order.paymentMethod
+        route_exist = Route(
+            id=ruta['id'],
+            route_number=ruta.get('route_number'),
+            close_date=ruta.get('close_date'),
+            driver=ruta.get('driver'),
+            cost=ruta.get('cost'),
+            stops=ruta.get('stops')
+        )
+        route_exist.update()
     return jsonify({'message': 'Order created successfully'}), 201
 @order_api.route('/order/<string:id>', methods=['DELETE'])
 def delete_order(id=None):
+    # Buscar la orden por su ID
     finded_order = Order.object(id)
+    if not finded_order:
+        return jsonify({'message': 'Order not found'}), 404
+
+    # Buscar la ruta asociada a la fecha de entrega de la orden
+    ruta = Route.find_by_date(finded_order.delivery_date)
+    if ruta:
+        # Filtrar los stops para eliminar el que coincide con el número de orden
+        ruta['stops'] = [stop for stop in ruta.get('stops', []) if stop.get("order_number") != finded_order.order_number]
+
+        # Actualizar la ruta en la base de datos
+        route_exist = Route(
+            id=ruta['id'],
+            route_number=ruta.get('route_number'),
+            close_date=ruta.get('close_date'),
+            driver=ruta.get('driver'),
+            cost=ruta.get('cost'),
+            stops=ruta.get('stops')
+        )
+        route_exist.update()
+
+    # Eliminar la orden
     finded_order.delete_order()
-    return jsonify({'message': 'Order created successfully'}), 201
+
+    return jsonify({'message': 'Order deleted successfully'}), 200
 @order_api.route('/orders/<string:startDate>/<string:endDate>', methods=['GET'])
 def list_orders(startDate,endDate):
     orders_cursor = Order.find_by_date(startDate,endDate)

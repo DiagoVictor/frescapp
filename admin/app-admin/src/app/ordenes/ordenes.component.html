@@ -208,7 +208,7 @@
               <div class="form-group">
                 <label for="status">Estado:</label>
                 <select class="form-control" id="status" name="status" [(ngModel)]="order.status">
-                  <option *ngFor="let statu of orderStatus" [value]="statu">{{ statu }}</option>
+                  <option *ngFor="let statu of statusOrders" [value]="statu">{{ statu }}</option>
                 </select>
               </div>
             </div>
