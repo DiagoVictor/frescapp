@@ -39,11 +39,14 @@
         <a class="nav-link" routerLink="/costos" routerLinkActive="active">Costos</a>
       </li>
       <li class="nav-item" *ngIf="role == 'administrador'">
+        <a class="nav-link" routerLink="/cartera" routerLinkActive="active">Cartera</a>
+      </li>
+      <li class="nav-item" *ngIf="role == 'administrador'">
         <a class="nav-link" routerLink="/cierres" routerLinkActive="active">Cierres</a>
       </li>
-      <li class="nav-item" *ngIf="role == 'administrador' || role == 'comercial'">
+      <!-- <li class="nav-item" *ngIf="role == 'administrador' || role == 'comercial'">
         <a class="nav-link" routerLink="/products-analytics" routerLinkActive="active">Análisis</a>
-      </li>
+      </li> -->
       <li class="nav-item">
         <a class="nav-link" (click)="logout()">Cerrar Sesión</a>
       </li>

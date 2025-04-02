@@ -31,6 +31,7 @@ import { InventoryComponent  } from './inventory/inventory.component';
 import { EditInventoryComponent  } from './inventory/edit-inventory/edit-inventory.component';
 import { ProductsAnalyticsComponent } from './products-analytics/products-analytics.component';
 import { CierresComponent } from './cierres/cierres.component';
+import { CarteraComponent } from './cartera/cartera.component';
 import { MoneyFormatPipe } from './money-format.pipe';
 
 
@@ -60,7 +61,8 @@ import { MoneyFormatPipe } from './money-format.pipe';
     InventoryComponent,
     EditInventoryComponent,
     ProductsAnalyticsComponent,
-    CierresComponent
+    CierresComponent,
+    CarteraComponent
   ],
   bootstrap: [AppComponent],
   imports: [

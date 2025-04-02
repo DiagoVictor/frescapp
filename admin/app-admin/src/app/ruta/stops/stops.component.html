@@ -30,7 +30,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Parada</h5>
+                <h5 class="modal-title">Parada No. {{stopSelect.order}}</h5>
             </div>
             <div class="modal-body">
                 <div class="container">
@@ -46,11 +46,21 @@
                             [(ngModel)]="stopSelect.address" disabled>
                     </div>
                     <br>
-                    <div class="form-group">
-                        <label for="address">Horario:</label>
-                        <input type="address" class="form-control" id="address" name="address"
-                            [(ngModel)]="stopSelect.address" disabled>
+                    <div class="row">
+                      <div class="col-6">
+                        <div class="form-group">
+                          <input type="slot" class="form-control" id="slot" name="slot"
+                              [(ngModel)]="stopSelect.slot" disabled>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="form-group">
+                          <input type="open_hour" class="form-control" id="open_hour" name="open_hour"
+                              [(ngModel)]="stopSelect.open_hour" disabled>
+                        </div>
+                      </div>
                     </div>
+
                     <br>
                     <div class="form-group">
                         <label for="cost">Total a pagar:</label>
@@ -60,7 +70,7 @@
                     <br>
                     <div class="form-group">
                         <label for="total_charged">Total recibido:</label>
-                        <input type="total_charged" class="form-control" id="total_charged" name="total_charged"
+                        <input type="number" class="form-control" id="total_charged" name="total_charged"
                             [(ngModel)]="stopSelect.total_charged">
                     </div>
                     <br>
@@ -71,6 +81,12 @@
                             </option>
                         </select>
                     </div>
+                    <br>
+                    <div class="form-group">
+                      <label for="payment_date">Fecha Pago:</label>
+                      <input type="date" class="form-control" id="payment_date" name="payment_date"
+                          [(ngModel)]="stopSelect.payment_date">
+                  </div>
                     <br>
                     <div>
                         <label>Estado:</label>

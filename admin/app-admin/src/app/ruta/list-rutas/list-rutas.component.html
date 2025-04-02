@@ -106,8 +106,8 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="editRouteModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade bd-example-modal-lg" id="editRouteModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 40%;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Editar Ruta</h5>
@@ -115,22 +115,20 @@
             </div>
             <div class="modal-body">
                 <div class="container">
-                    <div class="form-group">
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="form-group">
                         <label for="editFecha">Fecha:</label>
                         <input type="date" class="form-control" id="editFecha" [(ngModel)]="selectedRoute.close_date" [disabled]="true">
                     </div>
-                    <br>
-                    <div class="form-group">
-                        <label for="editDriver">Conductor:</label>
-                        <select class="form-control" id="editDriver" [(ngModel)]="selectedRoute.driver">
-                            <option *ngFor="let driver of drivers" [value]="driver">{{ driver }}</option>
-                        </select>
                     </div>
-                    <br>
-                    <div class="form-group">
+                    <div class="col-6">
+                      <div class="form-group">
                         <label for="editCost">Costo:</label>
                         <input type="number" class="form-control" id="editCost" [(ngModel)]="selectedRoute.cost">
                     </div>
+                    </div>
+                  </div>
                     <br>
                     <div class="form-group">
                         <label>Orden de Paradas:</label>
@@ -139,6 +137,7 @@
                                 <tr>
                                     <th>Cliente</th>
                                     <th>Dirección</th>
+                                    <th>Conductor</th>
                                     <th>Horario</th>
                                     <th>Orden</th>
                                 </tr>
@@ -147,6 +146,13 @@
                                 <tr *ngFor="let stop of selectedRoute.stops">
                                     <td>{{ stop.client_name }}</td>
                                     <td>{{ stop.address }}</td>
+                                    <td>
+                                      <select class="form-control" [(ngModel)]="stop.driver_name">
+                                        <option *ngFor="let driver of drivers" [value]="driver">
+                                          {{ driver }}
+                                        </option>
+                                      </select>
+                                    </td>
                                     <td>{{ stop.slot +" (" +stop.open_hour + ")"}}</td>
                                     <td>
                                         <input type="number" class="form-control" [(ngModel)]="stop.order" placeholder="Orden">

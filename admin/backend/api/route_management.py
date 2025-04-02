@@ -54,7 +54,9 @@ def create_route():
             "open_hour" : order["open_hour"],
             "order": index,
             "order_number" : order.get('order_number'),
-            "status": "Por entregar"
+            "status": "Por entregar",
+            "payment_date": order.get('payment_date'),
+            "driver_name": order.get('driver_name')
         }
         stops.append(stop)
 

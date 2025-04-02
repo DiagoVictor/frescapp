@@ -427,7 +427,7 @@ def ue_daily():
                 },
                 "precio_compra": {
                     "$first": {
-                        "$ifNull": ["$purchase_info.products.final_price_purchase", "$product_info.price_purchase"]
+                        "$ifNull": ["$purchase_info.products.final_price_purchase",0]
                     }
                 }
             }

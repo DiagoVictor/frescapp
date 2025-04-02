@@ -51,6 +51,11 @@ def create_order(order_number=None):
     discount = data.get("discount", 0.0)
     alegra_id = data.get('alegra_id','000')
     deliverySlot = data.get('deliverySlot', '09:00-12:00')
+    open_hour = data.get('open_hour', '')
+    payment_date = data.get('payment_date', delivery_date) 
+    driver_name = data.get('driver_name', '')
+    seller_name = data.get('seller_name', '')
+    source = data.get('source', 'app')
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
     customer = Customer.find_by_email(customer_email)
@@ -79,7 +84,11 @@ def create_order(order_number=None):
         deliveryCost = deliveryCost,
         discount=discount,
         alegra_id = alegra_id,
-        open_hour=open_hour_customer
+        open_hour=open_hour_customer,
+        payment_date=payment_date,
+        driver_name=driver_name,
+        seller_name=seller_name,
+        source=source
     )
     finded_order = Order.find_by_order_number(order_number=order_number)
     ruta = Route.find_by_date(delivery_date)
@@ -95,6 +104,9 @@ def create_order(order_number=None):
                 stop["total_to_charge"] = sum(item['price_sale'] * item['quantity'] for item in order.products)
                 stop["quantity_sku"] = len(order.products)
                 stop["payment_method"] = order.paymentMethod
+                stop["payment_date"] = order.payment_date
+                stop["address"] = order.deliveryAddress
+                stop["driver_name"] = order.driver_name
         route_exist = Route(
             id=ruta['id'],
             route_number=ruta.get('route_number'),
@@ -195,7 +207,14 @@ def generate_remision(id_order):
     if not order:
         return jsonify({'message': 'Order not found'}), 404
     buffer = BytesIO()
-    pdf = SimpleDocTemplate(buffer, pagesize=letter)
+    pdf = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        leftMargin=28.35,    # 1 cm
+        rightMargin=28.35,  # 1 cm
+        topMargin=28.35,    # 1 cm
+        bottomMargin=28.35  # 1 cm
+    )
     styles = getSampleStyleSheet()
     image_path = 'https://buyfrescapp.com/images/banner1.png'
     logo = Image(image_path, width=200, height=70)
@@ -227,7 +246,7 @@ def generate_remision(id_order):
 
     pdf_content.append(content_table)
     pdf_content.append(Paragraph('<br/>', styles['Normal']))
-    table_width = 500
+    table_width = 550
 
     # Aplicar estilos de WordWrap a las celdas de la tabla
     word_wrap_style = getSampleStyleSheet()["Normal"]
@@ -271,7 +290,7 @@ def generate_remision(id_order):
         price_sale = locale.format_string('%.2f', round(product.get('price_sale'),0), grouping=True)
         total = locale.format_string('%.2f', round(float(product.get('price_sale')) * float(quantity),0), grouping=True)
         name_paragraph = Paragraph(name, word_wrap_style)
-        product_row = [sku, name_paragraph, quantity, price_sale, total]
+        product_row = [sku, name_paragraph, str(quantity)  + "  " + str(product.get('unit', '')), price_sale, total]
         product_data.append(product_row)
 
     subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order.products))
@@ -292,7 +311,7 @@ def generate_remision(id_order):
     ])
 
 
-    product_table = Table(product_data, colWidths=[table_width / 5] * 5)
+    product_table = Table(product_data, colWidths=[120,200,80,80,80])
     product_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),

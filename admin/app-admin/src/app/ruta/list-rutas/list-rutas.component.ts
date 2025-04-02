@@ -16,7 +16,7 @@ export class ListRutasComponent {
   public newRouteDate: string = '';
   public newRouteDriver: string = '';
   public newCost : number = 0;
-  public drivers: string[] = ['Carlos Julio Lopez','Oscar Garcia', 'Jhony']
+  public drivers: string[] = ['Carlos','Diago', 'Jhony','Sebas','Cata']
   public selectedRoute:any = '';
 
   constructor(

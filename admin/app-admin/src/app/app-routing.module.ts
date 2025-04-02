@@ -22,6 +22,7 @@ import { InventoryComponent  } from './inventory/inventory.component';
 import { EditInventoryComponent  } from './inventory/edit-inventory/edit-inventory.component';
 import {  CierresComponent } from './cierres/cierres.component';
 import { ProductsAnalyticsComponent } from './products-analytics/products-analytics.component';
+import { CarteraComponent } from './cartera/cartera.component';
 const routes: Routes = [
 
   { path: 'productos', component: ProductsComponent },
@@ -46,7 +47,8 @@ const routes: Routes = [
   { path: 'inventory/:id', component: EditInventoryComponent },
   { path: '', component: HomeComponent },
   { path: 'products-analytics', component: ProductsAnalyticsComponent },
-  { path: 'cierres', component: CierresComponent }
+  { path: 'cierres', component: CierresComponent },
+  { path: 'cartera', component: CarteraComponent }
 ];
 
 @NgModule({

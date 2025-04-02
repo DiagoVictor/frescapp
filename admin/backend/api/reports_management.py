@@ -31,7 +31,14 @@ products_collection = db['orders']
 @report_api.route('/picking/<string:startDate>/<string:endDate>', methods=['GET'])
 def get_picking(startDate,endDate):
     buffer = BytesIO()
-    pdf = SimpleDocTemplate(buffer, pagesize=letter)
+    pdf = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        leftMargin=28.35,    # 1 cm
+        rightMargin=28.35,  # 1 cm
+        topMargin=28.35,    # 1 cm
+        bottomMargin=28.35  # 1 cm
+    )
     styles = getSampleStyleSheet()
     image_path = 'https://buyfrescapp.com/images/banner1.png'
     logo = Image(image_path, width=200, height=70)
@@ -52,14 +59,14 @@ def get_picking(startDate,endDate):
             '<font>Remisión #({}) {}</font>'.format(remision_number, order['delivery_date']),
             centered_style
         )
-        green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[70], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
+        green_box = Table([[remision_paragraph]], colWidths=[250], rowHeights=[71], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#97D700'))])
         # Tabla contenedora de la imagen y la caja verde
         content_table = Table([
             [logo, green_box]
         ], colWidths=[200, 250])
         pdf_content.append(content_table)
         pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
-        table_width = 500
+        table_width = 550
 
         # Aplicar estilos de WordWrap a las celdas de la tabla
         word_wrap_style = getSampleStyleSheet()["Normal"]
@@ -100,10 +107,10 @@ def get_picking(startDate,endDate):
             sku = product['sku']
             name = product['name']
             quantity = product['quantity']
-            price_sale = locale.format_string('%.2f', round(product.get('price_sale'),0), grouping=True)
-            total = locale.format_string('%.2f', round(float(product.get('price_sale')) * float(quantity),0), grouping=True)
+            price_sale = locale.format_string('%.0f', round(product.get('price_sale'),0), grouping=True)
+            total = locale.format_string('%.0f', round(float(product.get('price_sale')) * float(quantity),0), grouping=True)
             name_paragraph = Paragraph(name, word_wrap_style)
-            product_row = [sku, name_paragraph, quantity, price_sale, total]
+            product_row = [sku, name_paragraph, str(quantity)  + "  " + str(product.get('unit', '')), price_sale, total]
             product_data.append(product_row)
 
         subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order['products']))
@@ -113,13 +120,13 @@ def get_picking(startDate,endDate):
         descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
         total_formatted = locale.format_string('%.2f', total, grouping=True)
         image_path_payment = 'https://buyfrescapp.com/images/medio_pago.png'  # URL o ruta local de la imagen del medio de pago
-        payment_image = Image(image_path_payment, width=290, height=100)  # Ajustar tamaño de la imagen
+        payment_image = Image(image_path_payment, width=290, height=80)  # Ajustar tamaño de la imagen
         product_data.extend([[payment_image,'','','',''],
             ['', '', '', 'Subtotal', subtotal_formatted],
             ['', '', '', 'Descuentos', descuentos_formatted],
             ['', '', '', 'Total', total_formatted]
         ])
-        product_table = Table(product_data, colWidths=[table_width / 5] * 5)
+        product_table = Table(product_data, colWidths=[120,200,80,80,80])
         product_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#97D700')),  # Color de fondo del encabezado
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),

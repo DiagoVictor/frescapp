@@ -29,6 +29,9 @@ export class OrdenesComponent implements OnInit {
   searchEndDate = `${this.yyyy}-${this.mm}-${this.dd}`;
   searchStatus = 'Estado'
   statusOrders: string[] = ['Estado','Creada','Por entregar','Pagada','Pendiente de pago'];
+  source : string[] = ['Página','Aplicación','Web'];
+  driver : string[] = ['Carlos','Diago', 'Jhony','Sebas','Cata']
+  seller : string[] = ['Cata','Diago','Migue','Auto'];
   order: any = {};
   product: any = {};
   customers: any[]  = [];
@@ -53,6 +56,8 @@ export class OrdenesComponent implements OnInit {
   evidence:any = '';
   titleEvidence:any = '';
   typeEvidence:any = '';
+  showHeaderOrder: boolean = true;
+
   constructor(
     private orderService: OrderService
     ,private router: Router
@@ -81,6 +86,9 @@ export class OrdenesComponent implements OnInit {
       this.getCustomers();
 
     }
+  }
+  toggleHeaderOrder() {
+    this.showHeaderOrder = !this.showHeaderOrder;
   }
   checkIfLoggedIn(): boolean {
     const token = localStorage.getItem('token');

@@ -1,0 +1,31 @@
+<div class="container-fluid mt-5">
+  <label class="h3">Total Cartera: {{ total_cartera | currency:'USD':'symbol':'1.2-2' }}</label>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Fecha de Entrega</th>
+        <th> Número de Orden</th>
+        <th>Cliente</th>
+        <th>Teléfono</th>
+        <th>Dirección</th>
+        <th>Valor</th>
+        <th>Estado</th>
+        <th>Medio de Pago</th>
+        <th>Conductor</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of this.orders">
+        <td>{{ order.delivery_date }}</td>
+        <td>{{ order.order_number }}</td>
+        <td>{{ order.customer_email }}</td>
+        <td>{{ order.customer_phone }}</td>
+        <td>{{ order.deliveryAddress }}</td>
+        <td>{{ order.total | currency:'USD':'symbol':'1.2-2' }}</td>
+        <td>{{ order.status }}</td>
+        <td>{{ order.paymentMethod }}</td>
+        <td>{{ order.driver_name }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
