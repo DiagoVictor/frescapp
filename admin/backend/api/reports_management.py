@@ -103,7 +103,7 @@ def get_picking(startDate,endDate):
         product_data = [
             ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
         ]
-        for product in list(order['products']):
+        for product in sorted(list(order['products']), key=lambda x: x['name']):
             sku = product['sku']
             name = product['name']
             quantity = product['quantity']
