@@ -37,7 +37,7 @@
                   <i class="fas fa-pencil fa-lg text-primary"></i>
                 </span>
               </div>
-              <div class="col-auto">
+              <div class="col-auto" *ngIf="hasRole(['administrador'])">
                 <span (click)="delete_inventory(inventory.id)" style="cursor: pointer;">
                   <i class="fas fa-trash fa-lg text-danger"></i>
                 </span>

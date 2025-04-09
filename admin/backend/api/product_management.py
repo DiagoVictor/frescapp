@@ -108,6 +108,7 @@ def update_product(product_id):
     proveedor = data.get('proveedor')
     rate_root = data.get('rate_root')
     is_visible = bool(data.get('is_visible'))
+    factor_volumen = data.get('factor_volumen')
     product = Product.object(product_id)
 
     if not product:
@@ -135,7 +136,7 @@ def update_product(product_id):
     product.proveedor = proveedor or product.proveedor
     product.rate_root = rate_root or product.rate_root
     product.is_visible = bool(is_visible) if is_visible is not None else bool(product.is_visible)
-    print(product.is_visible)
+    product.factor_volumen = factor_volumen or product.factor_volumen
     product.updated()
 
     return jsonify({'message': 'Product updated successfully'}), 200

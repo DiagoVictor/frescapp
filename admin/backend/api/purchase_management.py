@@ -199,8 +199,14 @@ def create_purchase(date):
 
 @purchase_api.route('/purchases', methods=['GET'])
 def list_purchases():
-    purchases = list(purchase_collection.find({}, {'_id': 0}).sort('date', -1))
+    purchases = list(
+        purchase_collection
+        .find({}, {'_id': 0})
+        .sort('date', -1)
+        .limit(10)
+    )
     return jsonify(purchases), 200
+
 
 @purchase_api.route('/purchase/<string:purchaseNumber>', methods=['GET'])
 def get_purchase(purchaseNumber):

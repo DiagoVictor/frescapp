@@ -1,5 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from './auth.guard';
+
 import { ProductsComponent } from './products/products.component';
 import { ClientesComponent } from './clientes/clientes.component';
 import { OrdenesComponent } from './ordenes/ordenes.component';
@@ -13,42 +15,46 @@ import { PurchaseComponent } from './purchases/purchase/purchase.component';
 import { ListActionnsCustomersComponent } from './crm/list-actionns-customers/list-actionns-customers.component';
 import { EditActionComponent } from './crm/edit-action/edit-action.component';
 import { NewActionComponent } from './crm/new-action/new-action.component';
-import { SuppliersComponent  } from './purchases/suppliers/suppliers.component';
-import { StopsComponent  } from './ruta/stops/stops.component';
-import { ListRutasComponent  } from './ruta/list-rutas/list-rutas.component';
-import { PricingComponent  } from './pricing/pricing.component';
-import { CostsComponent  } from './costs/costs.component';
-import { InventoryComponent  } from './inventory/inventory.component';
-import { EditInventoryComponent  } from './inventory/edit-inventory/edit-inventory.component';
-import {  CierresComponent } from './cierres/cierres.component';
+import { SuppliersComponent } from './purchases/suppliers/suppliers.component';
+import { StopsComponent } from './ruta/stops/stops.component';
+import { ListRutasComponent } from './ruta/list-rutas/list-rutas.component';
+import { PricingComponent } from './pricing/pricing.component';
+import { CostsComponent } from './costs/costs.component';
+import { InventoryComponent } from './inventory/inventory.component';
+import { EditInventoryComponent } from './inventory/edit-inventory/edit-inventory.component';
+import { CierresComponent } from './cierres/cierres.component';
 import { ProductsAnalyticsComponent } from './products-analytics/products-analytics.component';
 import { CarteraComponent } from './cartera/cartera.component';
-const routes: Routes = [
 
-  { path: 'productos', component: ProductsComponent },
-  { path: 'clientes', component: ClientesComponent },
-  { path: 'ordenes', component: OrdenesComponent },
+const routes: Routes = [
+  { path: 'productos', component: ProductsComponent, canActivate: [AuthGuard] },
+  { path: 'clientes', component: ClientesComponent, canActivate: [AuthGuard] },
+  { path: 'ordenes', component: OrdenesComponent, canActivate: [AuthGuard] },
+  { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
+  { path: 'reports', component: ReportsComponent, canActivate: [AuthGuard] },
+  { path: 'delete-account', component: DeleteAccountComponent, canActivate: [AuthGuard] },
+  { path: 'purchases', component: PurchasesComponent, canActivate: [AuthGuard] },
+  { path: 'purchase/:purchaseNumber', component: PurchaseComponent, canActivate: [AuthGuard] },
+  { path: 'crm', component: ListActionnsCustomersComponent, canActivate: [AuthGuard] },
+  { path: 'edit_action/:action', component: EditActionComponent, canActivate: [AuthGuard] },
+  { path: 'newAction', component: NewActionComponent, canActivate: [AuthGuard] },
+  { path: 'suppliers', component: SuppliersComponent, canActivate: [AuthGuard] },
+  { path: 'rutas', component: ListRutasComponent, canActivate: [AuthGuard] },
+  { path: 'precios', component: PricingComponent, canActivate: [AuthGuard] },
+  { path: 'costos', component: CostsComponent, canActivate: [AuthGuard] },
+  { path: 'inventories', component: InventoryComponent, canActivate: [AuthGuard] },
+  { path: 'stops/:route_number', component: StopsComponent, canActivate: [AuthGuard] },
+  { path: 'inventory/:id', component: EditInventoryComponent, canActivate: [AuthGuard] },
+  { path: 'products-analytics', component: ProductsAnalyticsComponent, canActivate: [AuthGuard] },
+  { path: 'cierres', component: CierresComponent, canActivate: [AuthGuard] },
+  { path: 'cartera', component: CarteraComponent, canActivate: [AuthGuard] },
+
+  // públicas
   { path: 'login', component: LoginComponent },
-  { path: 'home', component: HomeComponent },
-  { path: 'reports', component: ReportsComponent },
-  { path: 'delete-account', component: DeleteAccountComponent },
   { path: 'restore/:user_id', component: RestorePasswordComponent },
-  { path: 'purchases', component: PurchasesComponent },
-  { path: 'purchase/:purchaseNumber', component: PurchaseComponent },
-  { path: 'crm', component: ListActionnsCustomersComponent },
-  { path: 'edit_action/:action', component: EditActionComponent },
-  { path: 'newAction', component: NewActionComponent },
-  { path: 'suppliers', component: SuppliersComponent },
-  { path: 'rutas', component: ListRutasComponent },
-  { path: 'precios', component: PricingComponent },
-  { path: 'costos', component: CostsComponent },
-  { path: 'inventories', component: InventoryComponent },
-  { path: 'stops/:route_number', component: StopsComponent },
-  { path: 'inventory/:id', component: EditInventoryComponent },
-  { path: '', component: HomeComponent },
-  { path: 'products-analytics', component: ProductsAnalyticsComponent },
-  { path: 'cierres', component: CierresComponent },
-  { path: 'cartera', component: CarteraComponent }
+
+  // por defecto
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
 ];
 
 @NgModule({

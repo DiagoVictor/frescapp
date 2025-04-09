@@ -29,6 +29,9 @@ export class ListRutasComponent {
     this.getRoutes();
     //this.filterRoutes();
   }
+  hasRole(requiredRoles: string[]): boolean {
+    return requiredRoles.some(r => localStorage.getItem('role')?.includes(r));
+  }
   getRoutes(){
     this.routesService.getRoutes().subscribe(
       (res: any) => {

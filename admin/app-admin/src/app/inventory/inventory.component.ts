@@ -18,6 +18,9 @@ export class InventoryComponent {
   ngOnInit(): void {
     this.getInventories();
   }
+  hasRole(requiredRoles: string[]): boolean {
+    return requiredRoles.some(r => localStorage.getItem('role')?.includes(r));
+  }
   newInventory(){
     this.inventoryService.createInventory(this.fechaNewInventory).subscribe(
       (res: any) => {

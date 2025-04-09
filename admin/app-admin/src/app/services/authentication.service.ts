@@ -7,12 +7,12 @@ import { Observable, map } from 'rxjs';
 })
 export class AuthenticationService {
   private baseUrl = 'https://app.buyfrescapp.com:5000/';
-  //private baseUrl = 'https://127.0.0.1:5000/';
+  //private baseUrl = 'http://localhost:5000/';
   private _username: string = '';
   constructor(private http: HttpClient) { }
 
   login(username: string, password: string): Observable<any> {
-    return this.http.post<any>(this.baseUrl + 'api/user/login', { 'user': username, 'password': password })
+    return this.http.post<any>(this.baseUrl + 'api/user/login_admin', { 'user': username, 'password': password })
       .pipe(
         // Al recibir la respuesta del servidor, guardar el token en el almacenamiento local
         map(response => {

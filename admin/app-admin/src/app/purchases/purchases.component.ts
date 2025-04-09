@@ -36,6 +36,9 @@ export class PurchasesComponent {
   ngOnInit(): void {
     this.getPurchases();
   }
+  hasRole(requiredRoles: string[]): boolean {
+    return requiredRoles.some(r => localStorage.getItem('role')?.includes(r));
+  }
   navigateToPurchase(purchaseNumber: number) {
     this.router.navigate(['/purchase', purchaseNumber]);
   }

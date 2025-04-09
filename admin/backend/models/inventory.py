@@ -32,7 +32,14 @@ class Inventory:
     @staticmethod
     def get_all():
         return list(inventory_collection.find())
-
+    @staticmethod
+    def get_last_10():
+        return list(
+            inventory_collection
+            .find()
+            .sort('close_date', -1)
+            .limit(10)
+        )
     @staticmethod
     def get_by_id(inventory_id):
         item = inventory_collection.find_one({"_id": ObjectId(inventory_id)})

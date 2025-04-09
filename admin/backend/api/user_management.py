@@ -11,6 +11,7 @@ user_api = Blueprint('user', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
 db = client['frescapp']
 customers_collection = db['customers']  
+users_collection = db['users']  
 
 
 @user_api.route('/login', methods=['POST'])
@@ -46,7 +47,38 @@ def login():
     else:
         # Usuario no encontrado
         return jsonify({'message': 'User not found'}), 404
+@user_api.route('/login_admin', methods=['POST'])
+def login_admin():
+    data = request.json
+    user = data.get('user')
+    user = user.strip().lower()
+    password = data.get('password')
+    if not password or not user:
+        return jsonify({'message': 'Missing required fields'}), 400
 
+    bcrypt = Bcrypt()
+    user_data = users_collection.find_one({
+        '$or': [
+            {'user': user}
+        ]
+    })  
+    if user_data:
+        # Verificar la contraseña almacenada en la base de datos con la proporcionada
+        hashed_password = user_data.get('password')
+        if bcrypt.check_password_hash(hashed_password, password):
+            # Generar token JWT con una validez de 1 día
+            token_payload = {'user_id': str(user_data['_id']), 'exp': datetime.utcnow() + timedelta(days=90)}
+            token = jwt.encode(token_payload, 'Caremonda', algorithm='HS256')
+            # Devolver el token junto con los datos del usuario
+            user_data['_id'] = str(user_data['_id'])
+            user_data.pop('password')
+            return jsonify({'message': 'Login successful', 'token': token, 'user_data': user_data}), 200
+        else:
+            # Contraseña incorrecta
+            return jsonify({'message': 'Invalid credentials'}), 401
+    else:
+        # Usuario no encontrado
+        return jsonify({'message': 'User not found'}), 404
 @user_api.route('/check_token', methods=['POST'])
 def check_token():
     token = request.headers.get('Authorization', '').split('Bearer ')[-1]

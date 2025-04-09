@@ -10,7 +10,7 @@ inventory_api = Blueprint('inventory', __name__)
 
 @inventory_api.route('/inventories', methods=['GET'])
 def get_inventories():
-    items = Inventory.get_all()
+    items = Inventory.get_last_10()
     return jsonify([{
         "id": str(item["_id"]),
         "close_date": item.get("close_date"),

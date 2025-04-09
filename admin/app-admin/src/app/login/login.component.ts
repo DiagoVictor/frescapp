@@ -10,27 +10,36 @@ import { Router } from '@angular/router';
 export class LoginComponent {
   username: string = '';
   password: string = '';
+  error: string = '';
+  flag: boolean = false;
 
   constructor(private authService: AuthenticationService, private router: Router) {}
 
-  login() {
-    // Verificar si los campos están vacíos
+  login(): void {
     if (this.username === '' || this.password === '') {
-      alert('Por favor, ingrese nombre de usuario y contraseña.');
+      this.flag = true;
+      this.error = 'Por favor, ingrese nombre de usuario y contraseña.';
       return;
     }
 
-    // Llamar al método de inicio de sesión del servicio de autenticación
-    this.authService.login(this.username, this.password)
-      .subscribe(
-        () => {
-          localStorage.setItem('username', this.username);
-          this.router.navigate(['/home']);
-        },
-        (        error: any) => {
-          console.error('Error al iniciar sesión:', error);
-          alert('Nombre de usuario o contraseña incorrectos.');
+    this.authService.login(this.username, this.password).subscribe(
+      (response: any) => {
+        localStorage.setItem('username', this.username);
+        localStorage.setItem('token', response?.token || '');
+
+        const roles = response?.user_data?.role;
+        if (Array.isArray(roles)) {
+          localStorage.setItem('role', JSON.stringify(roles));
+        } else {
+          localStorage.setItem('role', JSON.stringify([])); // fallback seguro
         }
-      );
+
+        this.router.navigate(['/home']);
+      },
+      (error: any) => {
+        this.flag = true;
+        this.error = 'Nombre de usuario o contraseña incorrectos.';
+      }
+    );
   }
 }

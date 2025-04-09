@@ -113,7 +113,6 @@ def create_order(order_number=None):
             id=ruta['id'],
             route_number=ruta.get('route_number'),
             close_date=ruta.get('close_date'),
-            driver=ruta.get('driver'),
             cost=ruta.get('cost'),
             stops=ruta.get('stops')
         )
@@ -137,7 +136,6 @@ def delete_order(id=None):
             id=ruta['id'],
             route_number=ruta.get('route_number'),
             close_date=ruta.get('close_date'),
-            driver=ruta.get('driver'),
             cost=ruta.get('cost'),
             stops=ruta.get('stops')
         )

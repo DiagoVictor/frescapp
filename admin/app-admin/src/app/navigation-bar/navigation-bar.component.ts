@@ -9,32 +9,41 @@ import { Router } from '@angular/router';
 })
 export class NavigationBarComponent implements OnInit {
 
-  constructor(private authService: AuthenticationService, private router: Router) { }
-  role:string | null ='';
+  role: string[] = [];
+  isMenuCollapsed = true;
+
+  constructor(
+    private authService: AuthenticationService,
+    private router: Router
+  ) { }
+
   ngOnInit(): void {
+    const roleString = localStorage.getItem('role');
+    this.role = roleString ? JSON.parse(roleString) : [];
   }
 
   isLoggedIn(): boolean {
-    const token = localStorage.getItem('token');
-    this.role = localStorage.getItem('role');
-    return !!token; 
+    return !!localStorage.getItem('token');
   }
-  isMenuCollapsed = true;
 
-  toggleMenu() {
+  hasRole(requiredRoles: string[]): boolean {
+    return requiredRoles.some(r => this.role.includes(r));
+  }
+
+  toggleMenu(): void {
     this.isMenuCollapsed = !this.isMenuCollapsed;
   }
+
   logout(): void {
     const token = localStorage.getItem('token');
     if (token) {
       this.authService.logout(token).subscribe(
         () => {
           localStorage.removeItem('token');
+          localStorage.removeItem('role');
           this.router.navigate(['/login']);
         },
-        error => {
-          this.router.navigate(['/login']);
-        }
+        () => this.router.navigate(['/login'])
       );
     } else {
       this.router.navigate(['/login']);

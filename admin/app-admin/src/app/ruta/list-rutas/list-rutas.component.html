@@ -54,12 +54,12 @@
               </td>
                 <td>
                     <div class="row">
-                        <div class="col-auto">
+                        <div class="col-auto" *ngIf="hasRole(['administrador'])">
                             <span (click)="deleteRoute(route)" style="cursor: pointer;">
                                 <i class="fas fa-trash fa-lg text-danger"></i>
                             </span>
                         </div>
-                        <div class="col-auto">
+                        <div class="col-auto" *ngIf="hasRole(['administrador'])">
                             <span data-bs-toggle="modal" data-bs-target="#editRouteModal" data-bs-dismiss="modal" style="cursor: pointer;" (click)="openEditRoute(route)">
                                 <i class="fas fa-calendar fa-lg text-success"></i>
                             </span>
