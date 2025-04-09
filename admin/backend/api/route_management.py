@@ -28,11 +28,8 @@ def get_next_route_number():
 def create_route():
     data = request.get_json()
     close_date = data.get('close_date')
-    driver = data.get('driver')
     cost = data.get('cost', 0)
 
-    if not driver or not close_date:
-        return jsonify({'message': 'Missing required fields'}), 400
 
     route_number = get_next_route_number()
     orders = list(orders_collection.find({"delivery_date": close_date}))
@@ -60,7 +57,7 @@ def create_route():
         }
         stops.append(stop)
 
-    route = Route(route_number=route_number, close_date=close_date, driver=driver, stops=stops, cost=cost)
+    route = Route(route_number=route_number, close_date=close_date, stops=stops, cost=cost)
     route_id = route.save()
 
     return jsonify({'message': 'Route created successfully', 'route_id': route_id}), 201
@@ -102,7 +99,6 @@ def update_route():
         id=existing_route['id'],
         route_number=existing_route.get('route_number'),
         close_date=existing_route.get('close_date'),
-        driver=existing_route.get('driver'),
         cost=existing_route.get('cost'),
         stops=existing_route.get('stops')
     )
@@ -110,7 +106,6 @@ def update_route():
     # Actualizar los datos de la ruta
     route_instance.route_number = route_data.get('route_number', route_instance.route_number)
     route_instance.close_date = route_data.get('close_date', route_instance.close_date)
-    route_instance.driver = route_data.get('driver', route_instance.driver)
     route_instance.cost = route_data.get('cost', route_instance.cost)
     route_instance.stops = route_data.get('stops', route_instance.stops)
 
@@ -126,9 +121,8 @@ def update_route():
     for stop in stops:
         order_number = stop.get('order_number')
         status = stop.get('status')
-
         if order_number and status:
-            orders_collection.update_one({"order_number" : order_number},{"$set": { "status": status}})
+            orders_collection.update_one({"order_number" : order_number},{"$set": { "status": status,"totalPayment": stop.get("total_charged")}})
         else:
             print("Missing order_number or status for stop")
     return jsonify({'message': 'Route updated successfully'}), 200
@@ -142,7 +136,6 @@ def list_routes():
             "id": str(route["_id"]),
             "route_number": route["route_number"],
             "close_date": route["close_date"],
-            "driver": route["driver"],
             "stops": route["stops"],
             "status": "creada",
             "cost": route["cost"]
@@ -163,7 +156,100 @@ def get_route(route_number):
         route['_id'] = str(route['_id'])
         
     return jsonify(route), 200
+@route_api.route('/consolidated/<string:route_number>/', methods=['GET'])
+def get_route_consolidated(route_number):
+    # Convertir route_number a entero
+    try:
+        route_number = int(route_number)
+    except ValueError:
+        return jsonify({"error": "El route_number debe ser un número."}), 400
 
+    pipeline = [
+        # Filtrar por el route_number
+        {"$match": {"route_number": route_number}},
+        # Desestructurar el arreglo de stops
+        {"$unwind": "$stops"},
+        # Buscar la orden en la colección de órdenes utilizando order_number
+        {"$lookup": {
+            "from": "orders",   
+            "localField": "stops.order_number",
+            "foreignField": "order_number",
+            "as": "order_data"
+        }},
+        # Desestructurar el arreglo de order_data (si no hay coincidencia, se preserva como null)
+        {"$unwind": {"path": "$order_data", "preserveNullAndEmptyArrays": True}},
+        # Sumar la cantidad de productos (del arreglo products) de la orden encontrada.
+        {"$addFields": {
+            "order_total_quantity": {
+                "$cond": [
+                    {"$gt": [{"$size": {"$ifNull": ["$order_data.products", []]}}, 0]},
+                    {"$sum": {
+                        "$map": {
+                            "input": {"$ifNull": ["$order_data.products", []]},
+                            "as": "prod",
+                            "in": "$$prod.quantity"
+                        }
+                    }},
+                    0
+                ]
+            }
+        }},
+        # Agrupar por driver_name, acumulando:
+        # - la cantidad de stops.
+        # - la suma del total a recaudar por cada método de pago.
+        # - la cantidad de sku.
+        # - la lista de números de orden (sin duplicados).
+        # - la suma de la cantidad de productos (kg/und) de cada orden.
+        {"$group": {
+            "_id": "$stops.driver_name",
+            "cantidad_stops": {"$sum": 1},
+            "dinero_efectivo": {
+                "$sum": {
+                    "$cond": [
+                        {"$eq": ["$stops.payment_method", "Efectivo"]},
+                        "$stops.total_to_charge",
+                        0
+                    ]
+                }
+            },
+            "dinero_davivienda": {
+                "$sum": {
+                    "$cond": [
+                        {"$eq": ["$stops.payment_method", "Davivienda"]},
+                        "$stops.total_to_charge",
+                        0
+                    ]
+                }
+            },
+            "dinero_bancolombia": {
+                "$sum": {
+                    "$cond": [
+                        {"$eq": ["$stops.payment_method", "Bancolombia"]},
+                        "$stops.total_to_charge",
+                        0
+                    ]
+                }
+            },
+            "cantidad_sku": {"$sum": "$stops.quantity_sku"},
+            "total_products_quantity": {"$sum": "$order_total_quantity"}
+        }},
+        # Reorganizar la salida final
+        {"$project": {
+            "_id": 0,
+            "driver_name": "$_id",
+            "cantidad_stops": 1,
+            "dinero_por_metodo": {
+                "Efectivo": "$dinero_efectivo",
+                "Davivienda": "$dinero_davivienda",
+                "Bancolombia": "$dinero_bancolombia"
+            },
+            "cantidad_sku": 1,
+            "total_products_quantity": 1
+        }}
+    ]
+
+    resultados = list(routes_collection.aggregate(pipeline))
+    return jsonify(resultados), 200
 
 @route_api.route('/route/<string:route_id>', methods=['DELETE'])
 def delete_route(route_id):

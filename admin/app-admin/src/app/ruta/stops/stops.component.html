@@ -60,7 +60,6 @@
                         </div>
                       </div>
                     </div>
-
                     <br>
                     <div class="form-group">
                         <label for="cost">Total a pagar:</label>
@@ -68,10 +67,18 @@
                             [value]="stopSelect.total_to_charge | currency:'USD':'symbol'" disabled>
                     </div>
                     <br>
+                    <div>
+                        <label>Estado:</label>
+                        <select [(ngModel)]="stopSelect.status" class="form-control" (ngModelChange)="onStatusChange($event)">
+                            <option *ngFor="let statusStop of statusStops" [ngValue]="statusStop">{{ statusStop }}
+                            </option>
+                        </select>
+                    </div>
+                    <br>
                     <div class="form-group">
                         <label for="total_charged">Total recibido:</label>
                         <input type="number" class="form-control" id="total_charged" name="total_charged"
-                            [(ngModel)]="stopSelect.total_charged">
+                            [(ngModel)]="stopSelect.total_charged" [disabled]="stopSelect.status == 'Pagada'">
                     </div>
                     <br>
                     <div>
@@ -88,14 +95,6 @@
                           [(ngModel)]="stopSelect.payment_date">
                   </div>
                     <br>
-                    <div>
-                        <label>Estado:</label>
-                        <select [(ngModel)]="stopSelect.status" class="form-control">
-                            <option *ngFor="let statusStop of statusStops" [ngValue]="statusStop">{{ statusStop }}
-                            </option>
-                        </select>
-                    </div>
-                    <br>
                     <div class="form-group">
                         <label for="evidence">Evidencia (archivo o foto):</label>
                         <input type="file" class="form-control" id="evidence" name="evidence"
@@ -104,7 +103,7 @@
                     <br>
                     <a href="https://app.buyfrescapp.com:5000/api/route/route/evidence/{{stopSelect.evidence}}" target="_blank">Descargar evidencia</a>
                     <br><br>
-                    <button class="btn btn-primary w-100" (click)="saveStop()" data-bs-dismiss="modal">Guardar Parada</button>
+                    <button class="btn btn-primary w-100" (click)="saveStop()" data-bs-dismiss="modal" [disabled]="stopSelect.status == 'Pagada' && stopSelect.payment_date == null">Guardar Parada</button>
                     <br><br>
                     <button class="btn btn-secondary w-100" data-bs-dismiss="modal">Cancelar</button>
                 </div>

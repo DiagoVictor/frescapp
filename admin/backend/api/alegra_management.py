@@ -92,7 +92,7 @@ def transform_and_send_invoice(order, client, items):
     }
 
     items_data = []
-    for product in order["products"]:
+    for product in sorted(list(order['products']), key=lambda x: x['name']):
         item = find_item_by_reference(items, product["sku"])
         if item:
             items_data.append({

@@ -33,7 +33,8 @@ class Order:
                  payment_date=None,
                  driver_name=None,
                  seller_name=None,
-                 source=None):
+                 source=None,
+                 totalPayment=None):
         self.id = id
         self.order_number = order_number
         self.customer_email = customer_email
@@ -59,6 +60,7 @@ class Order:
         self.driver_name = driver_name if driver_name is not None else ''
         self.seller_name = seller_name if seller_name is not None else ''
         self.source = source if source is not None else 'app'
+        self.totalPayment = totalPayment if totalPayment is not None else 0
 
     def save(self):
         order_data = {
@@ -85,7 +87,8 @@ class Order:
             "payment_date" : self.payment_date or self.delivery_date,
             "driver_name" : self.driver_name or '',
             "seller_name" : self.seller_name or '',
-            "source" : self.source or 'app'
+            "source" : self.source or 'app',
+            "totalPayment" : self.totalPayment or 0
         }
         result = orders_collection.insert_one(order_data)
         return result.inserted_id
@@ -116,7 +119,8 @@ class Order:
                 "payment_date" : self.payment_date or self.delivery_date,
                 "driver_name" : self.driver_name or '',
                 "seller_name" : self.seller_name or '',
-                "source" : self.source or 'app'
+                "source" : self.source or 'app',
+                "totalPayment" : self.totalPayment or 0
                 }
             }
         )
@@ -145,7 +149,8 @@ class Order:
             "payment_date" : self.payment_date,
             "driver_name" : self.driver_name,
             "seller_name" : self.seller_name,
-            "source" : self.source
+            "source" : self.source,
+            "totalPayment" : self.totalPayment
         }
         return json.dumps(order_data)
     def delete_order(self):

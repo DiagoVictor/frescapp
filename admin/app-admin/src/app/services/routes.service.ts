@@ -45,4 +45,7 @@ export class RoutesService {
   getStopNumber(order_number:any):Observable<any> {
     return this.http.get<any[]>(this.baseUrl+'api/route/stop_order_number/'+order_number);
   }
+  getRouteConsolidated(route_number:any):Observable<any> {
+    return this.http.get<any[]>(this.baseUrl+'api/route/consolidated/'+route_number+'/');
+  }
 }

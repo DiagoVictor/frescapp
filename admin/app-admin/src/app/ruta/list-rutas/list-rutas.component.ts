@@ -18,7 +18,7 @@ export class ListRutasComponent {
   public newCost : number = 0;
   public drivers: string[] = ['Carlos','Diago', 'Jhony','Sebas','Cata']
   public selectedRoute:any = '';
-
+  routeConsolidada: any = null;
   constructor(
     private routesService: RoutesService,
     private router: Router,
@@ -130,4 +130,10 @@ updateRoute(): void {
         this.getRoutes(); // Actualiza la lista de rutas en la interfaz
     });
 }
+getRouteConsolidated(route_number:any){
+  this.routesService.getRouteConsolidated(route_number).subscribe(
+    (res: any) => {
+      this.routeConsolidada = res;
+    }
+  )}
 }

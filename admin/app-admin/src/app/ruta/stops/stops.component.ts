@@ -39,6 +39,15 @@ export class StopsComponent {
       }
     );
   }
+  onStatusChange(event: any) {
+    const selectedStatus = event;
+    if (selectedStatus === "Pagada") {
+      this.stopSelect.total_charged = this.stopSelect.total_to_charge;
+    }else {
+      this.stopSelect.total_charged = 0;
+      this.stopSelect.payment_date = null;
+    }
+  }
 
   navigateToStop(stop: any) {
     this.stopSelect = stop;

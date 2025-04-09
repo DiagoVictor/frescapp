@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <div class="container-fluid mt-5">
     <div class="row justify-right">
         <div class="col-6">
@@ -22,7 +23,6 @@
             <tr>
                 <th>Ruta</th>
                 <th>Fecha</th>
-                <th>Conductor</th>
                 <th>Costo</th>
                 <th>Cantidad de Paradas</th>
                 <th>Dinero a Recaudar</th>
@@ -36,7 +36,6 @@
             <tr *ngFor="let route of filteredRoutes">
                 <td (click)="navigateToRoute(route.route_number)">{{ route.route_number }}</td>
                 <td (click)="navigateToRoute(route.route_number)">{{ route.close_date }}</td>
-                <td (click)="navigateToRoute(route.route_number)">{{ route.driver }}</td>
                 <td (click)="navigateToRoute(route.route_number)">{{ route.cost | currency:'USD' }}</td>
                 <td (click)="navigateToRoute(route.route_number)">
                     {{ calculateTotalStops(route.id) }}
@@ -65,6 +64,11 @@
                                 <i class="fas fa-calendar fa-lg text-success"></i>
                             </span>
                         </div>
+                        <div class="col-auto">
+                          <span data-bs-toggle="modal" data-bs-target="#RouteConsolidada" data-bs-dismiss="modal" style="cursor: pointer;" (click)="getRouteConsolidated(route.route_number)">
+                              <i class="fa fa-money fa-lg text-warning"></i>
+                          </span>
+                      </div>
                     </div>
                 </td>
             </tr>
@@ -85,13 +89,6 @@
                         <label for="fecha">Fecha:</label>
                         <input type="date" class="form-control" id="fecha" name="fecha" [(ngModel)]="newRouteDate">
                     </div>
-                    <br>
-                    <div class="form-group">
-                        <label for="driver">Conductor:</label>
-                        <select class="form-control" id="driver" name="driver"
-                        [(ngModel)]="newRouteDriver">
-                        <option *ngFor="let driver of drivers" [value]="driver">{{ driver }}</option>
-                      </select>                    </div>
                     <br>
                     <div class="form-group">
                         <label for="cost">Costo:</label>
@@ -170,3 +167,45 @@
         </div>
     </div>
 </div>
+<!-- Modal para visualizar la consolidación de la ruta -->
+<!-- Modal para visualizar la consolidación de la ruta en cards por conductor -->
+<div class="modal fade" id="RouteConsolidada" tabindex="-1" role="dialog" aria-labelledby="RouteConsolidadaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="container">
+          <div class="row">
+            <!-- Se itera sobre el arreglo de conductores con la directiva *ngFor de Angular -->
+            <div class="col-md-4 mb-3" *ngFor="let driver of routeConsolidada">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">{{ driver.driver_name || 'Sin asignar' }}</h5>
+                </div>
+                <div class="card-body">
+                  <p><strong>Paradas:</strong> {{ driver.cantidad_stops }}</p>
+                  <ul class="list-unstyled">
+                    <li><strong>Efectivo:</strong> {{ driver.dinero_por_metodo.Efectivo | currency:'USD' }}</li>
+                    <li><strong>Davivienda:</strong> {{ driver.dinero_por_metodo.Davivienda  | currency:'USD'}}</li>
+                    <li><strong>Bancolombia:</strong> {{ driver.dinero_por_metodo.Bancolombia  | currency:'USD'}}</li>
+                  </ul>
+                  <p><strong>Cantidad de items:</strong> {{ driver.cantidad_sku }}</p>
+                  <p><strong>Peso Kg/Und:</strong> {{ driver.total_products_quantity }}</p>
+                  <ul>
+                    <li *ngFor="let order of driver.order_numbers">{{ order }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <!-- Fin iteración -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -45,6 +45,9 @@ def create_inventory(close_date):
     products_data = Product.objects("active")
     fecha_ayer = (datetime.strptime(close_date, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
     inventory_ayer = Inventory.get_by_date(fecha_ayer)
+    inventory_hoy = Inventory.get_by_date(close_date)
+    if inventory_hoy:
+        return jsonify({"message": "Inventory already exists for today"}), 400
     compras_hoy = Purchase.get_by_date(close_date)
     ventas_hoy = Order.find_by_date(close_date,close_date)
     sku_mapping = {}

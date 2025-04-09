@@ -1,29 +1,44 @@
 <div class="container-fluid mt-5">
-  <label class="h3">Total Cartera: {{ total_cartera | currency:'USD':'symbol':'1.2-2' }}</label>
+  <div class="row">
+    <div class="col-3">
+      <label class="h3" style="background-color: yellow;">Total Cartera: {{ total_cartera | currency:'USD':'symbol':'1.2-2' }}</label>
+    </div>
+    <div class="col-6">
+      <input type="text" class="form-control" placeholder="Buscar Ordenes..." [(ngModel)]="searchText"
+        (keyup)="filterorders()">
+    </div>
+  </div>
+
   <table class="table">
     <thead>
       <tr>
         <th>Fecha de Entrega</th>
         <th> Número de Orden</th>
         <th>Cliente</th>
+        <th>Email</th>
         <th>Teléfono</th>
         <th>Dirección</th>
-        <th>Valor</th>
+        <th>Total Orden</th>
+        <th>Valor Pendiente</th>
         <th>Estado</th>
         <th>Medio de Pago</th>
+        <th>Días Mora</th>
         <th>Conductor</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let order of this.orders">
+      <tr *ngFor="let order of this.ordersFiltered">
         <td>{{ order.delivery_date }}</td>
         <td>{{ order.order_number }}</td>
+        <td>{{ order.customer_name }}</td>
         <td>{{ order.customer_email }}</td>
         <td>{{ order.customer_phone }}</td>
         <td>{{ order.deliveryAddress }}</td>
         <td>{{ order.total | currency:'USD':'symbol':'1.2-2' }}</td>
+        <td>{{ order.total - order.totalPayment  | currency:'USD':'symbol':'1.2-2' }}</td>
         <td>{{ order.status }}</td>
         <td>{{ order.paymentMethod }}</td>
+        <td>{{ daysMora(order) }}</td>
         <td>{{ order.driver_name }}</td>
       </tr>
     </tbody>

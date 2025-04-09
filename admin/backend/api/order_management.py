@@ -56,6 +56,7 @@ def create_order(order_number=None):
     driver_name = data.get('driver_name', '')
     seller_name = data.get('seller_name', '')
     source = data.get('source', 'app')
+    totalPayment = 0.0
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
     customer = Customer.find_by_email(customer_email)
@@ -88,7 +89,8 @@ def create_order(order_number=None):
         payment_date=payment_date,
         driver_name=driver_name,
         seller_name=seller_name,
-        source=source
+        source=source,
+        totalPayment=0.0,
     )
     finded_order = Order.find_by_order_number(order_number=order_number)
     ruta = Route.find_by_date(delivery_date)
@@ -195,7 +197,8 @@ def list_ordersByStats(status):
          "paymentMethod": order["paymentMethod"],
          "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
          "deliveryAddressDetails": order["deliveryAddressDetails"],
-        "alegra_id" :order["alegra_id"]
+        "alegra_id" :order["alegra_id"],
+        "totalPayment" : order["totalPayment"]
          }
         for order in orders_cursor
     ]

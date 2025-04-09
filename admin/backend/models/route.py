@@ -7,11 +7,10 @@ db = client['frescapp']
 routes_collection = db['routes']
 
 class Route:
-    def __init__(self, route_number, close_date, driver, stops=None, cost=0, id=None):
+    def __init__(self, route_number, close_date,  stops=None, cost=0, id=None):
         self.id = id  # Aquí `id` es opcional
         self.route_number = route_number
         self.close_date = close_date
-        self.driver = driver
         self.stops = stops if stops is not None else []
         self.cost = cost
 
@@ -19,7 +18,6 @@ class Route:
         route_data = {
             "route_number": self.route_number,
             "close_date": self.close_date,
-            "driver": self.driver,
             "stops": self.stops,
             "cost": self.cost
         }
@@ -33,7 +31,6 @@ class Route:
             {"$set": {
                 "route_number": self.route_number,
                 "close_date": self.close_date,
-                "driver": self.driver,
                 "stops": self.stops,
                 "cost": self.cost
             }}
