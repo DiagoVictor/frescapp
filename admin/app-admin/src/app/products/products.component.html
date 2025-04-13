@@ -11,6 +11,9 @@
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal"
         data-bs-dismiss="modal" (click)="openEditModal({},'new')">Nuevo Producto</button>
     </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-success" (click)="exportToExcel()">Descargar Excel para Instituciones (7% menos de margen)</button>
+    </div>
   </div>
   <br *ngIf="successMessage">
   <div *ngIf="successMessage" class="alert alert-success" role="alert">

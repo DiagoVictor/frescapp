@@ -22,8 +22,8 @@ export class PurchaseService {
   deletePurchase(purchase_number: string) {
     return this.http.delete(this.baseUrl +'api/purchase/purchase/'+ purchase_number);
   }
-  createPurchase(date:any){
-    return this.http.get<any[]>(this.baseUrl+'api/purchase/create/'+date);
+  createPurchase(purchase:any){
+    return this.http.post<any[]>(this.baseUrl+'api/purchase/create/', purchase);
   }
   updatePrice(data:any): Observable<any[]> {
     return this.http.post<any[]>(`${this.baseUrl}api/purchase/update_price`, data);

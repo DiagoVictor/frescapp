@@ -168,14 +168,14 @@
               <div class="form-group">
                 <label for="customer_email">Email del Cliente:</label>
                 <input type="email" class="form-control" id="customer_email" name="customer_email"
-                  [(ngModel)]="order.customer_email">
+                  [(ngModel)]="order.customer_email" required>
               </div>
             </div>
             <div class="col-6">
               <div class="form-group">
                 <label for="customer_name">Nombre del Cliente:</label>
                 <input type="text" class="form-control" id="customer_name" name="customer_name"
-                  [(ngModel)]="order.customer_name">
+                  [(ngModel)]="order.customer_name" required>
               </div>
             </div>
           </div>
@@ -220,13 +220,15 @@
               <div class="form-group">
                 <label for="delivery_date">Fecha de Entrega:</label>
                 <input type="date" class="form-control" id="delivery_date" name="delivery_date"
-                  [(ngModel)]="order.delivery_date">
+                  [(ngModel)]="order.delivery_date"
+                  [ngClass]="{'is-invalid': order.delivery_date === ''}">
               </div>
             </div>
             <div class="col-6">
               <div class="form-group">
                 <label for="deliverySlot">Horario de Entrega:</label>
-                <select class="form-control" id="deliverySlot" name="deliverySlot" [(ngModel)]="order.deliverySlot">
+                <select class="form-control" id="deliverySlot" name="deliverySlot" [(ngModel)]="order.deliverySlot"
+                [ngClass]="{'is-invalid': order.deliverySlot === ''}">
                   <option *ngFor="let slot of deliverySlots" [value]="slot">{{ slot }}</option>
                 </select>
               </div>
@@ -241,7 +243,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="paymentMethod">Método de Pago:</label>
-                <select class="form-control" id="paymentMethod" name="paymentMethod" [(ngModel)]="order.paymentMethod">
+                <select class="form-control" id="paymentMethod" name="paymentMethod" [(ngModel)]="order.paymentMethod"
+                [ngClass]="{'is-invalid': order.paymentMethod === ''}">
                   <option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</option>
                 </select>
               </div>
@@ -259,7 +262,7 @@
               <div class="form-group">
                 <label for="deliveryAddress">Dirección de Entrega:</label>
                 <input type="text" class="form-control" id="deliveryAddress" name="deliveryAddress"
-                  [(ngModel)]="order.deliveryAddress">
+                  [(ngModel)]="order.deliveryAddress" [ngClass]="{'is-invalid': order.deliveryAddress === ''}">
               </div>
             </div>
             <div class="col-6">
@@ -274,7 +277,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="status">Estado:</label>
-                <select class="form-control" id="status" name="status" [(ngModel)]="order.status">
+                <select class="form-control" id="status" name="status" [(ngModel)]="order.status"
+                [ngClass]="{'is-invalid': order.status === ''}">
                   <option *ngFor="let statu of statusOrders" [value]="statu">{{ statu }}</option>
                 </select>
               </div>
@@ -282,7 +286,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="status">Vendedor:</label>
-                <select class="form-control" id="status" name="status" [(ngModel)]="order.seller">
+                <select class="form-control" id="status" name="status" [(ngModel)]="order.seller_name"
+                [ngClass]="{'is-invalid': order.seller_name === ''}">
                   <option *ngFor="let sell of seller" [value]="sell">{{ sell }}</option>
                 </select>
               </div>
@@ -292,7 +297,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="status">Fuente:</label>
-                <select class="form-control" id="status" name="status" [(ngModel)]="order.source">
+                <select class="form-control" id="status" name="status" [(ngModel)]="order.source"
+                [ngClass]="{'is-invalid': order.source === ''}">
                   <option *ngFor="let fuente of source" [value]="fuente">{{ fuente }}</option>
                 </select>
               </div>
@@ -300,7 +306,8 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="status">Conductor:</label>
-                <select class="form-control" id="status" name="status" [(ngModel)]="order.driver_name">
+                <select class="form-control" id="status" name="status" [(ngModel)]="order.driver_name"
+                [ngClass]="{'is-invalid': order.driver_name === ''}">
                   <option *ngFor="let conductor of driver" [value]="conductor">{{ conductor }}</option>
                 </select>
               </div>
@@ -328,7 +335,13 @@
                       placeholder="{{product.name}}" [(ngModel)]="product.id" (change)="onProductSelect(product)">
                     </ng-select>
                     <td><input type="text" class="form-control" [(ngModel)]="product.sku"></td>
-                    <td><input type="number" class="form-control" [(ngModel)]="product.price_sale"></td>
+                    <td>
+                      <input
+                        type="number"
+                        class="form-control"
+                        [(ngModel)]="product.price_sale"
+                      >
+                    </td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.quantity"></td>
                     <td><input type="checkbox" [(ngModel)]="product.iva"></td>
                     <td><input type="number" class="form-control" [(ngModel)]="product.iva_value"></td>

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../services/product.service';
 import { Router } from '@angular/router';
 import * as XLSX from 'xlsx';
-import * as FileSaver from 'file-saver';
+import { saveAs } from 'file-saver';
 @Component({
   selector: 'app-products',
   templateUrl: './products.component.html',
@@ -47,6 +47,34 @@ export class ProductsComponent implements OnInit {
         this.filteredProducts = products; // Inicializa la lista de productos filtrados con todos los productos al principio
         this.filterProducts(); // Filtra los productos basados en el texto de búsqueda inicial
       });
+  }
+  exportToExcel() {
+    const exportData = this.products.map(p => ({
+      SKU: p.sku,
+      Nombre: p.name,
+      Precio_Venta: new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(p.price_sale * 0.93)
+    }));
+
+    const fechaHoy = new Date().toISOString().split('T')[0];
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    // Establecer el ancho de columnas (en caracteres aprox.)
+    const wscols = [
+      { wch: 20 }, // SKU más ancho
+      { wch: 40 }, // Nombre más ancho
+      { wch: 20 }  // Precio venta
+    ];
+    worksheet['!cols'] = wscols;
+
+    const workbook = { Sheets: { 'Productos': worksheet }, SheetNames: ['Productos'] };
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(blob, `productos_${fechaHoy}_FRESCAPP.xlsx`);
   }
 
   filterProducts(): void {

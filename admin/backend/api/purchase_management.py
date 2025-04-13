@@ -28,9 +28,12 @@ db = client['frescapp']
 orders_collection = db['orders']
 purchase_collection = db['purchases']
 
-@purchase_api.route('/create/<string:date>', methods=['GET'])
-def create_purchase(date):
-    date_str = date
+@purchase_api.route('/create/', methods=['POST'])
+def create_purchase():
+    data = request.json
+    date_str = data.get("date")
+    date = data.get("date")
+    efectivo = data.get("efectivoEntreado")
     date_object = datetime.strptime(date, "%Y-%m-%d")
     yesterday = date_object - timedelta(days=1)
     yesterday_str = yesterday.strftime("%Y-%m-%d")
@@ -188,6 +191,7 @@ def create_purchase(date):
         purchase_document = {
             "date": date,
             "purchase_number": str(purchase_number),
+            "efectivoEntreado": efectivo,
             "status": "Creada",
             "products": products,
             "comments" :""

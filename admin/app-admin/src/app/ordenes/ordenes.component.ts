@@ -57,7 +57,7 @@ export class OrdenesComponent implements OnInit {
   titleEvidence:any = '';
   typeEvidence:any = '';
   showHeaderOrder: boolean = true;
-
+  institucion: boolean = false;
   constructor(
     private orderService: OrderService
     ,private router: Router
@@ -168,10 +168,11 @@ export class OrdenesComponent implements OnInit {
     this.order.total = parseFloat(this.order.products.reduce((total: number, product: any) => {
       return total + (product.quantity * product.price_sale);
     }, 0));
-    this.orderService.createOrder(this.order).subscribe((data: any) => {
-      // Lógica después de crear una nueva orden, si es necesario
-    });
-    this.getOrders('date');
+    console.log(this.order);
+    // this.orderService.createOrder(this.order).subscribe((data: any) => {
+    //   // Lógica después de crear una nueva orden, si es necesario
+    // });
+    // this.getOrders('date');
   }
   saveOrder() {
     if (this.actionType === 'update') {
@@ -182,10 +183,7 @@ export class OrdenesComponent implements OnInit {
       this.getOrders('date')
     }
   }
-  camposCompletos(): boolean {
-    const { order_number, customer_email, customer_phone, customer_documentNumber, customer_documentType, customer_name, delivery_date, status } = this.order;
-    return !!order_number && !!customer_email && !!customer_phone && !!customer_documentNumber && !!customer_documentType && !!customer_name && !!delivery_date && !!status;
-  }
+
   removeProduct(product: any): void {
     const index = this.order.products.indexOf(product);
     if (index !== -1) {
@@ -369,5 +367,20 @@ export class OrdenesComponent implements OnInit {
       }
     );
   }
+  camposCompletos(): boolean {
+    if (
+        !this.order?.delivery_date ||
+        !this.order?.deliverySlot ||
+        !this.order?.paymentMethod ||
+        !this.order?.deliveryAddress ||
+        !this.order?.status ||
+        !this.order?.seller_name ||
+        !this.order?.source ||
+        !this.order?.driver_name) {
+      return false;
+    }
+    return true;
+  }
+
 }
 

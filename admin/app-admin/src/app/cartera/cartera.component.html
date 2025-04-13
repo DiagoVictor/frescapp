@@ -1,8 +1,9 @@
 <div class="container-fluid mt-5">
   <div class="row">
     <div class="col-3">
-      <label class="h3" style="background-color: yellow;">Total Cartera: {{ total_cartera | currency:'USD':'symbol':'1.2-2' }}</label>
+      <label class="h3" style="background-color: yellow;">Total Cartera: {{ total_cartera | currency:'USD':'symbol':'1.2-2' }} en {{total_orders}} ordenes </label>
     </div>
+
     <div class="col-6">
       <input type="text" class="form-control" placeholder="Buscar Ordenes..." [(ngModel)]="searchText"
         (keyup)="filterorders()">

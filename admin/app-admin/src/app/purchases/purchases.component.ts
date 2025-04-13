@@ -25,6 +25,7 @@ export class PurchasesComponent {
   purchaseSelect:any =  '';
   pdfData:any;
   product: any;
+  efectivoEntreado: number = 0;
   constructor(
     private purchaseService: PurchaseService,
     private alegraService: AlegraService,
@@ -51,8 +52,13 @@ export class PurchasesComponent {
       this.filteredPurchases = this.purchases;
     }
   }
+
   newPurchase() {
-    this.purchaseService.createPurchase(this.fechaNewOrder).subscribe(
+    const purchase = {
+      date: this.fechaNewOrder,
+      efectivoEntreado: this.efectivoEntreado
+    };
+    this.purchaseService.createPurchase(purchase).subscribe(
       (res: any) => {
         this.getPurchases();
         this.messagePurchase = 'Orden de compra creada exitosamente!';
@@ -251,4 +257,10 @@ export class PurchasesComponent {
       }
     );
    }
+   enableSaveButton(): boolean {
+    return (
+      this.fechaNewOrder == '' || this.efectivoEntreado == 0
+    );
+  }
+
 }

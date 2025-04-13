@@ -43,6 +43,9 @@ export class PurchaseComponent {
       }
     );
   }
+  redondear(valor: number): number {
+    return Math.round(valor * 100) / 100; // 2 decimales
+  }
   getPurchase(){
     this.purchaseService.getPurchase(this.purchaseNumber).subscribe(
       (res: any) => {

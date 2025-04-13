@@ -35,7 +35,7 @@
 
     <div>
       <label>Precio de Compra sugerido:</label>
-      <span class="form-control">{{ this.selectedProduct.price_purchase }}</span>
+      <span class="form-control">{{ redondear(this.selectedProduct.price_purchase * 0.95 ) }}</span>
     </div>
 
     <!-- Campo Precio de Compra con Validación -->

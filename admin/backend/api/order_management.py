@@ -55,7 +55,7 @@ def create_order(order_number=None):
     payment_date = data.get('payment_date', delivery_date) 
     driver_name = data.get('driver_name', '')
     seller_name = data.get('seller_name', '')
-    source = data.get('source', 'app')
+    source = data.get('source', 'Aplicación')
     totalPayment = 0.0
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
@@ -167,7 +167,12 @@ def list_orders(startDate,endDate):
          "paymentMethod": order["paymentMethod"],
          "deliveryAddress": order["deliveryAddress"], 
          "deliveryAddressDetails": order["deliveryAddressDetails"] ,
-         "alegra_id" :order["alegra_id"]
+         "alegra_id" :order["alegra_id"],
+         "open_hour" : order["open_hour"],
+         "driver_name" : order["driver_name"],
+         "seller_name" : order["seller_name"],
+         "source" : order["source"],
+         "totalPayment" : order["totalPayment"]
          }
         for order in orders_cursor
     ]
@@ -196,7 +201,11 @@ def list_ordersByStats(status):
          "deliveryAddress": order["deliveryAddress"], # Nuevo campo: Dirección de entrega
          "deliveryAddressDetails": order["deliveryAddressDetails"],
         "alegra_id" :order["alegra_id"],
-        "totalPayment" : order["totalPayment"]
+        "totalPayment" : order["totalPayment"],
+        "open_hour" : order["open_hour"],
+        "driver_name" : order["driver_name"],
+        "seller_name" : order["seller_name"],
+        "source" : order["source"]
          }
         for order in orders_cursor
     ]

@@ -31,6 +31,7 @@
         <th>Porc. Registrado</th>
         <th>Porc. Registro Pacial</th>
         <th>Porc. Facturado</th>
+        <th>Efectivo Entregado</th>
         <th>Total Estimado</th>
         <th>Total Real</th>
         <th>Estado</th>
@@ -52,10 +53,12 @@
           {{ calculateFacturadaPercentage(purchase.products) }}%
         </td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">
-          {{ calculateTotalEstimate(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->
+          {{ purchase.efectivoEntreado | currency:'COP ' }} <!-- Mostrar GMV -->
+        <td (click)="navigateToPurchase(purchase.purchase_number)">
+          {{ calculateTotalEstimate(purchase.products) | currency:'COP ' }} <!-- Mostrar GMV -->
         </td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">
-          {{ calculatetotalReal(purchase.products) | currency:'USD' }} <!-- Mostrar GMV -->
+          {{ calculatetotalReal(purchase.products) | currency:'COP ' }} <!-- Mostrar GMV -->
         </td>
         <td (click)="navigateToPurchase(purchase.purchase_number)">{{ purchase.status }}</td>
         <td>
@@ -107,6 +110,10 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <div class="form-group">
+          <label for="fecha">Efectivo entregado:</label>
+          <input type="number" class="form-control" id="efectivoEntreado" name="efectivoEntreado" [(ngModel)]="efectivoEntreado">
+        </div>
         <input type="text" [(ngModel)]="purchaseSelect.comments" class="form-control">
       </div>
       <div class="modal-footer">
@@ -129,9 +136,13 @@
             <label for="fecha">Fecha:</label>
             <input type="date" class="form-control" id="fecha" name="fecha" [(ngModel)]="fechaNewOrder">
           </div>
+          <div class="form-group">
+            <label for="fecha">Efectivo entregado:</label>
+            <input type="number" class="form-control" id="efectivoEntreado" name="efectivoEntreado" [(ngModel)]="efectivoEntreado">
+          </div>
           <br>
           <div class="text-right"> <!-- Alineación a la derecha -->
-            <button class="btn btn-primary" (click)="newPurchase()">Nueva Orden de compra</button>
+            <button class="btn btn-primary" (click)="newPurchase()" [disabled]="enableSaveButton()">Nueva Orden de compra</button>
           </div>
         </div>
       </div>

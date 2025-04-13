@@ -33,6 +33,7 @@ def get_inventory(inventory_id):
                 "name": product.get("name"),
                 "category": product.get("category"),
                 "quantity": product.get("quantity", 0),
+                "quantity_auto": product.get("quantity_auto", 0),
                 "cost": product.get("cost", 0)
             }
             for product in item.products
@@ -99,6 +100,8 @@ def create_inventory(close_date):
                         quantity_sold = productOrder.get("quantity", 0)
                         product["quantity"] -= round((quantity_sold * step_unit),1)
                         product["quantity_auto"] -= round((quantity_sold * step_unit),1)
+        product["quantity"] = max(0, product["quantity"])
+        product["quantity_auto"] = max(0, product["quantity_auto"])
     item.save()
     return jsonify({"message": "Inventory item added successfully", "id": item.id}), 201
 
