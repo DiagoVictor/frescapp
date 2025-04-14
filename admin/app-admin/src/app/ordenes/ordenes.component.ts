@@ -168,11 +168,10 @@ export class OrdenesComponent implements OnInit {
     this.order.total = parseFloat(this.order.products.reduce((total: number, product: any) => {
       return total + (product.quantity * product.price_sale);
     }, 0));
-    console.log(this.order);
-    // this.orderService.createOrder(this.order).subscribe((data: any) => {
-    //   // Lógica después de crear una nueva orden, si es necesario
-    // });
-    // this.getOrders('date');
+    this.orderService.createOrder(this.order).subscribe((data: any) => {
+      // Lógica después de crear una nueva orden, si es necesario
+    });
+    this.getOrders('date');
   }
   saveOrder() {
     if (this.actionType === 'update') {
