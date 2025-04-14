@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from models.customer import Customer
+from models.product import Product
 import json, dump
 from flask_bcrypt import Bcrypt
 from datetime import datetime
@@ -32,6 +33,23 @@ def transform_order(order):
 
         # Crear la cadena en el formato 'YYYY-MM-DD'
         formatted_date_str = f"{year}-{month}-{day.zfill(2)}"
+        products = []
+        for item in order["line_items"]:
+            product_data = Product.find_by_sku(sku=item["sku"])  # Asegúrate de que esta función exista y retorne un dict o None
+
+            unit = product_data.get("unit") if product_data else ""
+            category = product_data.get("category") if product_data else ""
+
+            products.append({
+                "sku": item["sku"],
+                "name": item["name"],
+                "price_sale": item["price"],
+                "quantity": item["quantity"],
+                "iva": False,
+                "iva_value": 0,
+                "unit": unit or "",
+                "category": category or ""
+            })
     transformed_order = {
         "order_number": order["number"],
         "customer_email": order["billing"]["email"],
@@ -43,16 +61,7 @@ def transform_order(order):
         "status": "Creada",
         "created_at": datetime.strptime(order["date_created"], "%Y-%m-%dT%H:%M:%S").strftime('%Y-%m-%d'),
         "updated_at": datetime.strptime(order["date_modified"], "%Y-%m-%dT%H:%M:%S").strftime('%Y-%m-%d'),
-        "products": [
-            {
-                "sku": item["sku"],
-                "name": item["name"],
-                "price_sale": item["price"],
-                "quantity": item["quantity"],
-                "iva": False,
-                "iva_value": 0
-            } for item in order["line_items"]
-        ],
+        "products": products,
         "total": int(order["total"]),
         "deliverySlot": next((item["value"] for item in order["meta_data"] if item["key"] == "_orddd_time_slot"), ""),
         "paymentMethod": order["payment_method_title"],
@@ -60,7 +69,13 @@ def transform_order(order):
         "deliveryAddressDetails": order["shipping"]["address_2"],
         "discount": 0,
         "deliveryCost": 0,
-        "alegra_id" : "000"
+        "alegra_id" : "000",
+        "payment_date": "",
+        "driver_name": "",
+        "seller_name": "",
+        "source":"Página",
+        "totalPayment" : 0,
+        "open_hour": ""
     }
     return transformed_order
 

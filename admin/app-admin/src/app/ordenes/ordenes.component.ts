@@ -199,7 +199,9 @@ export class OrdenesComponent implements OnInit {
       price_sale: 0,
       quantity: 1,
       iva: false,
-      iva_value: 0
+      iva_value: 0,
+      unit : '',
+      category: '',
     });
   }
   obtenerProductos(): void {
@@ -241,7 +243,7 @@ export class OrdenesComponent implements OnInit {
       this.order.deliveryAddress = selectedCustomer.address;
     }
   }
-  onProductSelect(product: { id: any; name: any; sku: any; price_sale: any; iva: any; iva_value: any; }): void {
+  onProductSelect(product: { id: any; name: any; sku: any; price_sale: any; iva: any; iva_value: any; unit: any; category:any; }): void {
     const selectedProduct = this.products.find(p => p.id === product.id);
     if (selectedProduct) {
       product.name = selectedProduct.name;
@@ -249,6 +251,8 @@ export class OrdenesComponent implements OnInit {
       product.price_sale = selectedProduct.price_sale;
       product.iva = selectedProduct.iva;
       product.iva_value = selectedProduct.iva_value;
+      product.unit = selectedProduct.unit;
+      product.category = selectedProduct.category;
     }
   }
   sync_allegra(order_number: any) {

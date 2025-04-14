@@ -6,7 +6,7 @@ from datetime import datetime
 from io import BytesIO
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
@@ -14,7 +14,6 @@ import locale
 from flask import Response
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
 from io import BytesIO
 from utils.email_utils import send_new_order
 from io import StringIO
@@ -220,71 +219,50 @@ def generate_remision(id_order):
     pdf = SimpleDocTemplate(
         buffer,
         pagesize=letter,
-        leftMargin=28.35,    # 1 cm
-        rightMargin=28.35,  # 1 cm
-        topMargin=28.35,    # 1 cm
-        bottomMargin=28.35  # 1 cm
+        leftMargin=28.35,
+        rightMargin=28.35,
+        topMargin=28.35,
+        bottomMargin=28.35
     )
+
     styles = getSampleStyleSheet()
     image_path = 'https://buyfrescapp.com/images/banner1.png'
-    logo = Image(image_path, width=200, height=70)
-    centered_style = ParagraphStyle(
-            name='Centered',
-            fontSize=16,  # Tamaño de la letra aumentado a 16
-            alignment=TA_CENTER,  # Centrado horizontal
-            textColor=colors.white,  # Color del texto blanco
-            leading=50  # Espaciado entre líneas para centrar verticalmente
-        )
+    logo = Image(image_path, width=95, height=50)
     pdf_content = []
     remision_number = order.order_number
-    remision_paragraph = Paragraph(
-        '<font>Remisión #({}) {}</font>'.format(remision_number, order.delivery_date),
-        centered_style
-    )
-
-    green_box = Table(
-        [[remision_paragraph]],
-        colWidths=[250],
-        rowHeights=[70],
-        style=[('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#97D700'))]
-    )
-
-    # Tabla contenedora de la imagen y la caja verde
-    content_table = Table([
-        [logo, green_box]
-    ], colWidths=[200, 250])
-
-    pdf_content.append(content_table)
-    pdf_content.append(Paragraph('<br/>', styles['Normal']))
-    table_width = 550
-
-    # Aplicar estilos de WordWrap a las celdas de la tabla
-    word_wrap_style = getSampleStyleSheet()["Normal"]
+    word_wrap_style = styles["Normal"]
     word_wrap_style.wordWrap = 'CJK'
 
     # Datos de la orden
     order_data = [
-        ['Nombre', Paragraph(order.customer_name, word_wrap_style), 'Teléfono del Cliente', Paragraph(order.customer_phone, word_wrap_style)],
-        ['Método de pago', Paragraph(order.paymentMethod, word_wrap_style), 'Horario de entrega', Paragraph(order.deliverySlot + ' (' + order.open_hour + ')', word_wrap_style)],
-        ['Dirección de entrega', Paragraph(order.deliveryAddress, word_wrap_style), 'Detalle de entrega', Paragraph(order.deliveryAddressDetails, word_wrap_style)]
+        [logo, 'Remisión #', order.order_number, 'Fecha', order.delivery_date],
+        ['', 'Nombre', Paragraph(order.customer_name, word_wrap_style), 'Teléfono del Cliente', Paragraph(order.customer_phone, word_wrap_style)],
+        ['', 'Método de pago', Paragraph(order.paymentMethod, word_wrap_style), 'Horario de entrega', Paragraph(order.deliverySlot + ' (' + order.open_hour + ')', word_wrap_style)],
+        ['Dirección de entrega', Paragraph(order.deliveryAddress, word_wrap_style),  'Detalle de entrega', Paragraph(order.deliveryAddressDetails, word_wrap_style),'']
     ]
 
-    # Crear la tabla con cuatro columnas
-    order_table = Table(order_data, colWidths=[table_width / 4] * 4)
-
-    # Aplicar estilos a la tabla
+    order_table = Table(order_data, colWidths=[100, 100, 150, 100, 100])
     order_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), colors.white),  # Color de fondo de las celdas
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),  # Color del texto
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Alinear texto a la izquierda
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # Alinear verticalmente al centro
-        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.black)  # Añadir borde alrededor de la tabla
+        ('SPAN', (0, 0), (0, 2)),  # Logo 3 filas
+        ('VALIGN', (0, 0), (0, 2), 'MIDDLE'),
+        ('ALIGN', (0, 0), (0, 2), 'CENTER'),
+        # Dirección: valor solo en columna 2
+        ('SPAN', (1, 3), (1, 3)),
+
+        # Detalle: valor ocupa columnas 4 y 5
+        ('SPAN', (3, 3), (4, 3)),
+
+
+        ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.black)
     ]))
 
-    # Agregar la tabla al contenido del PDF
     pdf_content.append(order_table)
-    pdf_content.append(Paragraph('<br/><br/>', styles['Normal']))
+    pdf_content.append(Spacer(1, 20))
+    table_width = 550
+
 
     # Aplicar estilos de WordWrap
     word_wrap_style = styles["Normal"]
