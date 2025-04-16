@@ -81,12 +81,10 @@ def create_inventory(close_date):
         if inventory_ayer:
             producto_ayer = next((p for p in inventory_ayer.products if p["sku"] == sku), None)
             if producto_ayer:
-                product["quantity"] = round(producto_ayer["quantity"] or 0,1)
                 product["quantity_auto"] = round(producto_ayer["quantity"] or 0,1)
         if compras_hoy:
             compras_sku = [c for c in compras_hoy.products if c["sku"] == sku]
             for compra in compras_sku:
-                product["quantity"] += round(compra.get("total_quantity",0),1)
                 product["quantity_auto"] += round(compra.get("total_quantity",0),1)
         if ventas_hoy:
             ventas_hoy = Order.find_by_date(close_date,close_date)
@@ -98,9 +96,7 @@ def create_inventory(close_date):
                     step_unit = temp.get("step_unit", 1)
                     if str(product.get("sku")) == str(sku_root):
                         quantity_sold = productOrder.get("quantity", 0)
-                        product["quantity"] -= round((quantity_sold * step_unit),1)
                         product["quantity_auto"] -= round((quantity_sold * step_unit),1)
-        product["quantity"] = max(0, product["quantity"])
         product["quantity_auto"] = max(0, product["quantity_auto"])
     item.save()
     return jsonify({"message": "Inventory item added successfully", "id": item.id}), 201

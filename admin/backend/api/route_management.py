@@ -263,7 +263,6 @@ def delete_route(route_id):
         id=route_data['id'],
         route_number=route_data.get('route_number'),
         close_date=route_data.get('close_date'),
-        driver=route_data.get('driver'),
         cost=route_data.get('cost'),
         stops=route_data.get('stops')
     )
