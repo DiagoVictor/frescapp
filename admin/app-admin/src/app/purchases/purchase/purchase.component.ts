@@ -51,17 +51,26 @@ export class PurchaseComponent {
       (res: any) => {
         this.purchase = res;
         this.filteredProducts = this.purchase.products.sort((a: any, b: any) => {
+          // Primero ordenamos por categoría
           if (a.category.toLowerCase() < b.category.toLowerCase()) {
             return -1;
           } else if (a.category.toLowerCase() > b.category.toLowerCase()) {
             return 1;
           } else {
-            return 0;
+            // Si las categorías son iguales, ordenamos por nombre
+            if (a.name.toLowerCase() < b.name.toLowerCase()) {
+              return -1;
+            } else if (a.name.toLowerCase() > b.name.toLowerCase()) {
+              return 1;
+            } else {
+              return 0;
+            }
           }
         });
       }
     );
   }
+
   filterProducts() {
     this.filteredProducts = this.purchase.products.filter((product: any) =>
       product.name.toLowerCase().includes(this.searchTerm.toLowerCase())
@@ -127,14 +136,7 @@ export class PurchaseComponent {
       }
     );
   }
-  validatePrice() {
-    const suggestedPrice = this.selectedProduct.price_purchase;
-    const minPrice = Math.max(suggestedPrice * (1 - this.priceTolerance), 0);
-    const maxPrice = suggestedPrice * (1 + this.priceTolerance);
 
-    this.isPriceValid = this.selectedProduct.final_price_purchase >= minPrice &&
-                        this.selectedProduct.final_price_purchase <= maxPrice;
-}
   round(value: number): number {
     // Redondea el número a un entero (una cifra)
     return Math.round(value);

@@ -15,7 +15,8 @@
       <tr *ngFor="let product of filteredProducts" (click)="openEditModal(productModal, product)" [ngClass]="{
             'table-success': product.status === 'Registrado',
             'table-warning': product.status === 'Registro parcial',
-            'table-primary': product.status === 'Facturada'
+            'table-primary': product.status === 'Facturada',
+            'table-danger': (product.final_price_purchase >= product.price_purchase * 1.4 || product.final_price_purchase <= product.price_purchase * 0.4) && product.final_price_purchase != 0,
           }">
         <td>{{ product.category.substring(0, 3).toUpperCase() + ' - ' + product.name }}</td>
         <td>{{ round(product.total_quantity) + ' ' + product.unit }}</td>
@@ -35,19 +36,14 @@
 
     <div>
       <label>Precio de Compra sugerido:</label>
-      <span class="form-control">{{ redondear(this.selectedProduct.price_purchase * 0.95 ) }}</span>
+      <span class="form-control">{{ redondear(this.selectedProduct.price_purchase ) }}</span>
     </div>
 
     <!-- Campo Precio de Compra con Validación -->
     <div>
       <label>Precio de Compra:</label>
-      <input type="number" [(ngModel)]="this.selectedProduct.final_price_purchase" (ngModelChange)="validatePrice()"
-        class="form-control"
-        [ngClass]="{'is-invalid': !isPriceValid && selectedProduct.final_price_purchase !== null}" />
-      <div *ngIf="!isPriceValid && selectedProduct.final_price_purchase !== null" class="invalid-feedback">
-        El precio debe estar entre {{ this.selectedProduct.price_purchase * 0.6 | currency:'USD'}} y {{
-        this.selectedProduct.price_purchase * 1.4 | currency:'USD'}} del sugerido.
-      </div>
+      <input type="number" [(ngModel)]="this.selectedProduct.final_price_purchase"
+        class="form-control" />
     </div>
 
     <div>

@@ -14,6 +14,9 @@ export class RoutesService {
   getRoute(routeNumber:any):Observable<any> {
     return this.http.get<any[]>(this.baseUrl+'api/route/route/'+routeNumber);
   }
+  getRouteByDate(date:any):Observable<any> {
+    return this.http.get<any[]>(this.baseUrl+'api/route/route/fecha/'+date);
+  }
   updateRoute(route: any) {
     const formData = new FormData();
 

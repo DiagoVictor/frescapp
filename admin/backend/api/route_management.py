@@ -127,7 +127,6 @@ def update_route():
             print("Missing order_number or status for stop")
     return jsonify({'message': 'Route updated successfully'}), 200
 
-
 @route_api.route('/routes', methods=['GET'])
 def list_routes():
     routes_cursor = Route.objects()
@@ -156,6 +155,20 @@ def get_route(route_number):
         route['_id'] = str(route['_id'])
         
     return jsonify(route), 200
+
+@route_api.route('/route/fecha/<string:date>', methods=['GET'])
+def get_route_by_date(date):
+    route = Route.find_by_date(date)
+    
+    if not route:
+        return jsonify({'message': 'Route not found'}), 404
+    
+    # Convertimos `_id` a `str` si está presente
+    if '_id' in route:
+        route['_id'] = str(route['_id'])
+        
+    return jsonify(route), 200
+
 @route_api.route('/consolidated/<string:route_number>/', methods=['GET'])
 def get_route_consolidated(route_number):
     # Convertir route_number a entero
@@ -296,3 +309,7 @@ def get_stop_order(order_number):
         if stop.get("order_number") == str(order_number):
             return jsonify(stop), 200        
     return None, 400
+
+
+
+
