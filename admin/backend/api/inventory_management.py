@@ -98,6 +98,7 @@ def create_inventory(close_date):
                         quantity_sold = productOrder.get("quantity", 0)
                         product["quantity_auto"] -= round((quantity_sold * step_unit),1)
         product["quantity_auto"] = max(0, product["quantity_auto"])
+        #product["quantity"] = max(0, product["quantity_auto"])
     item.save()
     return jsonify({"message": "Inventory item added successfully", "id": item.id}), 201
 
