@@ -16,6 +16,7 @@ import requests
 import csv
 from io import StringIO
 from flask import Response
+import re
 
 product_api = Blueprint('product', __name__)
 
@@ -303,43 +304,66 @@ def syn_products_page():
         #print(product_to_create["sku"] + " - "+str(response.status_code))
     return f"Creado exitosamente", 200
     
-@product_api.route('/product/institucion/', methods=['GET'])
-def list_product_institucion():
-    def contenct_csv():
-        products_cursor = Product.objects(status="active")
+@product_api.route('/product/institucion/<string:email>', methods=['GET']) 
+@product_api.route('/product/institucion/<string:email>', methods=['GET']) 
+def list_product_institucion(email):
+    def contenct_csv(email):
+        import re
+        def limpiar_sku(sku):
+            return re.sub(r'[^A-Za-z0-9\-]', '', sku)
 
-        # Crear un buffer en memoria para escribir el CSV
+        # Conexión a MongoDB
+        client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
+        db = client['frescapp']
+        customers_collection = db['customers']
+
+        # Crear CSV
         csv_buffer = StringIO()
         csv_writer = csv.writer(csv_buffer)
+        csv_writer.writerow(["name", "price_with_discount"])
 
-        # Escribir la cabecera del CSV
-        headers = [
-            "name", "unit", "category", "sku", "price_purchase"
-        ]
-        csv_writer.writerow(headers)
+        customer = customers_collection.find_one({'email': email})
+        if not customer or 'match_catalogo' not in customer:
+            return csv_buffer.getvalue()  # solo encabezado si no hay cliente
 
-        # Escribir los datos de cada producto en el CSV
-        for product in products_cursor:
-            row = [
-                product["name"], 
-                product["unit"], 
-                product["category"], 
-                product["sku"], 
-                round(product["price_purchase"]*(1 + (product["margen"]-0.08)))
-            ]
-            csv_writer.writerow(row)
+        match_catalogo = []
+        sku_list = []
 
-        # Obtener el contenido del buffer como una cadena CSV
+        for item in customer['match_catalogo']:
+            sku = limpiar_sku(item.get('sku', ''))
+            if sku:
+                match_catalogo.append({
+                    "sku": sku,
+                    "name": item.get("equivalente", "Sin nombre"),
+                    "step_unit": item.get("step_unit", 1)
+                })
+                sku_list.append(sku)
+
+        # Buscar productos existentes por SKU
+        productos_encontrados = {p["sku"]: p for p in Product.find_by_skus(sku_list)}
+
+        for item in match_catalogo:
+            sku = item["sku"]
+            nombre = item["name"]
+            step = item["step_unit"]
+
+            if sku in productos_encontrados:
+                product = productos_encontrados[sku]
+                precio_base = product["price_sale"]  * step
+                precio_descuento = int(round(precio_base * 0.88))  # 12% off
+            else:
+                precio_descuento = ""  # o puedes usar: "NO DISPONIBLE"
+
+            csv_writer.writerow([nombre, precio_descuento])
+
         csv_content = csv_buffer.getvalue()
         csv_buffer.close()
-
         return csv_content
-    csv_content = contenct_csv()
 
-    # Crear una respuesta HTTP con el archivo CSV
-    response = Response(
+    csv_content = contenct_csv(email)
+
+    return Response(
         csv_content,
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=products_institucion.csv"}
     )
-    return response

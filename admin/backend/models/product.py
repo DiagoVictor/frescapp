@@ -123,11 +123,11 @@ class Product:
     
 
     @staticmethod
-    def objects():
+    def objects(status=None):
+        if status is not None:
+            return products_collection.find({"status": status})
         return products_collection.find()
-    @staticmethod
-    def objects(status):
-        return products_collection.find({"status": status})
+
     @staticmethod
     def objects_customer( customer_email):
         if customer_email == 'undefined':
@@ -164,3 +164,9 @@ class Product:
     @staticmethod
     def find_by_sku(sku):
         return products_collection.find_one({"sku": sku},  {'_id': 0})
+    @staticmethod
+    def find_by_skus(sku_list):
+        return products_collection.find(
+            {"sku": {"$in": sku_list}},
+            {'_id': 0}
+        )
