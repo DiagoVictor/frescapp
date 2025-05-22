@@ -143,11 +143,15 @@ class Product:
         all_active_products = list(products_collection.find({"is_visible": True}))
         
         product_dict = {product['sku']: product for product in all_active_products}
-        
         ordered_products = []
         for product_sku in customer_product_skus:
+            print(f"Checking product {product_sku}")
             if product_sku in product_dict:
-                ordered_products.append(product_dict.pop(product_sku))
+                try:
+                    print(f"Processing product {product_sku}")
+                    ordered_products.append(product_dict.pop(product_sku))
+                except Exception as e:
+                    print(f"Error processing product {product_sku}: {e}")
         
         remaining_products = list(product_dict.values())
         ordered_products.extend(remaining_products)

@@ -69,7 +69,7 @@ def get_and_increment_invoice_number():
     invoice_data = invoice_counter.find_one_and_update({}, {"$inc": {"last_invoice": 1}}, upsert=True, return_document=True)
     return invoice_data['last_invoice']
 
-def obtener_compras_agrupadas(fecha):
+def obtener_compras_agrupadas(fecha, fecha_final=None):
     order = purchases.find_one({"date": fecha})
     suppliers = get_all_suppliers()
     items = get_all_items()
@@ -125,8 +125,8 @@ def obtener_compras_agrupadas(fecha):
             "purchases": {"items": purchase['items']},
             "stamp": {"generateStamp": True},
             "billOperationType": "INDIVIDUAL",
-            "date": '2025-01-16',
-            "dueDate": '2025-01-16',
+            "date": fecha_final,
+            "dueDate": fecha_final,
             "provider": int(purchase['proveedor_id']),
             "paymentMethod": "CASH",
             "paymentType": "CASH",
@@ -134,7 +134,7 @@ def obtener_compras_agrupadas(fecha):
             "payments": [
                 {
                     "account": { "id": 1 },
-                    "date": '2025-01-16',
+                    "date": fecha_final,
                     "amount": total,
                     "paymentMethod": "cash"
                 }
@@ -163,7 +163,7 @@ def obtener_compras_agrupadas(fecha):
             )
         else:
             print(f"Error al crear factura: {response.text}")
-list_days = ['2025-01-18']
+list_days = ['2025-05-17']
 for day in list_days:
     print(f"Procesando compras del día {day}")
-    obtener_compras_agrupadas(day)
+    obtener_compras_agrupadas(day,'2025-05-17')

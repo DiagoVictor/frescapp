@@ -242,7 +242,7 @@ def products_history_new(operation_date):
             
             if compras:
                 producto_encontrado = compras["products"][0]
-                precio_compra = float(producto_encontrado.get("final_price_purchase", 0))
+                precio_compra = float(producto_encontrado.get("final_price_purchase", 0) or 0)
                 step_unit = float(producto.get("step_unit", 1)) 
                 total_precio += precio_compra / step_unit
                 

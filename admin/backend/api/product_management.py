@@ -17,7 +17,7 @@ import csv
 from io import StringIO
 from flask import Response
 import re
-
+from io import BytesIO
 product_api = Blueprint('product', __name__)
 
 # Ruta para crear un nuevo product
@@ -304,66 +304,78 @@ def syn_products_page():
         #print(product_to_create["sku"] + " - "+str(response.status_code))
     return f"Creado exitosamente", 200
     
-@product_api.route('/product/institucion/<string:email>', methods=['GET']) 
-@product_api.route('/product/institucion/<string:email>', methods=['GET']) 
+@product_api.route('/product/institucion/', defaults={'email': None}, methods=['GET'])
+@product_api.route('/product/institucion/<string:email>', methods=['GET'])
 def list_product_institucion(email):
-    def contenct_csv(email):
-        import re
+    def generate_excel(email):
         def limpiar_sku(sku):
             return re.sub(r'[^A-Za-z0-9\-]', '', sku)
 
-        # Conexión a MongoDB
-        client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
+        client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
         db = client['frescapp']
         customers_collection = db['customers']
 
-        # Crear CSV
-        csv_buffer = StringIO()
-        csv_writer = csv.writer(csv_buffer)
-        csv_writer.writerow(["name", "price_with_discount"])
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Productos"
+        ws.append(["Nombre", "Unidad", "Categoria", "Precio"])
 
-        customer = customers_collection.find_one({'email': email})
-        if not customer or 'match_catalogo' not in customer:
-            return csv_buffer.getvalue()  # solo encabezado si no hay cliente
+        if not email:
+            for p in Product.objects('active'):
+                nombre = p.get("name", "Sin nombre")
+                step = p.get("step_unit", 1)
+                categoria = p.get("category", "Sin categoria")
+                unidad = p.get("unit", "Sin unidad")
+                precio_base = p.get("price_sale", 0) * step
+                precio_descuento = int(round(precio_base * 0.88))
+                ws.append([nombre, unidad, categoria, precio_descuento])
+        else:
+            customer = customers_collection.find_one({'email': email})
+            if not customer or 'match_catalogo' not in customer:
+                return wb
 
-        match_catalogo = []
-        sku_list = []
+            match_catalogo = []
+            sku_list = []
 
-        for item in customer['match_catalogo']:
-            sku = limpiar_sku(item.get('sku', ''))
-            if sku:
-                match_catalogo.append({
-                    "sku": sku,
-                    "name": item.get("equivalente", "Sin nombre"),
-                    "step_unit": item.get("step_unit", 1)
-                })
-                sku_list.append(sku)
+            for item in customer['match_catalogo']:
+                sku = limpiar_sku(item.get('sku', ''))
+                if sku:
+                    match_catalogo.append({
+                        "sku": sku,
+                        "name": item.get("equivalente", "Sin nombre"),
+                        "step_unit": item.get("step_unit", 1)
+                    })
+                    sku_list.append(sku)
 
-        # Buscar productos existentes por SKU
-        productos_encontrados = {p["sku"]: p for p in Product.find_by_skus(sku_list)}
+            productos_encontrados = {p["sku"]: p for p in Product.find_by_skus(sku_list)}
 
-        for item in match_catalogo:
-            sku = item["sku"]
-            nombre = item["name"]
-            step = item["step_unit"]
+            for item in match_catalogo:
+                sku = item["sku"]
+                nombre = item["name"]
+                step = item["step_unit"]
 
-            if sku in productos_encontrados:
-                product = productos_encontrados[sku]
-                precio_base = product["price_sale"]  * step
-                precio_descuento = int(round(precio_base * 0.88))  # 12% off
-            else:
-                precio_descuento = ""  # o puedes usar: "NO DISPONIBLE"
+                if sku in productos_encontrados:
+                    product = productos_encontrados[sku]
+                    precio_base = product["price_sale"] * step
+                    precio_descuento = int(round(precio_base * 0.88))
+                    unidad = product.get("unit", "Sin unidad")
+                    categoria = product.get("category", "Sin categoria")
+                else:
+                    precio_descuento = ""
+                    unidad = ""
+                    categoria = ""
 
-            csv_writer.writerow([nombre, precio_descuento])
+                ws.append([nombre, unidad, categoria, precio_descuento])
 
-        csv_content = csv_buffer.getvalue()
-        csv_buffer.close()
-        return csv_content
+        return wb
 
-    csv_content = contenct_csv(email)
+    wb = generate_excel(email)
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
 
     return Response(
-        csv_content,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=products_institucion.csv"}
+        output.read(),
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=productos_institucion.xlsx"}
     )
