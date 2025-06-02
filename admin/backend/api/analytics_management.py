@@ -309,9 +309,14 @@ def ue_daily():
                 "gmv": 0,
                 "total_orders": 0,
                 "total_lines": 0,
-                "cost_tech": 6250,
+                "cost_tech": 0,
                 "cost_others": 0,
-                "wh_rent": 52080
+                "wh_rent": 0,
+                "perssonel": 0,
+                "cost_supply": 0,
+                "detalle": "",
+                "total_orders": 0,
+                "total_lines": 0
             }
 
     # Pipeline para calcular el costo total de los productos vendidos por día
@@ -503,6 +508,7 @@ def ue_daily():
         tipo_costo = cost.get('typeCost')
         if tipo_costo in daily_summary[fecha]:
             daily_summary[fecha][tipo_costo] += cost.get('amount', 0)
+            daily_summary[fecha]["detalle"] += cost.get('detail', '')
 
     # Construir el resultado final con la estructura deseada
     result = []
@@ -511,36 +517,66 @@ def ue_daily():
         result.append({
             "fecha": fecha,
             "variable": "warehouse",
-            "valor": -float(data["wh_rent"])
+            "valor": -float(data["wh_rent"]),
+            "detalle" : "Renta de almacén"
         })
         
         # Agregar otros costos si es necesario
         result.append({
             "fecha": fecha,
             "variable": "logistics_cost",
-            "valor": -float(data["logistics_cost"])
+            "valor": -float(data["logistics_cost"]),
+            "detalle": "Costos logísticos"
         })
         
         # Agregar COGS
         result.append({
             "fecha": fecha,
             "variable": "cogs",
-            "valor": -float(data["cogs"])
+            "valor": -float(data["cogs"]),
+            "detalle": "Costo de bienes vendidos"
         })
         result.append({
             "fecha": fecha,
             "variable": "gmv",
-            "valor": float(data["gmv"])
+            "valor": float(data["gmv"]),
+            "detalle": "Valor bruto de mercancía"
         })
         result.append({
             "fecha": fecha,
             "variable": "cost_tech",
-            "valor": -float(data["cost_tech"])
+            "valor": -float(data["cost_tech"]),
+            "detalle": "Costos tecnológicos"
         })
         result.append({
             "fecha": fecha,
             "variable": "cost_others",
-            "valor": -float(data["cost_others"])
+            "valor": -float(data["cost_others"]),
+            "detalle": data["detalle"]
+        })
+        result.append({
+            "fecha": fecha,
+            "variable": "perssonel",
+            "valor": -float(data["perssonel"]),
+            "detalle": "Costos de personal"
+        })
+        result.append({
+            "fecha": fecha,
+            "variable": "cost_supply",
+            "valor": -float(data["cost_supply"]),
+            "detalle": "Costos de suministros"
+        })
+        result.append({
+            "fecha": fecha,
+            "variable": "total_orders",
+            "valor": float(data["total_orders"]),
+            "detalle": "Total de órdenes"
+        })
+        result.append({
+            "fecha": fecha,
+            "variable": "total_lines",
+            "valor": float(data["total_lines"]),
+            "detalle": "Total de líneas"
         })
     return jsonify(result), 200
 
