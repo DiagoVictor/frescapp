@@ -34,7 +34,8 @@ class Order:
                  driver_name=None,
                  seller_name=None,
                  source=None,
-                 totalPayment=None):
+                 totalPayment=None
+                 ,status_payment='Pendiente de pago'):
         self.id = id
         self.order_number = order_number
         self.customer_email = customer_email
@@ -61,6 +62,7 @@ class Order:
         self.seller_name = seller_name if seller_name is not None else ''
         self.source = source if source is not None else 'app'
         self.totalPayment = totalPayment if totalPayment is not None else 0
+        self.status_payment = status_payment if status_payment is not None else 'Pendiente de pago'
 
     def save(self):
         order_data = {
