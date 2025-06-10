@@ -15,6 +15,7 @@ orders_collection = db['orders']
 counters_collection = db['counters']
 route_api = Blueprint('route', __name__)
 
+
 def get_next_route_number():
     counter = counters_collection.find_one_and_update(
         {'_id': 'route_number'},
@@ -24,13 +25,7 @@ def get_next_route_number():
     )
     return counter['sequence_value']
 
-@route_api.route('/route', methods=['POST'])
-def create_route():
-    data = request.get_json()
-    close_date = data.get('close_date')
-    cost = data.get('cost', 0)
-
-
+def func_create_route(close_date, cost=0):
     route_number = get_next_route_number()
     orders = list(orders_collection.find({"delivery_date": close_date}))
 
@@ -61,6 +56,14 @@ def create_route():
     route_id = route.save()
 
     return jsonify({'message': 'Route created successfully', 'route_id': route_id}), 201
+@route_api.route('/route', methods=['POST'])
+def create_route():
+    data = request.get_json()
+    close_date = data.get('close_date')
+    cost = data.get('cost', 0)
+    return func_create_route(close_date, cost)
+
+
 
 UPLOAD_FOLDER = '/home/ubuntu/evidences'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}  # Tipos de archivo permitidos
@@ -122,7 +125,7 @@ def update_route():
         order_number = stop.get('order_number')
         status = stop.get('status')
         if order_number and status:
-            orders_collection.update_one({"order_number" : order_number},{"$set": { "status": status,"totalPayment": stop.get("total_charged")}})
+            orders_collection.update_one({"order_number" : order_number},{"$set": { "status_payment": status,"totalPayment": stop.get("total_charged")}})
         else:
             print("Missing order_number or status for stop")
     return jsonify({'message': 'Route updated successfully'}), 200

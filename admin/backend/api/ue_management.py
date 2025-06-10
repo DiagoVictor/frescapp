@@ -6,6 +6,10 @@ import locale
 from locale import setlocale, LC_ALL
 from babel import numbers
 import locale
+from models.inventory import Inventory
+from models.purchase import Purchase
+import models.route as ruta
+from models.order import Order
 
 ue_api = Blueprint('ue', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
@@ -16,6 +20,214 @@ routes_collection = db['routes']
 costs_collection = db["costs"]
 unit_economics_collection = db['unit_economics']
 locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
+
+def func_create_ue(fecha_in):
+    pipeline_cog = [
+        {
+            "$match": {
+                "delivery_date": {
+                    "$gte": fecha_in,
+                    "$lte": fecha_in
+                }
+            }
+        },
+        {
+            "$unwind": "$products"
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "products.sku",
+                "foreignField": "sku",
+                "as": "product_info"
+            }
+        },
+        {
+            "$unwind": "$product_info"
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "product_info.child",
+                "foreignField": "sku",
+                "as": "child_product_info"
+            }
+        },
+        {
+            "$unwind": {
+                "path": "$child_product_info",
+                "preserveNullAndEmptyArrays": True
+            }
+        },
+        {
+            "$lookup": {
+                "from": "purchases",
+                "let": { "sku": "$child_product_info.sku", "delivery_date": "$delivery_date" },
+                "pipeline": [
+                    { "$unwind": "$products" },
+                    { "$match":
+                        { "$expr":
+                            { "$and":
+                                [
+                                    { "$eq": [ "$products.sku", "$$sku" ] },
+                                    { "$eq": [ "$date", "$$delivery_date" ] }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "as": "purchase_info"
+            }
+        },
+        {
+            "$lookup": {
+                "from": "inventory",
+                "let": { "sku": "$child_product_info.sku", "delivery_date": "$delivery_date" },
+                "pipeline": [
+                    { "$unwind": "$products" },
+                    { "$match":
+                        { "$expr":
+                            { "$and":
+                                [
+                                    { "$eq": [ "$products.sku", "$$sku" ] },
+                                    { "$eq": [ "$close_date", { "$dateToString": { "format": "%Y-%m-%d", "date": { "$dateSubtract": { "startDate": { "$toDate": "$$delivery_date" }, "unit": "day", "amount": 1 } } } } ] }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "as": "inventory_info"
+            }
+        },
+        {
+            "$unwind": {
+                "path": "$purchase_info",
+                "preserveNullAndEmptyArrays": True
+            }
+        },
+        {
+            "$unwind": {
+                "path": "$inventory_info",
+                "preserveNullAndEmptyArrays": True
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "fecha": "$delivery_date",
+                    "sku": "$child_product_info.sku"
+                },
+                "cantidad_vendida": {
+                    "$sum": {
+                        "$multiply": ["$products.quantity", "$product_info.step_unit"]
+                    }
+                },
+                "cantidad_inventario": {
+                    "$first": {
+                        "$ifNull": ["$inventory_info.products.quantity", 0]
+                    }
+                },
+                "precio_inventario": {
+                    "$first": {
+                        "$ifNull": ["$inventory_info.products.cost", 0]
+                    }
+                },
+                "precio_compra": {
+                    "$first": {
+                        "$ifNull": ["$purchase_info.products.final_price_purchase",0]
+                    }
+                }
+            }
+        },
+        {
+            "$addFields": {
+                "costo_total": {
+                    "$cond": [
+                        { "$gte": ["$cantidad_inventario", "$cantidad_vendida"] },
+                        { "$multiply": ["$cantidad_vendida", "$precio_inventario"] },
+                        {
+                            "$add": [
+                                { "$multiply": ["$cantidad_inventario", "$precio_inventario"] },
+                                { "$multiply": [
+                                    { "$subtract": ["$cantidad_vendida", "$cantidad_inventario"] },
+                                    "$precio_compra"
+                                ]}
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id.fecha",
+                "cogs": { "$sum": "$costo_total" }  # Sumar el costo total por día
+            }
+        }
+    ]
+    inventario_hoy = Inventory.total_by_date(fecha_in)
+    fecha_ayer = (datetime.strptime(fecha_in, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+    inventario_ayer = Inventory.total_by_date(fecha_ayer)
+    purchase_value = Purchase.total_by_date(fecha_in)
+    cogs = db.orders.aggregate(pipeline_cog)
+    clientes = set()
+    gmv = 0
+    total_ordenes = 0
+    total_lineas = 0
+    ordenes = orders_collection.find({"delivery_date": {"$gte": fecha_in, "$lte": fecha_in}})
+    for orden in ordenes:
+        total_ordenes += 1
+        clientes.add(orden['customer_email'])
+        for producto in orden['products']:
+            quantity = producto['quantity']
+            total_lineas = total_lineas + 1
+            gmv += producto['price_sale'] * quantity
+    aov = round(gmv / total_ordenes, 2) if total_ordenes > 0 else 0
+    alv = round(gmv / total_lineas, 2) if total_lineas > 0 else 0
+    cartera_total = 0
+    efectivo = 0
+    davivienda = 0
+    bancolombia = 0
+    cartera = 0
+    orders_with_cartera = Order.find_by_status("Pendiente de pago")
+    for order in orders_with_cartera:
+        cartera_total += int(order.get("total"))
+    rutas = ruta.find_by_date(fecha_in)
+    for ruta in rutas:
+        stops = ruta.get("stops")
+        for stop in stops:
+            if stop.get("payment_method") == "Davivienda" and stop.get("status") == "Pagada":
+                davivienda = davivienda + (int(stop.get("total_charged")) or 0)
+            if stop.get("payment_method") == "Bancolombia" and stop.get("status") == "Pagada":
+                bancolombia = bancolombia + (int(stop.get("total_charged")) or 0)
+            if stop.get("payment_method") == "Efectivo"  and stop.get("status") == "Pagada":
+                efectivo = efectivo + (int(stop.get("total_charged")) or 0)
+            if stop.get("status") != "Pagada":
+                cartera = cartera + (int(stop.get("total_charged")) or 0)
+    new_ue = {
+        "close_date": fecha_in,
+        "gmv": gmv,
+        "cogs": cogs,
+        "purchase" : purchase_value,
+        "leakage": purchase_value + inventario_ayer - inventario_hoy - cogs,
+        "inventory" : inventario_hoy,
+        "Net Profit": 0,
+        "Gross Profit as % of GMV": 0,
+        "Gross Profit": 0,
+        "orders": total_ordenes,
+        "lines": total_lineas,
+        "aov": aov,
+        "alv": alv,
+        "cash_margin": round(gmv - cogs, 2),
+        "margin": round((gmv - cogs) / gmv * 100, 2) if gmv > 0 else 0,
+        "cartera_total": cartera_total,
+        "cartera_today": cartera,
+        "davivienda": davivienda,
+        "bancolombia": bancolombia,
+        "cash": efectivo,
+    }
+    unit_economics_collection.insert_one(new_ue)
+    return jsonify({"message": f"Unidad económica de tipo {tipo} creada exitosamente"}), 201
 
 @ue_api.route('/ue/<string:tipo>', methods=['GET'])
 def ue(tipo):

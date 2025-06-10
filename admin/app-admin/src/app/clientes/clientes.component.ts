@@ -24,7 +24,7 @@ export class ClientesComponent implements OnInit {
   passwordMismatch = false;
 
   constructor(
-              private clientesService: ClientesService,     
+              private clientesService: ClientesService,
               private orderService: OrderService  ) {}
 
   ngOnInit(): void {
@@ -56,8 +56,7 @@ export class ClientesComponent implements OnInit {
       customer.document.toLowerCase().includes(this.searchText.toLowerCase()) ||
       customer.email.toLowerCase().includes(this.searchText.toLowerCase()) ||
       customer.restaurant_name.toLowerCase().includes(this.searchText.toLowerCase()) ||
-      customer.status.toLowerCase().includes(this.searchText.toLowerCase()) ||
-      customer.category.toLowerCase().includes(this.searchText.toLowerCase())
+      customer.status.toLowerCase().includes(this.searchText.toLowerCase())
     );
   }
 

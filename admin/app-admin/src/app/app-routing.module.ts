@@ -22,7 +22,8 @@ import { PricingComponent } from './pricing/pricing.component';
 import { CostsComponent } from './costs/costs.component';
 import { InventoryComponent } from './inventory/inventory.component';
 import { EditInventoryComponent } from './inventory/edit-inventory/edit-inventory.component';
-import { CierresComponent } from './cierres/cierres.component';
+import { CierresComponent } from './cierres/cierres/cierres.component';
+import { CierreComponent } from './cierres/cierre/cierre.component';
 import { ProductsAnalyticsComponent } from './products-analytics/products-analytics.component';
 import { CarteraComponent } from './cartera/cartera.component';
 
@@ -47,6 +48,7 @@ const routes: Routes = [
   { path: 'inventory/:id', component: EditInventoryComponent, canActivate: [AuthGuard] },
   { path: 'products-analytics', component: ProductsAnalyticsComponent, canActivate: [AuthGuard] },
   { path: 'cierres', component: CierresComponent, canActivate: [AuthGuard] },
+  { path: 'cierre/:fecha', component: CierreComponent, canActivate: [AuthGuard] },
   { path: 'cartera', component: CarteraComponent, canActivate: [AuthGuard] },
 
   // públicas

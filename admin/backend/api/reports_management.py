@@ -21,6 +21,9 @@ from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak
 import locale
 from models.customer import Customer
+from models.product import Product
+from models.inventory import Inventory
+from datetime import datetime, timedelta
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 report_api = Blueprint('report', __name__)
@@ -239,3 +242,93 @@ def get_compras(date,supplier):
     response = Response(buffer, mimetype='application/pdf')
     response.headers['Content-Disposition'] = 'inline; filename=ordenes_{}.pdf'.format(date)
     return response
+
+@report_api.route('/picking_summary/<string:forecastDate>', methods=['GET'])
+def get_picking_summary(forecastDate):
+    from datetime import datetime, timedelta
+
+    buffer = BytesIO()
+    pdf = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=28.35, rightMargin=28.35,
+                            topMargin=28.35, bottomMargin=28.35)
+    styles = getSampleStyleSheet()
+    word_wrap_style = styles["Normal"]
+    word_wrap_style.wordWrap = 'CJK'
+    pdf_content = []
+
+    inventory_date = (datetime.strptime(forecastDate, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+
+    orders = list(orders_collection.find({"delivery_date": forecastDate}))
+    inventory = {i['sku']: i for i in Inventory.get_by_date(inventory_date).products}
+
+    productos = {}
+    for order in orders:
+        for p in order['products']:
+            sku = p['sku']
+            if sku not in productos:
+                productos[sku] = {
+                    'name': p['name'],
+                    'unit': p.get('unit', ''),
+                    'cantidades': []
+                }
+            productos[sku]['cantidades'].append((f"{order['order_number']} - {order['customer_name']}", p['quantity']))
+
+    pronostico = {}
+    reactivo = {}
+
+    for sku, p in sorted(productos.items(), key=lambda x: x[1]['name'].lower()):
+        total_qty = sum(q for _, q in p['cantidades'])
+        inv_qty = inventory.get(sku, {}).get('quantity', 0)
+        destino = pronostico if inv_qty >= total_qty else reactivo
+
+        destino.setdefault(p['name'], {'unit': p['unit'], 'rows': [], 'total': 0})
+        destino[p['name']]['total'] += total_qty
+        for cliente, qty in p['cantidades']:
+            destino[p['name']]['rows'].append((cliente, qty))
+
+    def build_table(titulo, data_dict):
+        tabla = [[titulo]]
+        tabla.append(['Producto (Total)', 'Cliente', 'Cantidad'])
+        span_ranges = []
+
+        for nombre, info in data_dict.items():
+            total = info['total']
+            unit = info['unit']
+            filas = info['rows']
+            producto_label = Paragraph(f"<b>{nombre} (Total: {total} {unit})</b>", word_wrap_style)
+            start_row = len(tabla)
+
+            for i, (cliente, qty) in enumerate(filas):
+                tabla.append([
+                    producto_label if i == 0 else '',  # solo en la primera fila
+                    Paragraph(cliente, word_wrap_style),
+                    Paragraph(f"{qty} {unit}", word_wrap_style)
+                ])
+            end_row = len(tabla) - 1
+            span_ranges.append((0, start_row, 0, end_row))
+
+        estilos = [
+            ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#97D700')),
+            ('TEXTCOLOR', (0, 1), (-1, 1), colors.white),
+            ('SPAN', (0, 0), (-1, 0)),  # título tabla
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('INNERGRID', (0, 1), (-1, -1), 0.5, colors.black),
+            ('BOX', (0, 1), (-1, -1), 0.5, colors.black),
+        ]
+        for r in span_ranges:
+            estilos.append(('SPAN', r[0:2], r[2:4]))
+            estilos.append(('VALIGN', r[0:2], r[2:4], 'MIDDLE'))
+
+        t = Table(tabla, colWidths=[230, 200, 120])
+        t.setStyle(TableStyle(estilos))
+        return t
+
+    if pronostico:
+        pdf_content.append(build_table("PRONÓSTICO", pronostico))
+        pdf_content.append(Spacer(1, 20))
+    if reactivo:
+        pdf_content.append(build_table("REACTIVO", reactivo))
+
+    pdf.build(pdf_content)
+    buffer.seek(0)
+    return Response(buffer, mimetype='application/pdf',
+                    headers={'Content-Disposition': f'inline; filename=picking_summary_{forecastDate}.pdf'})

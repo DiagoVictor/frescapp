@@ -10,7 +10,7 @@ export class PurchaseService {
   //private baseUrl = 'http://localhost:5000/';
   constructor(private http: HttpClient) { }
   getPurchases():Observable<any> {
-    return this.http.get<any[]>(this.baseUrl+'api/purchase/purchases');
+    return this.http.get<any[]>(this.baseUrl+'api/purchase/purchases/');
   }
   getPurchase(purchaseNumber:any):Observable<any> {
     return this.http.get<any[]>(this.baseUrl+'api/purchase/purchase/'+purchaseNumber);

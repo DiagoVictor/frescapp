@@ -83,8 +83,12 @@ class Cierre:
 
     @staticmethod
     def listar():
-        return list(cierres_collection.find())
+        return list(cierres_collection.find().sort("close_date", -1))
 
     @staticmethod
     def obtener_por_id(id):
         return cierres_collection.find_one({"_id": ObjectId(id)})
+    
+    @staticmethod
+    def obtener_por_fecha(fecha):
+        return cierres_collection.find_one({"close_date": fecha})

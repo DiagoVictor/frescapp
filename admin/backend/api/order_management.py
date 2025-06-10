@@ -56,6 +56,7 @@ def create_order(order_number=None):
     seller_name = data.get('seller_name', '')
     source = data.get('source', 'Aplicación')
     totalPayment = 0.0
+    status_payment = data.get('status_payment', 'Pendiente')
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
     customer = Customer.find_by_email(customer_email)
@@ -90,6 +91,7 @@ def create_order(order_number=None):
         seller_name=seller_name,
         source=source,
         totalPayment=0.0,
+        status_payment=status_payment
     )
     finded_order = Order.find_by_order_number(order_number=order_number)
     ruta = Route.find_by_date(delivery_date)
@@ -158,6 +160,7 @@ def list_orders(startDate,endDate):
          "customer_name": order["customer_name"] if order["customer_name"] else order["customerName"], 
          "delivery_date": order["delivery_date"] if order["delivery_date"] else order["deliveryDate"], 
          "status": order["status"], 
+         "status_payment": order.get("status_payment", "Pendiente"),
          "created_at": order["created_at"], 
          "updated_at": order["updated_at"], 
          "products": order["products"],
@@ -343,7 +346,7 @@ def list_orders_customer(email):
          "paymentMethod": order["paymentMethod"], 
          "deliveryAddress": order['deliveryAddress'],
          "deliveryAddressDetails" : order['deliveryAddressDetails'],
-        "alegra_id" :order["alegra_id"]
+            "alegra_id" :order["alegra_id"]
          }
         for order in orders_cursor
     ]

@@ -9,10 +9,10 @@ export class CierresService {
   //private baseUrl = 'http://localhost:5000/';
   constructor(private http: HttpClient) { }
   getCierres():Observable<any> {
-    return this.http.get<any[]>(this.baseUrl+'api/cierres');
+    return this.http.get<any[]>(this.baseUrl+'api/cierres/');
   }
-  getCierre(id:string):Observable<any> {
-    return this.http.get<any[]>(this.baseUrl+'api/cierres/'+id);
+  getCierre(fecha:string):Observable<any> {
+    return this.http.get<any[]>(this.baseUrl+'api/cierres/'+fecha+'/');
   }
   updateCierre(cierre:any)  {
     return this.http.put(`${this.baseUrl}/api/cierres/${cierre.id}`, cierre);
@@ -23,5 +23,12 @@ export class CierresService {
   }
   createCierre(close_date:any){
     return this.http.post<any[]>(this.baseUrl+'api/cierres/'+close_date,{});
+  }
+  saveCierre(cierre:any): Observable<any> {
+    if (cierre.id) {
+      return this.updateCierre(cierre);
+    } else {
+      return this.createCierre(cierre.fecha);
+    }
   }
 }

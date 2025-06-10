@@ -5,12 +5,12 @@
             <input type="text" class="form-control" placeholder="Buscar ruta..." [(ngModel)]="searchText"
                 (keyup)="filterRoutes()">
         </div>
-        <div class="col-auto">
+        <!-- <div class="col-auto">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newRouteModal"
                 data-bs-dismiss="modal">
                 <i class="fas fa-plus-circle fa-lg"></i>
                 Nueva Ruta</button>
-        </div>
+        </div> -->
     </div>
 
     <div *ngIf="messageRoute" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -54,11 +54,11 @@
               </td>
                 <td>
                     <div class="row">
-                        <div class="col-auto" *ngIf="hasRole(['administrador'])">
+                        <!-- <div class="col-auto" *ngIf="hasRole(['administrador'])">
                             <span (click)="deleteRoute(route)" style="cursor: pointer;">
                                 <i class="fas fa-trash fa-lg text-danger"></i>
                             </span>
-                        </div>
+                        </div> -->
                         <div class="col-auto" *ngIf="hasRole(['administrador'])">
                             <span data-bs-toggle="modal" data-bs-target="#editRouteModal" data-bs-dismiss="modal" style="cursor: pointer;" (click)="openEditRoute(route)">
                                 <i class="fas fa-calendar fa-lg text-success"></i>

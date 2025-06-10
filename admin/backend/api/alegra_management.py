@@ -211,15 +211,13 @@ def get_and_increment_invoice_number():
     invoice_data = invoice_counter.find_one_and_update({}, {"$inc": {"last_invoice": 1}}, upsert=True, return_document=True)
     return invoice_data['last_invoice']
 
-@alegra_api.route('/send_invoice/<string:order_number>', methods=['GET'])
-def send_invoice(order_number):
+def func_send_invoice(order_number):
     order = collection.find_one({"order_number": order_number})
     if order:
         clients = get_all_clients()
         items = get_all_items()
         client = find_client_by_identification(clients, order["customer_documentNumber"])
         if client:
-            # Transformar y enviar la factura
             res = transform_and_send_invoice(order, client, items)
             if str(res.status_code) == '201':
                 collection.update_one(
@@ -228,26 +226,14 @@ def send_invoice(order_number):
                 )
                 return jsonify({"message": res.text}), res.status_code
             else:
-                print(res.text + " : "+ str(res.status_code))
                 return jsonify({"message": res.text}), res.status_code
         else:
             return jsonify({"message": f"No se encontró un cliente con identificación {order['customer_documentNumber']}"}), 400
 
     else:
         return jsonify({"message": f"No se encontró la orden con número {order_number}"}), 400
-@alegra_api.route('/get_invoice/<string:order_number>', methods=['GET'])
-def get_invoice(order_number):
-    orden = Order.find_by_order_number(order_number)
-    url = f"https://api.alegra.com/api/v1/invoices/{orden.alegra_id}?fields=pdf"
-    headers = {
-        "authorization": "Basic dm1kaWFnb3ZAZ21haWwuY29tOjBmZmQ1YzdiM2NiMWI5OWVjNDA0"
-    }
-    response = requests.get(url, headers=headers, stream=True)
-    return jsonify(response.json().get('pdf'))
 
-@alegra_api.route('/send_purchase/<string:fecha>', methods=['GET'])
-def send_purchase(fecha):
-    
+def func_send_purchase(fecha):
     order = purchases.find_one({"date": fecha})
     suppliers = get_all_suppliers()
     items = get_all_items()
@@ -297,7 +283,6 @@ def send_purchase(fecha):
 
         # Calcular el total de la factura sumando los subtotales de los ítems
         total = sum(item['subtotal'] for item in purchase['items'])
-
         payload = {
             "numberTemplate": {
                 "number": str(invoice_number),  
@@ -323,37 +308,51 @@ def send_purchase(fecha):
         }
 
         response = requests.post(url_doc_soportes, headers=headers, json=payload)
-        if response.status_code == 201:
             # Actualizar en MongoDB
-            purchases.update_many(
-                {"products.proveedor.nit": purchase['proveedor_nit'], "date": fecha},
-                {
-                    "$set": {
-                        "products.$[elem].invoice": invoice_number, 
-                        "products.$[elem].status": "Facturada"
-                    }
-                },
-                array_filters=[{"elem.proveedor.nit": purchase['proveedor_nit']}]
-            )
-
-            purchases.update_many(
-                {"products.proveedor.nit": purchase['proveedor_nit'], "date": fecha},
-                {
-                    "$set": {"status": "Facturada"}
+        purchases.update_many(
+            {"products.proveedor.nit": purchase['proveedor_nit'], "date": fecha},
+            {
+                "$set": {
+                    "products.$[elem].invoice": invoice_number, 
+                    "products.$[elem].status": "Facturada"
                 }
-            )
+            },
+            array_filters=[{"elem.proveedor.nit": purchase['proveedor_nit']}]
+        )
 
-            facturas_creadas.append({
-                "proveedor_name": purchase['proveedor_name'],
-                "invoice_number": invoice_number
-            })
-        else:
-            errores.append({
-                "proveedor_name": purchase['proveedor_name'],
-                "error": response.text
-            })
+        purchases.update_many(
+            {"products.proveedor.nit": purchase['proveedor_nit'], "date": fecha},
+            {
+                "$set": {"status": "Facturada"}
+            }
+        )
 
+        facturas_creadas.append({
+            "proveedor_name": purchase['proveedor_name'],
+            "invoice_number": invoice_number
+        })
+    else:
+        errores.append({
+            "proveedor_name": purchase['proveedor_name'],
+            "error": response.text
+        })
     return jsonify({
         "facturas_creadas": facturas_creadas,
         "errores": errores
-    }), 200 if not errores else 400
+    }), 200 
+@alegra_api.route('/send_invoice/<string:order_number>', methods=['GET'])
+def send_invoice(order_number):
+    return func_send_invoice(order_number)
+@alegra_api.route('/get_invoice/<string:order_number>', methods=['GET'])
+def get_invoice(order_number):
+    orden = Order.find_by_order_number(order_number)
+    url = f"https://api.alegra.com/api/v1/invoices/{orden.alegra_id}?fields=pdf"
+    headers = {
+        "authorization": "Basic dm1kaWFnb3ZAZ21haWwuY29tOjBmZmQ1YzdiM2NiMWI5OWVjNDA0"
+    }
+    response = requests.get(url, headers=headers, stream=True)
+    return jsonify(response.json().get('pdf'))
+
+@alegra_api.route('/send_purchase/<string:fecha>', methods=['GET'])
+def send_purchase(fecha):
+    return func_send_purchase(fecha)

@@ -28,16 +28,11 @@ db = client['frescapp']
 orders_collection = db['orders']
 purchase_collection = db['purchases']
 
-@purchase_api.route('/create/', methods=['POST'])
-def create_purchase():
-    data = request.json
-    date_str = data.get("date")
-    date = data.get("date")
-    efectivo = data.get("efectivoEntreado")
+def func_create_purchase(date,efectivo=0):
     date_object = datetime.strptime(date, "%Y-%m-%d")
     yesterday = date_object - timedelta(days=1)
     yesterday_str = yesterday.strftime("%Y-%m-%d")
-    
+    date_str = date
     pipeline = [ 
         {
             "$match": {
@@ -200,17 +195,22 @@ def create_purchase():
         return jsonify({"status": "success", "message": "Purchase document saved.", "purchase_number": purchase_number}), 201
     else:
         return jsonify({"status": "failure", "message": "No products found for the given date."}), 404
+@purchase_api.route('/create/', methods=['POST'])
+def create_purchase():
+    data = request.json
+    date = data.get("date")
+    efectivo = data.get("efectivoEntreado")
+    return func_create_purchase(date,efectivo)
 
-@purchase_api.route('/purchases', methods=['GET'])
+@purchase_api.route('/purchases/', methods=['GET'])
 def list_purchases():
     purchases = list(
         purchase_collection
         .find({}, {'_id': 0})
         .sort('date', -1)
-        .limit(10)
+        .limit(20)
     )
     return jsonify(purchases), 200
-
 
 @purchase_api.route('/purchase/<string:purchaseNumber>', methods=['GET'])
 def get_purchase(purchaseNumber):

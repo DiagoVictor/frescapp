@@ -7,19 +7,21 @@ db = client['frescapp']
 routes_collection = db['routes']
 
 class Route:
-    def __init__(self, route_number, close_date,  stops=None, cost=0, id=None):
+    def __init__(self, route_number, close_date,  stops=None, cost=0, id=None,status="Programada"):
         self.id = id  # Aquí `id` es opcional
         self.route_number = route_number
         self.close_date = close_date
         self.stops = stops if stops is not None else []
         self.cost = cost
+        self.status = status
 
     def save(self):
         route_data = {
             "route_number": self.route_number,
             "close_date": self.close_date,
             "stops": self.stops,
-            "cost": self.cost
+            "cost": self.cost,
+            "status": self.status if hasattr(self, 'status') else "Programada"  
         }
         result = routes_collection.insert_one(route_data)
         self.id = str(result.inserted_id)
@@ -32,10 +34,21 @@ class Route:
                 "route_number": self.route_number,
                 "close_date": self.close_date,
                 "stops": self.stops,
-                "cost": self.cost
+                "cost": self.cost,
+                "status": self.status if hasattr(self, 'status') else "Programada"
             }}
         )
-
+    def close_route(self):
+        routes_collection.update_one(
+            {"_id": ObjectId(self.id)},
+            {"$set": {
+                "route_number": self.route_number,
+                "close_date": self.close_date,
+                "stops": self.stops,
+                "cost": self.cost,
+                "status": "Cerrada"
+            }}
+        )
     @staticmethod
     def objects():
         return routes_collection.find().sort("close_date", -1).limit(10)

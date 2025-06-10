@@ -88,7 +88,8 @@ class Order:
             "driver_name" : self.driver_name or '',
             "seller_name" : self.seller_name or '',
             "source" : self.source or 'app',
-            "totalPayment" : self.totalPayment or 0
+            "totalPayment" : self.totalPayment or 0,
+            "status_payment" : self.status_payment or 'Pendiente de pago'
         }
         result = orders_collection.insert_one(order_data)
         return result.inserted_id
@@ -120,7 +121,8 @@ class Order:
                 "driver_name" : self.driver_name or '',
                 "seller_name" : self.seller_name or '',
                 "source" : self.source or 'app',
-                "totalPayment" : self.totalPayment or 0
+                "totalPayment" : self.totalPayment or 0,
+                "status_payment" : self.status_payment or 'Pendiente de pago'
                 }
             }
         )
@@ -199,6 +201,9 @@ class Order:
     @staticmethod
     def find_by_status(status):
         return orders_collection.find({"status": status})
+    @staticmethod
+    def find_by_status_payment(status):
+        return orders_collection.find({"status_payment": status})
     @staticmethod
     def find_by_date(startDate, endDate):        
         return orders_collection.find({
