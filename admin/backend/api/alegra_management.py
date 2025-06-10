@@ -216,7 +216,7 @@ def func_send_invoice(order_number):
     if order:
         clients = get_all_clients()
         items = get_all_items()
-        client = find_client_by_identification(clients, order["customer_documentNumber"])
+        client = find_client_by_identification(clients,order["customer_documentNumber"].split("-")[0])        
         if client:
             res = transform_and_send_invoice(order, client, items)
             if str(res.status_code) == '201':
