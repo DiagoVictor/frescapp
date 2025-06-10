@@ -56,7 +56,7 @@ def create_order(order_number=None):
     seller_name = data.get('seller_name', '')
     source = data.get('source', 'Aplicación')
     totalPayment = 0.0
-    status_payment = data.get('status_payment', 'Pendiente')
+    status_payment = data.get('status_payment', 'Pendiente') or 'Pendiente'
     if not customer_email or not delivery_date:
         return jsonify({'message': 'Missing required fields'}), 400
     customer = Customer.find_by_email(customer_email)
