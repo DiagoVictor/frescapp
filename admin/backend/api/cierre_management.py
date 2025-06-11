@@ -199,8 +199,8 @@ def func_create_cierre(fecha_in):
     for order in orders_with_cartera:
         cartera_total += int(order.get("total"))
     ruta = Route.find_by_date(fecha_in)
-    stops = ruta.get("stops")
-    cost_log = ruta.get("cost")
+    stops = ruta.stops
+    cost_log = ruta.cost
     for stop in stops:
         if stop.get("payment_method") == "Davivienda" and stop.get("status") == "Pagada":
             davivienda = davivienda + (int(stop.get("total_charged")) or 0)
@@ -282,31 +282,43 @@ def create_cierre(fecha_in):
     # Paso 1: Generar facturas de pedidos del dia en curso
     orders = Order.find_by_date(fecha_in,fecha_in)
     for order in orders:
-        alegra_api.func_send_invoice(order.order_number)
-        time.sleep(3)  
+        if order.get("alegra_id") == "000":
+            alegra_api.func_send_invoice(order["order_number"])
+            time.sleep(3)  
     
     # Paso 2: Generar DS de compras del dia en curso
-    alegra_api.func_send_purchase(fecha_in)
+    purchase = Purchase.get_by_date(fecha_in)
+    if purchase.status != "Facturada":
+        alegra_api.func_send_purchase(fecha_in)
 
     # Paso 3: Cerrar la ruta
-    rutas = Route.find_by_date(fecha_in)
-    for ruta in rutas:
-        ruta.close_route()
+    # rutas = Route.find_by_date(fecha_in)
+    # for ruta in rutas:
+    #     ruta.close_route()
     
     # Paso 4: Crear la ruta del dia siguiente
     fecha_siguiente = (datetime.strptime(fecha_in, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
-    route_api.create_route(fecha_siguiente)
+    ruta = Route.find_by_date(fecha_siguiente)
+    if ruta:
+        ruta.delete_route()
+    route_api.func_create_route(fecha_siguiente)
     orders = Order.find_by_date(fecha_siguiente,fecha_siguiente)
     for order in orders:
-        order_to_update = Order.object(order.get("id"))
+        order_to_update = Order.object(order.get("_id"))
         if order_to_update:
             order_to_update.status = "Ruteada"
-        order_to_update.update()
+            order_to_update.updated()
     
     # Paso 5: Crear la OC del dia siguiente
+    purchase = Purchase.get_by_date(fecha_siguiente)
+    if purchase:
+        purchase.delete()
     purchase_api.func_create_purchase(fecha_siguiente)
 
     # Paso 6: Crear el inventario del dia siguiente
+    inventory = Inventory.get_by_date(fecha_siguiente)
+    if inventory:
+        inventory.delete()
     inventory_api.func_create_inventory(fecha_siguiente)
 
     # Paso 7: Calcular los datos del cierre

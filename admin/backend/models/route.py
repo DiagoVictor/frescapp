@@ -72,13 +72,17 @@ class Route:
         route = routes_collection.find_one({"close_date": date})
         if route:
             route['id'] = str(route['_id'])
-            return route
+            return Route(
+                route_number = route.get("route_number"),
+                close_date   = route.get("close_date"),
+                stops        = route.get("stops", []),
+                cost         = route.get("cost", 0),
+                id           = str(route.get("_id")),
+                status       = route.get("status", "Programada")
+        )
         else:
             return None
     
     def delete_route(self):
-        result = routes_collection.delete_one({"_id": ObjectId(self.id)})
-        if result.deleted_count > 0:
-            print("Route deleted successfully.")
-        else:
-            print("Route not found.")
+        routes_collection.delete_one({"_id": ObjectId(self.id)})
+

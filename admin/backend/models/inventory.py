@@ -83,3 +83,5 @@ class Inventory:
         except Exception as e:
             print(f"Error al calcular el total para la fecha {fecha}: {e}")
             return 0
+    def delete(self):
+        result = inventory_collection.delete_one({"_id": ObjectId(self.id)})

@@ -208,7 +208,7 @@ def list_purchases():
         purchase_collection
         .find({}, {'_id': 0})
         .sort('date', -1)
-        .limit(20)
+        .limit(5)
     )
     return jsonify(purchases), 200
 

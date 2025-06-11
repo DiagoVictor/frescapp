@@ -61,3 +61,6 @@ class Purchase:
                 _id=str(purchase["_id"])
             )
         return None
+    def delete(self):
+        result = purchase_collection.delete_one({"_id": ObjectId(self.id)})
+        return result.deleted_count > 0
