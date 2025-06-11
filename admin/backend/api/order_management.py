@@ -182,7 +182,7 @@ def list_orders(startDate,endDate):
     return orders_json, 200
 @order_api.route('/orders/status/<string:status>', methods=['GET'])
 def list_ordersByStats(status):
-    orders_cursor = Order.find_by_status(status)
+    orders_cursor = Order.find_by_status_payment(status)
     order_data = [
         {
          "id": str(order["_id"]), 
