@@ -26,6 +26,8 @@ import { CierresComponent } from './cierres/cierres/cierres.component';
 import { CierreComponent } from './cierres/cierre/cierre.component';
 import { ProductsAnalyticsComponent } from './products-analytics/products-analytics.component';
 import { CarteraComponent } from './cartera/cartera.component';
+import { StrikesComponent } from './strikes/strikes/strikes.component';
+import { StrikeComponent } from './strikes/strike/strike.component';
 
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent, canActivate: [AuthGuard] },
@@ -50,6 +52,8 @@ const routes: Routes = [
   { path: 'cierres', component: CierresComponent, canActivate: [AuthGuard] },
   { path: 'cierre/:fecha', component: CierreComponent, canActivate: [AuthGuard] },
   { path: 'cartera', component: CarteraComponent, canActivate: [AuthGuard] },
+  { path: 'strikes', component: StrikesComponent, canActivate: [AuthGuard] },
+  { path: 'strike/:id', component: StrikeComponent, canActivate: [AuthGuard] },
 
   // públicas
   { path: 'login', component: LoginComponent },

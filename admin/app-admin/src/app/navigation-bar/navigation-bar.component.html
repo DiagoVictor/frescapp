@@ -38,6 +38,9 @@
       <li class="nav-item" *ngIf="hasRole(['administrador'])">
         <a class="nav-link" routerLink="/cierres" routerLinkActive="active">Cierres</a>
       </li>
+      <li class="nav-item" *ngIf="hasRole(['administrador'])">
+        <a class="nav-link" routerLink="/strikes" routerLinkActive="active">Strikes</a>
+      </li>
       <li class="nav-item">
         <a class="nav-link" (click)="logout()">Cerrar Sesión</a>
       </li>

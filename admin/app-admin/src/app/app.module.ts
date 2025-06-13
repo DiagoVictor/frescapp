@@ -33,6 +33,8 @@ import { ProductsAnalyticsComponent } from './products-analytics/products-analyt
 import { CierresComponent } from './cierres/cierres/cierres.component';
 import { CierreComponent } from './cierres/cierre/cierre.component';
 import { CarteraComponent } from './cartera/cartera.component';
+import { StrikeComponent } from './strikes/strike/strike.component';
+import { StrikesComponent } from './strikes/strikes/strikes.component';
 import { MoneyFormatPipe } from './money-format.pipe';
 
 
@@ -64,7 +66,9 @@ import { MoneyFormatPipe } from './money-format.pipe';
     ProductsAnalyticsComponent,
     CierresComponent,
     CierreComponent,
-    CarteraComponent
+    CarteraComponent,
+    StrikeComponent,
+    StrikesComponent
   ],
   bootstrap: [AppComponent],
   imports: [

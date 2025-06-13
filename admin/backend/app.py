@@ -20,7 +20,7 @@ from api.cost_management import cost_api
 from api.inventory_management import inventory_api
 from api.analytics_management import analytics_api
 from api.cierre_management import cierres_api
-
+from api.strikes_management import strike_api
 if __name__ == '__main__':
     app = Flask(__name__)
     # Configura la aplicación utilizando el archivo config.py
@@ -48,6 +48,7 @@ if __name__ == '__main__':
     app.register_blueprint(inventory_api, url_prefix='/api/inventory')
     app.register_blueprint(analytics_api, url_prefix='/api/analytics')
     app.register_blueprint(cierres_api, url_prefix='/api/cierres')
+    app.register_blueprint(strike_api, url_prefix='/api/strikes')
 
 
     @app.route('/api/shared/<path:filename>')
