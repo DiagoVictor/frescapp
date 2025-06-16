@@ -174,8 +174,8 @@ def func_create_cierre(fecha_in):
     inventario_ayer = Inventory.total_by_date(fecha_ayer)
     purchase_value = Purchase.total_by_date(fecha_in)
     cogs = db.orders.aggregate(pipeline_cog)
-    if cogs:
-        doc = next(cogs, None)
+    doc = next(cogs, None)
+    if doc:
         cogs = doc['cogs'] if doc['cogs'] else 0
     else:
         cogs = 0
