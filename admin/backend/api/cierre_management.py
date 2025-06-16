@@ -202,17 +202,24 @@ def func_create_cierre(fecha_in):
     for order in orders_with_cartera:
         cartera_total += int(order.get("total"))
     ruta = Route.find_by_date(fecha_in)
-    stops = ruta.stops
-    cost_log = ruta.cost
-    for stop in stops:
-        if stop.get("payment_method") == "Davivienda" and stop.get("status") == "Pagada":
-            davivienda = davivienda + (int(stop.get("total_charged")) or 0)
-        if stop.get("payment_method") == "Bancolombia" and stop.get("status") == "Pagada":
-            bancolombia = bancolombia + (int(stop.get("total_charged")) or 0)
-        if stop.get("payment_method") == "Efectivo"  and stop.get("status") == "Pagada":
-            efectivo = efectivo + (int(stop.get("total_charged")) or 0)
-        if stop.get("status") != "Pagada":
-            cartera = cartera + (int(stop.get("total_charged")) or 0)
+    if ruta:
+        stops = ruta.stops
+        cost_log = ruta.cost
+        for stop in stops:
+            if stop.get("payment_method") == "Davivienda" and stop.get("status") == "Pagada":
+                davivienda = davivienda + (int(stop.get("total_charged")) or 0)
+            if stop.get("payment_method") == "Bancolombia" and stop.get("status") == "Pagada":
+                bancolombia = bancolombia + (int(stop.get("total_charged")) or 0)
+            if stop.get("payment_method") == "Efectivo"  and stop.get("status") == "Pagada":
+                efectivo = efectivo + (int(stop.get("total_charged")) or 0)
+            if stop.get("status") != "Pagada":
+                cartera = cartera + (int(stop.get("total_charged")) or 0)
+    else:
+        cost_log = 0
+        davivienda=0
+        bancolombia=0
+        efectivo=0
+        cartera=0
     new_ue = {
         "close_date": fecha_in,
         "gmv": gmv,
