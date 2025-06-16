@@ -174,8 +174,11 @@ def func_create_cierre(fecha_in):
     inventario_ayer = Inventory.total_by_date(fecha_ayer)
     purchase_value = Purchase.total_by_date(fecha_in)
     cogs = db.orders.aggregate(pipeline_cog)
-    doc = next(cogs, None)
-    cogs = doc['cogs'] if doc['cogs'] else 0
+    if cogs:
+        doc = next(cogs, None)
+        cogs = doc['cogs'] if doc['cogs'] else 0
+    else:
+        cogs = 0
     clientes = set()
     gmv = 0
     total_ordenes = 0
