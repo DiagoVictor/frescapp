@@ -288,8 +288,9 @@ def create_cierre(fecha_in):
     
     # Paso 2: Generar DS de compras del dia en curso
     purchase = Purchase.get_by_date(fecha_in)
-    if purchase.status != "Facturada":
-        alegra_api.func_send_purchase(fecha_in)
+    if purchase:
+        if purchase.status != "Facturada":
+            alegra_api.func_send_purchase(fecha_in)
 
     # Paso 3: Cerrar la ruta
     # rutas = Route.find_by_date(fecha_in)
