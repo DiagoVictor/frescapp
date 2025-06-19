@@ -48,8 +48,11 @@ export class StrikeComponent implements OnInit {
     this.orderService.getOrders(today, today).subscribe(ords => {
       this.orders = ords;
 
-      // Si viene un id, ahora que orders está listo, preajustamos valores y listas
+      if (this.route.snapshot.paramMap.get('id') == 'new'){
+        this.strikeId = ''
+      }else {
       this.strikeId = this.route.snapshot.paramMap.get('id') || undefined;
+      }
       if (this.strikeId) {
         this.strikeService.get(this.strikeId).subscribe((s: Strike) => {
           // Patch de valores
@@ -119,13 +122,16 @@ export class StrikeComponent implements OnInit {
   }
 
   onSkuChange(): void {
-    const qtyCtrl = this.form.get('missing_quantity')!;
-    qtyCtrl.setValidators([
-      Validators.required,
-      Validators.min(1),
-      Validators.max(this.maxQuantity())
-    ]);
-    qtyCtrl.updateValueAndValidity();
+    const item = this.items.find(i => i.sku ===  this.form.get('sku')!.value);
+    const qtyCtrl = item.quantity;
+    const v = this.form.value;
+    this.form.patchValue({
+      order_number: v.order_number,
+      strike_type: v.strike_type,
+      sku: v.sku,
+      missing_quantity: qtyCtrl,
+      detail: v.detail
+    });
   }
 
   submit(): void {
@@ -139,10 +145,11 @@ export class StrikeComponent implements OnInit {
       detail: v.detail
     };
     if (this.route.snapshot.paramMap.get('id') == 'new') {
-      this.strikeId = undefined;
+      this.strikeId = '';
     }
-    if (this.strikeId) {
-      this.strikeService.update(this.strikeId, payload).subscribe(() => {
+
+    if (this.route.snapshot.paramMap.get('id') != 'new') {
+      this.strikeService.update(this.route.snapshot.paramMap.get('id') || '', payload).subscribe(() => {
         this.router.navigate(['/strikes']);
       });
     } else {

@@ -340,6 +340,18 @@ def func_send_purchase(fecha):
         "facturas_creadas": facturas_creadas,
         "errores": errores
     }), 200 
+
+def emit_invoice(alegra_id):
+    url = 'https://api.alegra.com/api/v1/invoices/stamp' 
+
+    # Encabezados de la petición
+    headers = {
+        "authorization": "Basic dm1kaWFnb3ZAZ21haWwuY29tOjBmZmQ1YzdiM2NiMWI5OWVjNDA0"
+    }
+    payload = {'ids': [alegra_id]}  # Reemplaza con los IDs de las facturas que deseas timbrar
+    # Realizar la solicitud GET
+    response = requests.post(url, headers=headers, json=payload)
+
 @alegra_api.route('/send_invoice/<string:order_number>', methods=['GET'])
 def send_invoice(order_number):
     return func_send_invoice(order_number)

@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from bson import ObjectId
-
+import json
+from datetime import datetime
 # Configuración del cliente de MongoDB
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
 db = client['frescapp']
@@ -85,3 +86,20 @@ class Inventory:
             return 0
     def delete(self):
         result = inventory_collection.delete_one({"_id": ObjectId(self.id)})
+    def to_dict(self):
+        """Devuelve un dict listo para serializar a JSON."""
+        return {
+            "id": str(self.id),
+            "close_date": self.close_date.isoformat()
+                          if isinstance(self.close_date, datetime)
+                          else self.close_date,
+            "products": self.products
+        }
+
+    def to_json(self):
+        """Devuelve un string JSON de este inventario."""
+        return json.dumps(
+            self.to_dict(),
+            ensure_ascii=False,
+            default=str
+        )

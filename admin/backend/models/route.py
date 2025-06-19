@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from bson import ObjectId
 from datetime import datetime
-
+import json
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
 db = client['frescapp']
 routes_collection = db['routes']
@@ -86,3 +86,20 @@ class Route:
     def delete_route(self):
         routes_collection.delete_one({"_id": ObjectId(self.id)})
 
+    def to_dict(self):
+        """Devuelve un dict listo para serializar a JSON."""
+        return {
+            "id": str(self.id),
+            "route_number": self.route_number,
+            # si close_date es datetime, lo convertimos a ISO; si ya es str, lo dejamos
+            "close_date": self.close_date.isoformat()
+                          if isinstance(self.close_date, datetime)
+                          else self.close_date,
+            "stops": self.stops,
+            "cost": self.cost,
+            "status": self.status
+        }
+
+    def to_json(self):
+        """Devuelve un string JSON de la ruta."""
+        return json.dumps(self.to_dict(), ensure_ascii=False)

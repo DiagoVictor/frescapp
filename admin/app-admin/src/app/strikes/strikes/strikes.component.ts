@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 export class StrikesComponent implements OnInit{
   allStrikes: Strike[] = [];
   filteredStrikes: Strike[] = [];
+  today = new Date();
   searchTerm: string = '';
   typeLabels: Record<string,string> = {
     quality:            'Calidad',

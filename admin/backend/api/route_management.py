@@ -165,12 +165,8 @@ def get_route_by_date(date):
     
     if not route:
         return jsonify({'message': 'Route not found'}), 404
-    
-    # Convertimos `_id` a `str` si está presente
-    if '_id' in route:
-        route['_id'] = str(route['_id'])
-        
-    return jsonify(route), 200
+            
+    return jsonify(route.to_json()), 200
 
 @route_api.route('/consolidated/<string:route_number>/', methods=['GET'])
 def get_route_consolidated(route_number):
@@ -307,7 +303,7 @@ def get_evidence(filename):
 def get_stop_order(order_number):
     order = Order.find_by_order_number(order_number)
     route = Route.find_by_date(order.delivery_date)
-    stops = route.get("stops")
+    stops = route.stops
     for stop in stops:
         if stop.get("order_number") == str(order_number):
             return jsonify(stop), 200        

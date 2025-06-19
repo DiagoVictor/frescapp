@@ -48,6 +48,9 @@ export class CarteraComponent implements OnInit {
   public routeNumber: number = 0;
   public routeSelect: any;
   ngOnInit(): void {
+    this.getOrders();
+  }
+  getOrders(){
     this.orderService.getOrdersByStatus("Pendiente de pago")
     .subscribe(orders => {
       this.orders = orders;
@@ -60,7 +63,6 @@ export class CarteraComponent implements OnInit {
       this.total_cartera = parseFloat(this.total_cartera.toFixed(2));
       this.total_orders = this.orders.length;
     });
-
   }
   filterorders() {
     const searchTextLower = this.searchText.trim().toLowerCase();
@@ -145,9 +147,11 @@ export class CarteraComponent implements OnInit {
   }
 
   saveStop() {
-
-    const stopIndex = this.routeSelect.stops.findIndex((stop: { order_number: any; }) => stop.order_number === this.stopSelect.order_number);
-
+  const stops = this.routeSelect.stops
+  const stopIndex = stops.findIndex(
+    (stop: { order_number: any }) =>
+      stop.order_number === this.stopSelect.order_number
+  );
     if (stopIndex !== -1) {
       // Actualizar el stop con los nuevos datos
       this.routeSelect.stops[stopIndex] = { ...this.routeSelect.stops[stopIndex], ...this.stopSelect };
@@ -163,7 +167,8 @@ export class CarteraComponent implements OnInit {
       }
       this.routeService.updateStop(this.routeSelect, this.selectedFile).subscribe(
         (response: any) => {
-          console.log('Parada guardada y ruta actualizada', response);
+          this.getOrders(); // Actualizar la lista de pedidos después de guardar
+          this.filterorders(); // Aplicar el filtro después de actualizar
         },
         (error: any) => {
           console.error('Error al guardar la parada', error);
@@ -177,7 +182,8 @@ export class CarteraComponent implements OnInit {
   navigateToStop(order: any) {
     this.routeService.getRouteByDate(order.delivery_date).subscribe(
       (res: any) => {
-        this.routeSelect = res;
+        this.routeSelect = JSON.parse(res);
+
       }
     );
     this.routeService.getStopNumber(order.order_number).subscribe(

@@ -279,8 +279,17 @@ def list_cierres():
 def get_cierre(fecha):
     try:
         cierre = Cierre.obtener_por_fecha(fecha)
-        if cierre:
-            return jsonify(json_util.dumps(cierre)), 200
+        inventario = Inventory.get_by_date(fecha)
+        purchase = Purchase.get_by_date(fecha)
+        ruta = Route.find_by_date(fecha)
+        data = {
+            "cierre": cierre.to_dict(),
+            "inventario": inventario.to_dict(),
+            "purchase": purchase.to_dict(),
+            "ruta": ruta.to_dict()
+        }
+        if data:
+            return jsonify(data), 200
         else:
             return jsonify({"error": "Cierre no encontrado"}), 404
     except Exception as e:
@@ -295,7 +304,11 @@ def create_cierre(fecha_in):
         if order.get("alegra_id") == "000":
             alegra_api.func_send_invoice(order["order_number"])
             time.sleep(3)  
-    
+    orders = Order.find_by_date(fecha_in,fecha_in)
+    for order in orders:
+        if order.get("alegra_id") != "000":
+            alegra_api.emit_invoice(order["alegra_id"])
+            time.sleep(3)  
     # Paso 2: Generar DS de compras del dia en curso
     purchase = Purchase.get_by_date(fecha_in)
     if purchase:

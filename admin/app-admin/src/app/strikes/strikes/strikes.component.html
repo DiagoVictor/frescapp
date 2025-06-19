@@ -35,10 +35,16 @@
         <td>{{ s.detail }}</td>
         <td>{{ s.timestamp | date:'short' }}</td>
         <td>
-          <button class="btn btn-sm btn-secondary me-2" (click)="goToEdit(s.id!)">
+          <button class="btn btn-sm btn-secondary me-2" (click)="goToEdit(s.id!)" *ngIf="
+      (s.timestamp | date:'yyyy-MM-dd') ===
+      (today        | date:'yyyy-MM-dd')
+    ">
             Editar
           </button>
-          <button class="btn btn-sm btn-danger" (click)="delete(s.id!)">
+          <button class="btn btn-sm btn-danger" (click)="delete(s.id!)" *ngIf="
+      (s.timestamp | date:'yyyy-MM-dd') ===
+      (today        | date:'yyyy-MM-dd')
+    ">
             Eliminar
           </button>
         </td>

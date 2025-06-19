@@ -97,6 +97,10 @@ class Order:
         return result.inserted_id
     
     def updated(self):
+        new_total = sum(
+            p.get('price_sale', 0) * p.get('quantity', 1)
+            for p in self.products
+        )
         orders_collection.update_one(
             {"_id": ObjectId(self.id)},  # Usamos el ObjectId correctamente
             {"$set": { 
@@ -111,7 +115,7 @@ class Order:
                 "created_at": self.created_at,
                 "updated_at" : self.updated_at,
                 "products" : self.products,
-                "total" : self.total,
+                "total" : new_total,
                 "deliverySlot" : self.deliverySlot,
                 "paymentMethod" : self.paymentMethod,
                 "deliveryAddress" : self.deliveryAddress,
@@ -129,6 +133,7 @@ class Order:
             }
         )
     def to_json(self):
+
         order_data = {
             "order_number": self.order_number,
             "customer_email": self.customer_email,

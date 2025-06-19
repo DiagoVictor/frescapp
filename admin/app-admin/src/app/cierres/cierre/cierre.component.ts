@@ -2,80 +2,121 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CierresService } from '../../services/cierres.service';
-
+export interface ProductSummary {
+  sku: string;
+  name: string;
+  totalEstimated: number;
+  totalReal: number;
+  price_purchase?: number;
+  total_quantity_ordered?: number;
+  final_price_purchase?: number;
+  difference?: number; // diferencia entre totalEstimated y totalReal
+}
+interface SupplierSummary {
+  supplier: string;
+  totalVolume: number;   // suma de cantidades pedidas
+  totalMoney: number;    // suma de price_purchase × cantidad pedida
+  totalItems: number;    // número de líneas de pedido
+}
 @Component({
   selector: 'app-cierre',
   templateUrl: './cierre.component.html'
 })
+
 export class CierreComponent implements OnInit {
-  cierreForm!: FormGroup;
   fechaParam!: string;
-  pedidosHoy: any[] = [];
-  pedidosManana: any[] = [];
-  metricsList = [
-    'cost_logistico','cost_warehouse','inventory','orders','lines','gmv',
-    'gmv_cash','gmv_davivienda','gmv_bancolombia','gmv_pagado','gmv_cartera',
-    'cog','purchases','leakage','aov','alv','margen_neto','utilidad_neta','cost_log_per_orden'
-  ];
+  datos_cierre: any;
+  top_20_purchase: ProductSummary[] = [];
+  suppliesSummary: SupplierSummary[] = [];
 
   constructor(
-    private fb: FormBuilder,
     private route: ActivatedRoute,
     public router: Router,
     private svc: CierresService
-  ){}
+  ) { }
 
   ngOnInit() {
-    // 1) Leer fecha de la URL
     this.fechaParam = this.route.snapshot.paramMap.get('fecha')!;
-    // 2) Cargar datos existentes (si hay) o inicializar vacíos
-    this.svc.getCierre(this.fechaParam).subscribe(data => {
-      this.pedidosHoy    = data?.pedidosHoy    || [];
-      this.pedidosManana = data?.pedidosManana || [];
-      this.buildForm(data);
-    }, () => this.buildForm());
-  }
+    this.svc.getCierre(this.fechaParam).subscribe(datos => {
+      this.datos_cierre = datos;
+      this.load_top_purchases();
+      this.load_top_supplies();
+      console.log(this.suppliesSummary)
 
-  private buildForm(data?: any) {
-    const hoyGroup = this.metricsList.reduce((acc, key) => {
-      acc[key] = [ data?.metricsHoy?.[key] ?? 0, Validators.required ];
-      return acc;
-    }, {} as any);
-
-    this.cierreForm = this.fb.group({
-      fecha:    [ this.fechaParam, Validators.required ],
-      ...hoyGroup,
-      manana: this.fb.array(
-        this.pedidosManana.map((p: any) =>
-          this.fb.group({
-            numero:       [ p.numero ],
-            cliente:      [ p.cliente ],
-            total:        [ p.total ],
-            conductor:    [ data?.manana?.find((m: any)=>m.numero===p.numero)?.conductor ?? '', Validators.required ],
-            fondoCompras: [ data?.manana?.find((m: any)=>m.numero===p.numero)?.fondoCompras ?? 0, Validators.required ]
-          })
-        )
-      )
     });
   }
+load_top_purchases(): void {
+  // 1) Agrupar en un objeto por SKU
+  const summaryDict: {
+    [sku: string]: Omit<ProductSummary, 'difference'>
+  } = {};
 
-  get manana(): FormArray {
-    return this.cierreForm.get('manana') as FormArray;
-  }
+  this.datos_cierre.purchase.products.forEach((item: { sku: any; price_purchase: number; total_quantity_ordered: number; final_price_purchase: number; name: any; }) => {
+    const key = item.sku;
+    const est = item.price_purchase * item.total_quantity_ordered;
+    const real = item.final_price_purchase * item.total_quantity_ordered;
 
-  onSubmit() {
-    if (this.cierreForm.invalid) return;
-    const payload = {
-      fecha:      this.cierreForm.value.fecha,
-      metricsHoy: this.metricsList.reduce((obj, key) => {
-        obj[key] = this.cierreForm.value[key];
-        return obj;
-      }, {} as any),
-      pedidosHoy: this.pedidosHoy,
-      pedidosManana: this.cierreForm.value.manana
-    };
-    this.svc.saveCierre(payload).subscribe(() => {
-      this.router.navigate(['/cierres']); // vuelves al listado
-    });
-  }
+    if (!summaryDict[key]) {
+      summaryDict[key] = {
+        sku: item.sku,
+        name: item.name,
+        price_purchase: item.price_purchase,
+        final_price_purchase: item.final_price_purchase,
+        total_quantity_ordered: item.total_quantity_ordered,
+        totalEstimated: est,
+        totalReal: real
+      };
+    } else {
+      const existing = summaryDict[key];
+      existing.total_quantity_ordered = (existing.total_quantity_ordered ?? 0) + item.total_quantity_ordered;
+      existing.totalEstimated          = (existing.totalEstimated ?? 0) + est;
+      existing.totalReal               = (existing.totalReal ?? 0) + real;
+    }
+  });
+
+  // 2) Convertir a array, calcular diferencia (estimado - real) y ordenar ascendente
+  const allSummaries: ProductSummary[] = Object
+    .values(summaryDict)
+    .map(s => ({
+      ...s,
+      difference: s.totalEstimated - s.totalReal  // puede ser negativo
+    }))
+    .sort((a, b) => a.difference - b.difference)  // de más negativo a menos negativo
+    .slice(0, 20);
+
+  // 3) Asignar al array del componente
+  this.top_20_purchase = allSummaries;
+}
+load_top_supplies(): void {
+    // 1) Usamos un objeto para agrupar por proveedor
+  const summaryDict: { [supplier: string]: SupplierSummary } = {};
+
+  this.datos_cierre.purchase.products.forEach((item: { proveedor: { name: string; }; total_quantity_ordered: number; price_purchase: number; }) => {
+    // Obtener nombre del proveedor o un placeholder
+    const supplier = item.proveedor?.name ?? 'Sin proveedor';
+
+    // Inicializar si es la primera vez que vemos el proveedor
+    if (!summaryDict[supplier]) {
+      summaryDict[supplier] = {
+        supplier,
+        totalVolume: 0,
+        totalMoney: 0,
+        totalItems: 0
+      };
+    }
+
+    // Acumular métricas
+    const summary = summaryDict[supplier];
+    summary.totalVolume += item.total_quantity_ordered;
+    summary.totalMoney  += item.price_purchase * item.total_quantity_ordered;
+    summary.totalItems  += 1;
+  });
+
+  // 2) Convertir a arreglo y asignar a la propiedad del componente
+  this.suppliesSummary = Object.values(summaryDict)
+    // opcional: ordenar de mayor a menor dinero
+    .sort((a, b) => b.totalMoney - a.totalMoney)
+    // opcional: tomar top 20
+    .slice(0, 20);
+}
 }

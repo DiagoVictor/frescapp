@@ -1,6 +1,7 @@
 from datetime import datetime
 from pymongo import MongoClient
 from bson import ObjectId
+import json
 
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
 db = client['frescapp']
@@ -64,3 +65,21 @@ class Purchase:
     def delete(self):
         result = purchase_collection.delete_one({"_id": ObjectId(self.id)})
         return result.deleted_count > 0
+    def to_dict(self):
+        """Devuelve un dict listo para serializar."""
+        return {
+            "id": str(self.id),
+            "date": self.date.isoformat() if isinstance(self.date, datetime) else self.date,
+            "purchase_number": self.purchase_number,
+            "status": self.status,
+            "products": self.products,
+            "comments": self.comments
+        }
+
+    def to_json(self):
+        """Devuelve un string JSON (sin pérdidas de caracteres unicode)."""
+        return json.dumps(
+            self.to_dict(),
+            ensure_ascii=False,
+            default=str  # para cualquier otro tipo no serializable
+        )
