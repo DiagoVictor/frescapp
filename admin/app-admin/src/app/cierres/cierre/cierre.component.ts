@@ -10,13 +10,20 @@ export interface ProductSummary {
   price_purchase?: number;
   total_quantity_ordered?: number;
   final_price_purchase?: number;
-  difference?: number; // diferencia entre totalEstimated y totalReal
+  difference?: number;
+// porcentaje de diferencia sobre total real
 }
 interface SupplierSummary {
   supplier: string;
   totalVolume: number;   // suma de cantidades pedidas
   totalMoney: number;    // suma de price_purchase × cantidad pedida
   totalItems: number;    // número de líneas de pedido
+}
+interface StatusSummary {
+  status: string;
+  count: number;            // número de productos en ese estado
+  totalVolume: number;      // suma de total_quantity_ordered
+  totalMoney: number;       // suma de price_purchase × total_quantity_ordered
 }
 @Component({
   selector: 'app-cierre',
@@ -28,7 +35,13 @@ export class CierreComponent implements OnInit {
   datos_cierre: any;
   top_20_purchase: ProductSummary[] = [];
   suppliesSummary: SupplierSummary[] = [];
-
+  purchasesByStatus: StatusSummary[] = [];
+  percentByVolume?: number; // porcentaje de diferencia sobre total estimado
+  percentByMoney?: number;
+  totalVolume?: number; // total de volumen de productos
+  totalMoney?: number;  // total de dinero de productos
+  cash_margin?: number; // margen de efectivo
+  cierre_total?: number; // total estimado de productos
   constructor(
     private route: ActivatedRoute,
     public router: Router,
@@ -41,8 +54,8 @@ export class CierreComponent implements OnInit {
       this.datos_cierre = datos;
       this.load_top_purchases();
       this.load_top_supplies();
-      console.log(this.suppliesSummary)
-
+      this.loadPurchasesByStatus();
+      console.log(this.getFacturadoRegistradoPercent());
     });
   }
 load_top_purchases(): void {
@@ -118,5 +131,70 @@ load_top_supplies(): void {
     .sort((a, b) => b.totalMoney - a.totalMoney)
     // opcional: tomar top 20
     .slice(0, 20);
+  }
+
+loadPurchasesByStatus(): void {
+  const dict: { [status: string]: StatusSummary } = {};
+
+  this.datos_cierre.purchase.products.forEach((item: { status: string; total_quantity_ordered: any; price_purchase: number; }) => {
+    const st = item.status ?? 'Sin estado';
+    const volume = item.total_quantity_ordered;
+    const money  = item.price_purchase * volume;
+
+    if (!dict[st]) {
+      dict[st] = { status: st, count: 0, totalVolume: 0, totalMoney: 0 };
+    }
+
+    dict[st].count       += 1;
+    dict[st].totalVolume += volume;
+    dict[st].totalMoney  += money;
+  });
+
+  // Resultado como arreglo
+  this.purchasesByStatus = Object.values(dict)
+    // opcional: ordenar por cantidad descendente
+    .sort((a, b) => b.count - a.count);
 }
+/**
+ * Calcula el porcentaje (sobre el total) de volumen y dinero
+ * para los estados "facturado" y "registrado" conjuntamente.
+ */
+getFacturadoRegistradoPercent(): void {
+  const products = this.datos_cierre.purchase.products;
+
+  // Estados que queremos unir
+  const targetStates = new Set(['Facturada', 'Registrado']);
+
+  // 1) Totales generales
+  let totalVolume = 0;
+  let totalMoney = 0;
+
+  // 2) Totales de facturado + registrado
+  let frVolume = 0;
+  let frMoney = 0;
+
+  products.forEach((item: { total_quantity_ordered: any; price_purchase: number; status: string; }) => {
+    const vol = item.total_quantity_ordered;
+    const money = item.price_purchase * vol;
+
+    totalVolume += vol;
+    totalMoney += money;
+
+    if (targetStates.has(item.status)) {
+      frVolume += vol;
+      frMoney += money;
+    }
+  });
+
+  // Evitar división por cero
+  const percentByVolume = totalVolume
+    ? (frVolume / totalVolume) * 100
+    : 0;
+  const percentByMoney = totalMoney
+    ? (frMoney / totalMoney) * 100
+    : 0;
+
+  this.percentByVolume = percentByVolume;
+  this.percentByMoney = percentByMoney;
+  };
 }

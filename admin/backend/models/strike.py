@@ -10,10 +10,11 @@ db = client['frescapp']
 strikes_collection = db['strikes']
 
 class Strike:
-    def __init__(self, order_number, sku, strike_type, missing_quantity, detail, timestamp=None, id=None):
+    def __init__(self, order_number, sku, strike_type, missing_quantity, detail, timestamp=None, id=None,name=None):
         self.id = id
         self.order_number = order_number       # order number
         self.sku = sku                         # item SKU (or None if whole-order strike)
+        self.name = name                       # item name (or None if whole-order strike)
         self.strike_type = strike_type         # e.g. quality, partial_missing, etc.
         self.missing_quantity = missing_quantity  # quantity missing, if applicable
         self.detail = detail                   # description or reason
@@ -23,6 +24,7 @@ class Strike:
         data = {
             "order_number": self.order_number,
             "sku": self.sku,
+            "name": self.name,  # Include name for item strike
             "strike_type": self.strike_type,
             "missing_quantity": self.missing_quantity,
             "detail": self.detail,
@@ -40,6 +42,7 @@ class Strike:
             {"$set": {
                 "order_number": self.order_number,
                 "sku": self.sku,
+                "name": self.name,  # Update name for item strike
                 "strike_type": self.strike_type,
                 "missing_quantity": self.missing_quantity,
                 "detail": self.detail,

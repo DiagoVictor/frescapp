@@ -3,6 +3,7 @@
 from flask import Blueprint, jsonify, request
 from models.strike import Strike
 from models.order import Order
+from models.route import Route
 
 strike_api = Blueprint('strikes', __name__)
 
@@ -21,6 +22,7 @@ def create_strike():
     strike = Strike(
         order_number      = data['order_number'],
         sku               = data.get('sku'),
+        name              = data.get('name'),  # Include name for item strike
         strike_type       = data['strike_type'],
         missing_quantity  = data.get('missing_quantity', 0),
         detail            = data.get('detail')
@@ -47,7 +49,24 @@ def create_strike():
     # 4) Actualizar en la base de datos
     order.products = products
     order.updated()
-        
+    ruta = Route.find_by_date(order.delivery_date)
+    for stop in ruta.stops:
+        if stop["order_number"] == order.order_number:
+            stop["total_charged"] = sum(item['price_sale'] * item['quantity'] for item in order.products)
+            stop["total_to_charge"] = sum(item['price_sale'] * item['quantity'] for item in order.products)
+            stop["quantity_sku"] = len(order.products)
+            stop["payment_method"] = order.paymentMethod
+            stop["payment_date"] = order.payment_date
+            stop["address"] = order.deliveryAddress
+            stop["driver_name"] = order.driver_name
+    route_exist = Route(
+        id=ruta.id,
+        route_number=ruta.route_number,
+        close_date=ruta.close_date,
+        cost=ruta.cost,
+        stops=ruta.stops
+    )
+    route_exist.update()
     return jsonify({'id': new_id}), 201
 
 @strike_api.route('/<string:id>', methods=['GET'])
@@ -67,6 +86,7 @@ def update_strike(id):
     strike = Strike(
         order_number      = data.get('order_number', existing['order_number']),
         sku               = data.get('sku', existing.get('sku')),
+        name              = data.get('name', existing.get('name')),  # Include name for item strike
         strike_type       = data.get('strike_type', existing['strike_type']),
         missing_quantity  = data.get('missing_quantity', existing.get('missing_quantity', 0)),
         detail            = data.get('detail', existing.get('detail')),

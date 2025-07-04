@@ -22,6 +22,7 @@ export class PurchaseComponent {
   successMessage: string | null = null;
   errorMessage: string | null = null;
   suppliers: any[] = [];
+  transactionTypes: string[] = ['Efectivo','Crédito'];
   private priceTolerance:number = 1;
   isPriceValid: boolean = true;
   constructor(
@@ -104,6 +105,7 @@ export class PurchaseComponent {
     this.selectedProduct.proveedor = this.suppliers.find(
       supplier => supplier._id === product.proveedor._id
     );
+    console.log(this.selectedProduct);
   }
 
   savePrice() {
@@ -121,6 +123,7 @@ export class PurchaseComponent {
       forecast: this.selectedProduct.forecast,
       total_quantity: this.selectedProduct.total_quantity_ordered + this.selectedProduct.forecast - this.selectedProduct.inventory,
       proveedor: this.selectedProduct.proveedor,
+      type_transaction : this.selectedProduct.type_transaction || 'Efectivo',
       status: status
     };
 

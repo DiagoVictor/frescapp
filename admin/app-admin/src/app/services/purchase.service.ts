@@ -31,4 +31,7 @@ export class PurchaseService {
   getReport(purchase_number: string){
     return `${this.baseUrl}api/purchase/purchase/report/${purchase_number}`;
   }
+  getDetailPurchase(purchase_number: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}api/purchase/purchase/detail/${purchase_number}`);
+  }
 }

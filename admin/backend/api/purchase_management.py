@@ -99,6 +99,27 @@ def func_create_purchase(date,efectivo=0):
             "$unwind": "$product_info"
         },
         {
+        "$lookup": {
+            "from": "suppliers",
+            "localField": "product_info.proveedor",
+            "foreignField": "nickname",
+            "as": "supplier_info"
+        }
+        },
+        {
+        "$unwind": {
+            "path": "$supplier_info",
+            "preserveNullAndEmptyArrays": True
+        }
+        },
+        {
+        "$addFields": {
+            "supplier_info._id": {
+            "$toString": "$supplier_info._id"
+            }
+        }
+        },
+        {
             "$lookup": {
                 "from": "inventory",
                 "let": {"sku": "$_id", "close_date": yesterday_str},
@@ -163,7 +184,8 @@ def func_create_purchase(date,efectivo=0):
                 "price_purchase": "$product_info.price_purchase",
                 "forecast": {"$literal": 0},
                 "inventory": 1,
-                "proveedor": "",
+                "proveedor": "$supplier_info",
+                "type_transaction" : "$supplier_info.type_transaction",
                 "total_quantity": 1,
                 "category": "$product_info.category",
                 "unit": "$product_info.unit",
@@ -243,6 +265,7 @@ def update_price():
     purchase_number = data.get("purchase_number")
     sku = data.get("sku")
     new_price = data.get("final_price_purchase")
+    type_transaction = data.get("type_transaction", "Efectivo")
     new_proveedor = data.get("proveedor")
     forecast = data.get("forecast")
     total_quantity = data.get("total_quantity")
@@ -255,6 +278,7 @@ def update_price():
                 # Actualiza el precio del producto
                 product['final_price_purchase'] = new_price
                 product['proveedor'] = new_proveedor
+                product['type_transaction'] = type_transaction
                 product['status'] = status
                 product['forecast'] = forecast
                 product['total_quantity'] = total_quantity
@@ -433,3 +457,57 @@ def get_report_purchase(purchase_number):
     response = Response(buffer, mimetype='application/pdf')
     response.headers['Content-Disposition'] = 'inline; filename=compra_num_{}_{}.pdf'.format(purchase_number, str(products[0].get('date')))
     return response
+
+@purchase_api.route('/purchase/detail/<string:purchase_number>', methods=['GET'])
+def get_purchase_detail(purchase_number):
+    purchase = purchase_collection.find_one({"purchase_number": purchase_number}, {'_id': 0})
+    if not purchase:
+        return jsonify({"status": "failure", "message": "Purchase not found."}), 404
+
+    per_seller = {}
+    per_payment = {}
+
+    for product in purchase.get('products', []):
+        proveedor_doc = product.get('proveedor', {})
+        proveedor_nickname = proveedor_doc.get('nickname', 'Sin Proveedor')
+        type_transaction = product.get('type_transaction', 'Efectivo')
+        cantidad = product.get('total_quantity', 0)
+        precio_estimado = product.get('price_purchase', 0)
+        precio_real = product.get('final_price_purchase', 0)
+
+        # ---------- Agrupar por nickname del proveedor ----------
+        if proveedor_nickname not in per_seller:
+            per_seller[proveedor_nickname] = {
+                "cantidad_productos": 0,
+                "valor_estimado": 0.0,
+                "valor_real": 0.0
+            }
+
+        per_seller[proveedor_nickname]["cantidad_productos"] += cantidad
+        per_seller[proveedor_nickname]["valor_estimado"] += cantidad * precio_estimado
+        per_seller[proveedor_nickname]["valor_real"] += cantidad * precio_real
+
+        # ---------- Agrupar por tipo de pago / estado ----------
+        if type_transaction not in per_payment:
+            per_payment[type_transaction] = {
+                "cantidad_productos": 0,
+                "valor_estimado": 0.0,
+                "valor_real": 0.0
+            }
+
+        per_payment[type_transaction]["cantidad_productos"] += cantidad
+        per_payment[type_transaction]["valor_estimado"] += cantidad * precio_estimado
+        per_payment[type_transaction]["valor_real"] += cantidad * precio_real
+
+    # Redondear para presentación
+    for d in (per_seller, per_payment):
+        for key in d:
+            d[key]["valor_estimado"] = round(d[key]["valor_estimado"], 2)
+            d[key]["valor_real"] = round(d[key]["valor_real"], 2)
+
+    return jsonify({
+        "purchase_number": purchase.get("purchase_number"),
+        "date": purchase.get("date"),
+        "per_seller": per_seller,
+        "per_payment": per_payment
+    }), 200

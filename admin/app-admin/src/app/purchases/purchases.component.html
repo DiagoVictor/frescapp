@@ -3,12 +3,12 @@
     <div class="col-6">
       <input type="text" class="form-control" placeholder="Buscar compra..." [(ngModel)]="searchText" (keyup)="filterPurchases()">
     </div>
-    <!-- <div class="col-auto">
+    <div class="col-auto">
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPurchase"
         data-bs-dismiss="modal">
         <i class="fas fa-plus-circle fa-lg"></i>
         Nueva compra</button>
-    </div> -->
+    </div>
 
     <div class="col-auto">
       <button type="button" class="btn btn-primary"  routerLink="/suppliers">
@@ -89,6 +89,11 @@
               <span (click)="downloadExcel(purchase)" style="cursor: pointer;">
                 <i class="fas fa-file-excel fa-lg text-success"></i> <!-- Icono de Excel -->
               </span>
+            </div>
+            <div class="col-auto">
+                <span data-bs-toggle="modal" data-bs-target="#purchaseDetailModal" data-bs-dismiss="modal" style="cursor: pointer;" (click)="openDetailPurchase(purchase)">
+                    <i class="fas fa-calendar fa-lg text-warning"></i>
+                </span>
             </div>
             <!-- <div class="col-auto" *ngIf="purchase.status == 'Creada' && hasRole(['administrador'])" >
               <span (click)="sync_allegra(purchase)" style="cursor: pointer;">
@@ -206,6 +211,69 @@
         <button class="btn btn-primary" (click)="add_item()" [disabled]="!newItem.sku">Agregar</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="purchaseDetailModal" tabindex="-1" aria-labelledby="purchaseDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="purchaseDetailModalLabel">
+          Detalle de Compra
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <h6 class="mt-2">Por Proveedor</h6>
+        <table class="table table-bordered table-hover table-sm">
+          <thead class="table-light">
+            <tr>
+              <th>Proveedor</th>
+              <th>Cantidad Productos</th>
+              <th>Valor Estimado</th>
+              <th>Valor Real</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let seller of perSellerArray">
+              <td>{{ seller.nombre }}</td>
+              <td>{{ seller.cantidad_productos }}</td>
+              <td>{{ seller.valor_estimado | currency:'COP':'symbol':'1.0-0' }}</td>
+              <td>{{ seller.valor_real | currency:'COP':'symbol':'1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h6 class="mt-4">Por Tipo de Pago</h6>
+        <table class="table table-bordered table-hover table-sm">
+          <thead class="table-light">
+            <tr>
+              <th>Tipo de Pago</th>
+              <th>Cantidad Productos</th>
+              <th>Valor Estimado</th>
+              <th>Valor Real</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let payment of perPaymentArray">
+              <td>{{ payment.nombre }}</td>
+              <td>{{ payment.cantidad_productos }}</td>
+              <td>{{ payment.valor_estimado | currency:'COP':'symbol':'1.0-0' }}</td>
+              <td>{{ payment.valor_real | currency:'COP':'symbol':'1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
     </div>
   </div>
 </div>

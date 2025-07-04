@@ -45,9 +45,10 @@ def create_product():
     factor_volumen = data.get('factor_volumen')
     sipsa_id = data.get('sipsa_id')
     last_price_purchase = data.get('price_purchase') 
-    proveedor = ''
     rate_root = 0
     is_visible = True
+    tipo_pricing = data.get('tipo_pricing', 'Auto')
+    proveedor = data.get('proveedor', None)
     if not sku or not name:
         return jsonify({'message': 'Missing required fields'}), 400
 
@@ -78,7 +79,8 @@ def create_product():
         rate_root = rate_root,
         root = root,
         child = child,
-        is_visible = is_visible
+        is_visible = is_visible,
+        tipo_pricing = tipo_pricing
 
     )
     product.save()
@@ -111,6 +113,9 @@ def update_product(product_id):
     is_visible = bool(data.get('is_visible'))
     factor_volumen = data.get('factor_volumen')
     product = Product.object(product_id)
+    step_unit_sipsa = data.get('step_unit_sipsa')
+    sipsa_id = data.get('sipsa_id')
+    tipo_pricing = data.get('tipo_pricing', 'Auto')
 
     if not product:
         return jsonify({'message': 'Product not found'}), 404
@@ -138,6 +143,9 @@ def update_product(product_id):
     product.rate_root = rate_root or product.rate_root
     product.is_visible = bool(is_visible) if is_visible is not None else bool(product.is_visible)
     product.factor_volumen = factor_volumen or product.factor_volumen
+    product.step_unit_sipsa = step_unit_sipsa or product.step_unit_sipsa
+    product.sipsa_id = sipsa_id or product.sipsa_id
+    product.tipo_pricing = tipo_pricing or product.tipo_pricing
     product.updated()
 
     return jsonify({'message': 'Product updated successfully'}), 200
@@ -172,7 +180,9 @@ def list_product():
             "root" : product["root"],
             "child" : product["child"],
             "last_price_purchase" : product["last_price_purchase"],
-            "is_visible" : product["is_visible"]
+            "is_visible" : product["is_visible"],
+            "tipo_pricing": product["tipo_pricing"],
+            "proveedor" : product["proveedor"],
         }
         for product in products_cursor
     ]
@@ -357,7 +367,7 @@ def list_product_institucion(email):
                 if sku in productos_encontrados:
                     product = productos_encontrados[sku]
                     precio_base = product["price_sale"] * step
-                    precio_descuento = int(round(precio_base * 0.88))
+                    precio_descuento = int(round(precio_base * 0.84))
                     unidad = product.get("unit", "Sin unidad")
                     categoria = product.get("category", "Sin categoria")
                 else:

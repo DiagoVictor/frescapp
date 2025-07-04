@@ -32,7 +32,8 @@ def create_supplier():
         "address": data['address'],
         "phone": data['phone'],
         "typeSupport" : data['typeSupport'],
-        "nickname" : data['nickname']
+        "nickname" : data['nickname'],
+        "type_transaction": data.get('type_transaction', 'Efectivo')  # Valor por defecto si no se proporciona
     }
     
     supplier_collection.insert_one(supplier)
@@ -49,7 +50,8 @@ def edit_supplier(id):
         "address": data['address'],
         "phone": data['phone'],
         "typeSupport" : data['typeSupport'],
-        "nickname" : data['nickname']
+        "nickname" : data['nickname'],
+        "type_transaction": data.get('type_transaction', 'Efectivo')  # Valor por defecto si no se proporciona
     }
     result = supplier_collection.update_one(
         {"_id": ObjectId(id)},

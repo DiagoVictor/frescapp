@@ -3,6 +3,8 @@ import { ProductService } from '../services/product.service';
 import { Router } from '@angular/router';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { SupplierService } from '../services/supplier.service';
+
 @Component({
   selector: 'app-products',
   templateUrl: './products.component.html',
@@ -18,7 +20,11 @@ export class ProductsComponent implements OnInit {
   errorMessage: string = '';
   sortColumn: string = '';
   sortDirection: number = 1;
-  constructor(private productService: ProductService, private router: Router) { }
+  suppliers: any[] = [];
+  constructor(private productService: ProductService,
+    private router: Router,
+      private supplierService : SupplierService
+  ) { }
 
   ngOnInit(): void {
     // Verificar si el usuario está autenticado
@@ -30,6 +36,11 @@ export class ProductsComponent implements OnInit {
     } else {
       // Si está autenticado, cargar los productos
       this.getProducts();
+          this.supplierService.getSuppliers().subscribe(
+      (res: any) => {
+        this.suppliers = res;
+      }
+    );
     }
   }
 

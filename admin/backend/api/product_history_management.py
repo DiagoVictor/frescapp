@@ -96,7 +96,8 @@ def products_history_analytics():
 @product_history_api.route('/products_history_new/<string:operation_date>', methods=['GET'])
 def products_history_new(operation_date):
     def obtenerSipsa(operation_date:str,path_destino: str):
-            # URL de la API para obtener el uuid
+        operation_date = (datetime.strptime(operation_date, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+        print(f"Obteniendo datos de SIPSA para la fecha: {operation_date}")
         url = "https://apps.dane.gov.co/pentaho/plugin/cda/api/doQuery"
         timeout = 120 
         # Cabeceras HTTP para la primera solicitud
@@ -197,10 +198,10 @@ def products_history_new(operation_date):
         # Asegúrate de que la columna de fecha esté en formato datetime para compararla
         data['FECHA'] = pd.to_datetime(data['FECHA'], errors='coerce')
 
-        # Convierte el parámetro filter_date a un objeto datetime
-        filter_date = datetime.strptime(filter_date, '%Y-%m-%d')
+        # Convierte el parámetro filter_date a datetime y réstale un día
+        filter_date = datetime.strptime(filter_date, '%Y-%m-%d') - timedelta(days=1)
 
-        # Filtra los registros que coincidan con la fecha especificada
+        # Filtra los registros que coincidan con la fecha ajustada
         filtered_data = data[data['FECHA'] == filter_date]
 
         # Estructura los datos filtrados en una lista de diccionarios
@@ -268,7 +269,7 @@ def products_history_new(operation_date):
                 (
                     item for item in equivalence_data
                     if str(item.get('ARTICULO')) == str(producto.get("sipsa_id")) 
-                    and pd.to_datetime(item.get('FECHA'), errors='coerce') == pd.to_datetime(operation_date)
+                    and (pd.to_datetime(item.get('FECHA'), errors='coerce') + timedelta(days=1)) == pd.to_datetime(operation_date)
                 ),
                 None
             )
@@ -411,6 +412,6 @@ def products_history_new(operation_date):
     copiar_productos_activos_y_actualizar(uri, db_name, coleccion_origen, coleccion_destino, operation_date, data)
     actualizar_precios_en_products(uri, db_name, coleccion_destino, operation_date)
     update_price_page()
-    if os.path.exists(filepath):
-        os.remove(filepath)
+    # if os.path.exists(filepath):
+    #     os.remove(filepath)
     return jsonify({"message": "Productos actualizados."}),  200

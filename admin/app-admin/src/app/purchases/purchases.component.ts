@@ -26,6 +26,8 @@ export class PurchasesComponent {
   pdfData:any;
   product: any;
   efectivoEntreado: number = 0;
+    perSellerArray: any[] = [];
+  perPaymentArray: any[] = [];
   constructor(
     private purchaseService: PurchaseService,
     private alegraService: AlegraService,
@@ -85,6 +87,21 @@ export class PurchasesComponent {
   }
   openPdfModal(purchase_number:any){
     this.pdfData  = this.sanitizer.bypassSecurityTrustResourceUrl(this.purchaseService.getReport(purchase_number));
+  }
+    convertToArray(obj: any): any[] {
+    return Object.entries(obj).map(([nombre, valores]: [string, any]) => ({
+      nombre,
+      ...valores
+    }));
+  }
+  openDetailPurchase(purchase: any) {
+    this.purchaseService.getDetailPurchase(purchase.purchase_number).subscribe(
+      (data: any) => {
+        console.log(data);
+            this.perSellerArray = this.convertToArray(data.per_seller);
+    this.perPaymentArray = this.convertToArray(data.per_payment);
+      }
+    );
   }
   delete_purchase(purchase_number:any){
     this.purchaseService.deletePurchase(purchase_number).subscribe(

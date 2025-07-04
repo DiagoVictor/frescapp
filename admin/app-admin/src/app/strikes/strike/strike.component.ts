@@ -39,6 +39,7 @@ export class StrikeComponent implements OnInit {
       order_number: [null, Validators.required],
       strike_type: [null, Validators.required],
       sku: [null],
+      name: [null], // Nombre del producto, opcional si es strike de todo el pedido
       missing_quantity: [0],
       detail: ['']
     });
@@ -60,6 +61,7 @@ export class StrikeComponent implements OnInit {
             order_number: s.order_number,
             strike_type: s.strike_type,
             sku: s.sku,
+            name: s.name, // Asegurarse de incluir el nombre del producto
             missing_quantity: s.missing_quantity,
             detail: s.detail
           });
@@ -129,18 +131,19 @@ export class StrikeComponent implements OnInit {
       order_number: v.order_number,
       strike_type: v.strike_type,
       sku: v.sku,
+      name: v.name || item.name, // Asignar nombre del producto
       missing_quantity: qtyCtrl,
       detail: v.detail
     });
   }
 
   submit(): void {
-    if (this.form.invalid) return;
     const v = this.form.value;
     const payload: Partial<Strike> = {
       order_number: v.order_number,
       strike_type: v.strike_type,
       sku: v.sku,
+      name: v.name, // Asegurarse de incluir el nombre del producto
       missing_quantity: v.missing_quantity,
       detail: v.detail
     };

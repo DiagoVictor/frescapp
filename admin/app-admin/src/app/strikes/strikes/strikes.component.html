@@ -19,6 +19,7 @@
       <tr>
         <th>Order #</th>
         <th>SKU</th>
+        <th>Producto</th>
         <th>Tipo</th>
         <th>Cantidad</th>
         <th>Detalle</th>
@@ -30,6 +31,7 @@
       <tr *ngFor="let s of filteredStrikes">
         <td>{{ s.order_number }}</td>
         <td>{{ s.sku || '-' }}</td>
+        <td>{{ s.name || '-' }}</td>
           <td>{{ typeLabels[s.strike_type] || s.strike_type }}</td>
         <td>{{ s.missing_quantity }}</td>
         <td>{{ s.detail }}</td>

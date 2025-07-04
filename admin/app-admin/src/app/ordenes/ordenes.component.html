@@ -87,7 +87,7 @@
         <td>{{ order.status }}</td>
         <td>
           <div class="row">
-            <div class="col-auto" *ngIf="order.status == 'Creada'">
+            <div class="col-auto" >
               <span (click)="openEditModal(order, 'update')" style="cursor: pointer;" data-bs-toggle="modal"
                 data-bs-target="#editOrderModal" data-bs-dismiss="modal">
                 <i class="fas fa-pencil-alt fa-lg text-primary"></i>

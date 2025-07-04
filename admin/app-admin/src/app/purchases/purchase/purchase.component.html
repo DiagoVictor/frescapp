@@ -52,6 +52,12 @@
         <option *ngFor="let supplier of suppliers" [ngValue]="supplier">{{ supplier.nickname }}</option>
       </select>
     </div>
+    <div>
+      <label>Tipo de transacción:</label>
+      <select [(ngModel)]="this.selectedProduct.type_transaction" class="form-control">
+        <option *ngFor="let type of transactionTypes" [ngValue]="type">{{ type }}</option>
+      </select>
+    </div>
 
     <div *ngIf="selectedProduct.clients?.length">
       <h6 class="mt-3">Clientes que pidieron este producto:</h6>

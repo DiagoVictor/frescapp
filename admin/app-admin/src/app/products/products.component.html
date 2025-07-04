@@ -222,6 +222,19 @@
                 <label for="status">Sipsa ID:</label>
                 <input type="text" class="form-control" id="margen" name="margen" [(ngModel)]="this.product.sipsa_id">
               </div>
+              <div class="form-group">
+                <label for="is_visible">Tipo Pricing:</label>
+                <select class="form-control" id="tipo_pricing" name="tipo_pricing" [(ngModel)]="this.product.tipo_pricing">
+                  <option value="Manual">Manual</option>
+                  <option value="Auto">Auto</option>
+                </select>
+              </div>
+              <div class="form-group">
+                  <label>Proveedor:</label>
+                  <select [(ngModel)]="this.product.proveedor" class="form-control">
+                    <option *ngFor="let supplier of suppliers" [ngValue]="supplier.nickname">{{ supplier.nickname }}</option>
+                  </select>
+            </div>
             </div>
             <div class="col-6">
               <div class="col-8">

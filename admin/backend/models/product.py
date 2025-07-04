@@ -32,7 +32,8 @@ class Product:
                  rate_root,
                  last_price_purchase,
                  quantity,
-                 is_visible):
+                 is_visible,
+                 tipo_pricing):
         self.name = name
         self.unit = unit
         self.category = category
@@ -57,6 +58,7 @@ class Product:
         self.last_price_purchase = last_price_purchase
         self.quantity = quantity
         self.is_visible = is_visible
+        self.tipo_pricing = tipo_pricing
 
     def save(self):
         product_data = {
@@ -83,7 +85,8 @@ class Product:
             "step_unit":self.step_unit,
             "proveedor" : self.proveedor,
             "rate_root" : self.rate_root,
-            "is_visible" : self.is_visible
+            "is_visible" : self.is_visible,
+            "tipo_pricing": self.tipo_pricing
         }
         result = products_collection.insert_one(product_data)
         return result.inserted_id
@@ -117,6 +120,7 @@ class Product:
                         "rate_root" : self.rate_root,
                         "is_visible" : bool(self.is_visible),
                         "factor_volumen" : self.factor_volumen,
+                        "tipo_pricing": self.tipo_pricing
                     }
             }
         )

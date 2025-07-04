@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
 })
 export class CierresComponent {
   newDate: string = '';
-  minDate: string = '';
+  minDate: string = ''
   cierres: any[] = [];
   constructor(
     private cierresService: CierresService,
@@ -23,7 +23,6 @@ export class CierresComponent {
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     this.minDate = `${yyyy}-${mm}-${dd}`;
-    this.minDate = '2025-06-01';
     this.getCierres();
   }
 

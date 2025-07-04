@@ -6,6 +6,7 @@ export interface Strike {
   id?: string;
   order_number: number;
   sku?: string;
+  name?: string; // Nombre del producto, opcional si es strike de todo el pedido
   strike_type: string;
   missing_quantity: number;
   detail: string;
