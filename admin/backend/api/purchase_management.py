@@ -469,11 +469,15 @@ def get_purchase_detail(purchase_number):
 
     for product in purchase.get('products', []):
         proveedor_doc = product.get('proveedor', {})
+        if not isinstance(proveedor_doc, dict):
+            proveedor_doc = {}
+
         proveedor_nickname = proveedor_doc.get('nickname', 'Sin Proveedor')
         type_transaction = product.get('type_transaction', 'Efectivo')
         cantidad = product.get('total_quantity', 0)
         precio_estimado = product.get('price_purchase', 0)
         precio_real = product.get('final_price_purchase', 0)
+
 
         # ---------- Agrupar por nickname del proveedor ----------
         if proveedor_nickname not in per_seller:
