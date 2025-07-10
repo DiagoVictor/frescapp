@@ -19,7 +19,7 @@ export class CierresComponent {
   ngOnInit() {
     const today = new Date();
     // formatear YYYY-MM-DD
-    const yyyy = today.getFullYear();
+    const yyyy = today.getFullYear()-1;
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     this.minDate = `${yyyy}-${mm}-${dd}`;

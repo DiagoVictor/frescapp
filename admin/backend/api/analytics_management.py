@@ -287,11 +287,11 @@ def get_cost():
         })
     return jsonify(result), 200
 
-@analytics_api.route('/ue_daily', methods=['GET'])
+@analytics_api.route('/ue_daily/', methods=['GET'])
 def ue_daily():
     # Calcular las fechas de inicio y fin de los últimos 3 meses
     fecha_fin = datetime.now()
-    fecha_inicio = fecha_fin - timedelta(days=120)
+    fecha_inicio = fecha_fin - timedelta(days=60)
 
     # Convertir las fechas a formato de cadena para MongoDB
     fecha_inicio_str = fecha_inicio.strftime('%Y-%m-%d')

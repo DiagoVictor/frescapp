@@ -36,6 +36,7 @@ import { CarteraComponent } from './cartera/cartera.component';
 import { StrikeComponent } from './strikes/strike/strike.component';
 import { StrikesComponent } from './strikes/strikes/strikes.component';
 import { MoneyFormatPipe } from './money-format.pipe';
+import { UeComponent } from './ue/ue.component'; // Importa el componente UE si es necesario
 
 
 @NgModule({
@@ -68,7 +69,8 @@ import { MoneyFormatPipe } from './money-format.pipe';
     CierreComponent,
     CarteraComponent,
     StrikeComponent,
-    StrikesComponent
+    StrikesComponent,
+    UeComponent
   ],
   bootstrap: [AppComponent],
   imports: [

@@ -1,0 +1,114 @@
+<!-- Spinner -->
+<div *ngIf="loading" class="text-center my-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Cargando...</span>
+  </div>
+</div>
+
+<div *ngIf="!loading">
+
+  <!-- 📅 MENSUAL -->
+  <h4 class="mt-4">Resumen Mensual</h4>
+  <table class="table table-sm table-bordered text-center align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Indicador</th>
+        <th *ngFor="let mes of getMeses()">{{ mes }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let variable of ['gmv','cogs','cost_others','logistics_cost','perssonel','cost_tech']">
+        <td>{{ variable }}</td>
+        <td *ngFor="let mes of getMeses()">
+          {{ getResumenMensual(mes, variable) | currency:'COP':'symbol' }}
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Utilidad</strong></td>
+        <td *ngFor="let mes of getMeses()">
+          {{ getUtilidadMensual(mes) | currency:'COP':'symbol' }}
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Margen</strong></td>
+        <td *ngFor="let mes of getMeses()">
+          {{ getMargenMensual(mes) }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 📆 SEMANAL -->
+  <h4 class="mt-5">Resumen Semanal</h4>
+  <table class="table table-sm table-bordered text-center align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Indicador</th>
+        <th *ngFor="let semana of getSemanas()">{{ semana }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let variable of ['gmv','cogs','cost_others','logistics_cost','perssonel','cost_tech']">
+        <td>{{ variable }}</td>
+        <td *ngFor="let semana of getSemanas()">
+          {{ getResumenSemanal(semana, variable) | currency:'COP':'symbol' }}
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Utilidad</strong></td>
+        <td *ngFor="let semana of getSemanas()">
+          {{ getUtilidadSemanal(semana) | currency:'COP':'symbol' }}
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Margen</strong></td>
+        <td *ngFor="let semana of getSemanas()">
+          {{ getMargenSemanal(semana) }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 📍 DIARIO -->
+  <h4 class="mt-5">Resumen Diario</h4>
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <label>Desde:</label>
+      <input type="date" class="form-control" [(ngModel)]="fechaInicio">
+    </div>
+    <div class="col-md-6">
+      <label>Hasta:</label>
+      <input type="date" class="form-control" [(ngModel)]="fechaFin">
+    </div>
+  </div>
+
+  <table class="table table-sm table-bordered text-center align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Indicador</th>
+        <th *ngFor="let fecha of getFechasFiltradas()">{{ fecha }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let variable of ['gmv','cogs','cost_others','logistics_cost','perssonel','cost_tech']">
+        <td>{{ variable }}</td>
+        <td *ngFor="let fecha of getFechasFiltradas()">
+          {{ getResumen(groupedData[fecha], variable) | currency:'COP':'symbol' }}
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Utilidad</strong></td>
+        <td *ngFor="let fecha of getFechasFiltradas()">
+          {{ getUtilidad(groupedData[fecha]) | currency:'COP':'symbol' }}
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Margen</strong></td>
+        <td *ngFor="let fecha of getFechasFiltradas()">
+          {{ getMargen(groupedData[fecha]) }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>

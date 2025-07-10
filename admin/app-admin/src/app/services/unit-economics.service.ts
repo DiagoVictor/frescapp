@@ -16,4 +16,7 @@ export class UnitEconomicsService {
   updateUE(ueDate:any):Observable<any> {
     return this.http.post(`${this.baseUrl}api/ue/updateUE`,{"dateUpdate" : ueDate});
   }
+  getUnitEconomics(): Observable<any> {
+    return this.http.get(`${this.baseUrl}api/analytics/ue_daily`);
+  }
 }

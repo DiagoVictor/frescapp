@@ -28,6 +28,7 @@ import { ProductsAnalyticsComponent } from './products-analytics/products-analyt
 import { CarteraComponent } from './cartera/cartera.component';
 import { StrikesComponent } from './strikes/strikes/strikes.component';
 import { StrikeComponent } from './strikes/strike/strike.component';
+import { UeComponent } from './ue/ue.component';
 
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent, canActivate: [AuthGuard] },
@@ -54,6 +55,7 @@ const routes: Routes = [
   { path: 'cartera', component: CarteraComponent, canActivate: [AuthGuard] },
   { path: 'strikes', component: StrikesComponent, canActivate: [AuthGuard] },
   { path: 'strike/:id', component: StrikeComponent, canActivate: [AuthGuard] },
+  { path: 'ue', component: UeComponent, canActivate: [AuthGuard] },
 
   // públicas
   { path: 'login', component: LoginComponent },
