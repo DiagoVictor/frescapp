@@ -19,13 +19,23 @@ export class UeComponent implements OnInit {
   fechaInicio: string = '';
   fechaFin: string = '';
 
+  indicadores = [
+    { key: 'gmv', label: 'GMV' },
+    { key: 'cogs', label: 'COGS' },
+    { key: 'cost_others', label: 'Otros Costos' },
+    { key: 'logistics_cost', label: 'Logística' },
+    { key: 'perssonel', label: 'Personal' },
+    { key: 'cost_tech', label: 'Tecnología' },
+    { key: 'total_orders', label: 'Órdenes' },
+    { key: 'total_lines', label: 'Líneas' },
+  ];
+
   constructor(private unitEconomicsService: UnitEconomicsService) {}
 
   ngOnInit(): void {
     this.unitEconomicsService.getUnitEconomics().subscribe(data => {
       this.groupedData = this.groupByDate(data);
       this.loading = false;
-      console.log('Unit Economics Data:', this.groupedData);
     }, error => {
       console.error('Error fetching unit economics data:', error);
       this.loading = false;
@@ -38,7 +48,7 @@ export class UeComponent implements OnInit {
       if (!acc[fecha]) acc[fecha] = [];
       acc[fecha].push(item);
       return acc;
-    }, {} as { [fecha: string]: UnitEconomicEntry[] });
+    }, {});
   }
 
   getResumen(entries: UnitEconomicEntry[], variable: string): number {
@@ -58,6 +68,58 @@ export class UeComponent implements OnInit {
     return gmv !== 0 ? ((utilidad / gmv) * 100).toFixed(2) + '%' : 'N/A';
   }
 
+  getMargenBruto(entries: UnitEconomicEntry[]): string {
+    const gmv = this.getResumen(entries, 'gmv');
+    const cogs = this.getResumen(entries, 'cogs');
+    if (gmv === 0) return 'N/A';
+    return ((1-(cogs*-1 / gmv)) * 100).toFixed(2) + '%';
+  }
+
+  getMargenLogistico(entries: UnitEconomicEntry[]): string {
+    const gmv = this.getResumen(entries, 'gmv');
+    const logistics = this.getResumen(entries, 'logistics_cost');
+    if (gmv === 0) return 'N/A';
+    return ((logistics / gmv) * 100).toFixed(2) + '%';
+  }
+
+  getMargenBrutoMensual(mes: string): string {
+    const gmv = this.getResumenMensual(mes, 'gmv');
+    const cogs = this.getResumenMensual(mes, 'cogs');
+    return gmv !== 0 ? ((1-((cogs*-1 / gmv))) * 100).toFixed(2) + '%' : 'N/A';
+  }
+
+  getMargenLogisticoMensual(mes: string): string {
+    const gmv = this.getResumenMensual(mes, 'gmv');
+    const logistics = this.getResumenMensual(mes, 'logistics_cost');
+    return gmv !== 0 ? ((logistics / gmv) * 100).toFixed(2) + '%' : 'N/A';
+  }
+
+  getAOVMensual(mes: string): string {
+    const gmv = this.getResumenMensual(mes, 'gmv');
+    const orders = this.getResumenMensual(mes, 'total_orders');
+    return orders !== 0 ? (gmv / orders).toFixed(0) : 'N/A';
+  }
+
+  getAOLMensual(mes: string): string {
+    const gmv = this.getResumenMensual(mes, 'gmv');
+    const lines = this.getResumenMensual(mes, 'total_lines');
+    return lines !== 0 ? (gmv / lines).toFixed(2) : 'N/A';
+  }
+
+  getAOV(entries: UnitEconomicEntry[]): string {
+    const gmv = this.getResumen(entries, 'gmv');
+    const orders = this.getResumen(entries, 'total_orders');
+    if (orders === 0) return 'N/A';
+    return (gmv / orders).toFixed(0);
+  }
+
+  getAOL(entries: UnitEconomicEntry[]): string {
+    const lines = this.getResumen(entries, 'total_lines');
+    const gmv = this.getResumen(entries, 'gmv');
+    if (lines === 0) return 'N/A';
+    return (gmv / lines).toFixed(2);
+  }
+
   getFechas(): string[] {
     return Object.keys(this.groupedData).sort();
   }
@@ -73,7 +135,7 @@ export class UeComponent implements OnInit {
 
   getMeses(): string[] {
     const meses = new Set<string>();
-    this.getFechas().forEach(f => meses.add(f.slice(0, 7))); // yyyy-MM
+    this.getFechas().forEach(f => meses.add(f.slice(0, 7)));
     return Array.from(meses).sort();
   }
 

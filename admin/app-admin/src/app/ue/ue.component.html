@@ -5,71 +5,92 @@
   </div>
 </div>
 
-<div *ngIf="!loading">
+<div *ngIf="!loading" class="container">
 
-  <!-- 📅 MENSUAL -->
   <h4 class="mt-4">Resumen Mensual</h4>
-  <table class="table table-sm table-bordered text-center align-middle">
+  <table class="table table-sm table-bordered align-middle">
     <thead class="table-light">
       <tr>
-        <th>Indicador</th>
-        <th *ngFor="let mes of getMeses()">{{ mes }}</th>
+        <th class="text-start">Indicador</th>
+        <th *ngFor="let mes of getMeses()" class="text-end">{{ mes }}</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let variable of ['gmv','cogs','cost_others','logistics_cost','perssonel','cost_tech']">
-        <td>{{ variable }}</td>
-        <td *ngFor="let mes of getMeses()">
-          {{ getResumenMensual(mes, variable) | currency:'COP':'symbol' }}
+      <tr *ngFor="let indicador of indicadores">
+        <td class="text-start">{{ indicador.label }}</td>
+        <td *ngFor="let mes of getMeses()" class="text-end">
+          {{ getResumenMensual(mes, indicador.key) | number:'1.0-0' }}
         </td>
       </tr>
       <tr>
-        <td><strong>Utilidad</strong></td>
-        <td *ngFor="let mes of getMeses()">
-          {{ getUtilidadMensual(mes) | currency:'COP':'symbol' }}
+        <td class="text-start fw-bold">Utilidad</td>
+        <td *ngFor="let mes of getMeses()" class="text-end">
+          {{ getUtilidadMensual(mes) | number:'1.0-0' }}
         </td>
       </tr>
       <tr>
-        <td><strong>Margen</strong></td>
-        <td *ngFor="let mes of getMeses()">
+        <td class="text-start fw-bold">Margen</td>
+        <td *ngFor="let mes of getMeses()" class="text-end">
           {{ getMargenMensual(mes) }}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-start">Margen Bruto</td>
+        <td *ngFor="let mes of getMeses()" class="text-end">
+          {{ getMargenBrutoMensual(mes) }}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-start">AOV</td>
+        <td *ngFor="let mes of getMeses()" class="text-end">
+          {{ getAOVMensual(mes) | number:'1.0-0'  }}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-start">AOL</td>
+        <td *ngFor="let mes of getMeses()" class="text-end">
+          {{ getAOLMensual(mes) | number:'1.0-0'  }}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-start">Margen Logístico</td>
+        <td *ngFor="let mes of getMeses()" class="text-end">
+          {{ getMargenLogisticoMensual(mes) }}
         </td>
       </tr>
     </tbody>
   </table>
 
-  <!-- 📆 SEMANAL -->
   <h4 class="mt-5">Resumen Semanal</h4>
-  <table class="table table-sm table-bordered text-center align-middle">
+  <table class="table table-sm table-bordered align-middle">
     <thead class="table-light">
       <tr>
-        <th>Indicador</th>
-        <th *ngFor="let semana of getSemanas()">{{ semana }}</th>
+        <th class="text-start">Indicador</th>
+        <th *ngFor="let semana of getSemanas()" class="text-end">{{ semana }}</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let variable of ['gmv','cogs','cost_others','logistics_cost','perssonel','cost_tech']">
-        <td>{{ variable }}</td>
-        <td *ngFor="let semana of getSemanas()">
-          {{ getResumenSemanal(semana, variable) | currency:'COP':'symbol' }}
+      <tr *ngFor="let indicador of indicadores">
+        <td class="text-start">{{ indicador.label }}</td>
+        <td *ngFor="let semana of getSemanas()" class="text-end">
+          {{ getResumenSemanal(semana, indicador.key) | number:'1.0-0' }}
         </td>
       </tr>
       <tr>
-        <td><strong>Utilidad</strong></td>
-        <td *ngFor="let semana of getSemanas()">
-          {{ getUtilidadSemanal(semana) | currency:'COP':'symbol' }}
+        <td class="text-start fw-bold">Utilidad</td>
+        <td *ngFor="let semana of getSemanas()" class="text-end">
+          {{ getUtilidadSemanal(semana) | number:'1.0-0' }}
         </td>
       </tr>
       <tr>
-        <td><strong>Margen</strong></td>
-        <td *ngFor="let semana of getSemanas()">
+        <td class="text-start fw-bold">Margen</td>
+        <td *ngFor="let semana of getSemanas()" class="text-end">
           {{ getMargenSemanal(semana) }}
         </td>
       </tr>
     </tbody>
   </table>
 
-  <!-- 📍 DIARIO -->
   <h4 class="mt-5">Resumen Diario</h4>
   <div class="row mb-3">
     <div class="col-md-6">
@@ -82,33 +103,62 @@
     </div>
   </div>
 
-  <table class="table table-sm table-bordered text-center align-middle">
+  <table class="table table-sm table-bordered align-middle">
     <thead class="table-light">
       <tr>
-        <th>Indicador</th>
-        <th *ngFor="let fecha of getFechasFiltradas()">{{ fecha }}</th>
+        <th class="text-start">Indicador</th>
+        <th *ngFor="let fecha of getFechasFiltradas()" class="text-end">{{ fecha }}</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let variable of ['gmv','cogs','cost_others','logistics_cost','perssonel','cost_tech']">
-        <td>{{ variable }}</td>
-        <td *ngFor="let fecha of getFechasFiltradas()">
-          {{ getResumen(groupedData[fecha], variable) | currency:'COP':'symbol' }}
+      <tr *ngFor="let indicador of indicadores">
+        <td class="text-start">{{ indicador.label }}</td>
+        <td *ngFor="let fecha of getFechasFiltradas()" class="text-end">
+          {{ getResumen(groupedData[fecha], indicador.key) | number:'1.0-0' }}
         </td>
       </tr>
       <tr>
-        <td><strong>Utilidad</strong></td>
-        <td *ngFor="let fecha of getFechasFiltradas()">
-          {{ getUtilidad(groupedData[fecha]) | currency:'COP':'symbol' }}
+        <td class="text-start fw-bold">Utilidad</td>
+        <td *ngFor="let fecha of getFechasFiltradas()" class="text-end">
+          {{ getUtilidad(groupedData[fecha]) | number:'1.0-0' }}
         </td>
       </tr>
       <tr>
-        <td><strong>Margen</strong></td>
-        <td *ngFor="let fecha of getFechasFiltradas()">
+        <td class="text-start fw-bold">Margen</td>
+        <td *ngFor="let fecha of getFechasFiltradas()" class="text-end">
           {{ getMargen(groupedData[fecha]) }}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-start">Margen Bruto</td>
+        <td *ngFor="let fecha of getFechasFiltradas()" class="text-end">
+          {{ getMargenBruto(groupedData[fecha]) }}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-start">COGS / GMV</td>
+        <td *ngFor="let fecha of getFechasFiltradas()" class="text-end">
+          {{ getResumen(groupedData[fecha], 'cogs') / getResumen(groupedData[fecha], 'gmv') * 100 | number:'1.0-2' }}%
+        </td>
+      </tr>
+      <tr>
+        <td class="text-start">AOV</td>
+        <td *ngFor="let fecha of getFechasFiltradas()" class="text-end">
+          {{ getAOV(groupedData[fecha]) }}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-start">AOL</td>
+        <td *ngFor="let fecha of getFechasFiltradas()" class="text-end">
+          {{ getAOL(groupedData[fecha]) }}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-start">Margen Logístico</td>
+        <td *ngFor="let fecha of getFechasFiltradas()" class="text-end">
+          {{ getMargenLogistico(groupedData[fecha]) }}
         </td>
       </tr>
     </tbody>
   </table>
-
 </div>

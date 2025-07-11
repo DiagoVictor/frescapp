@@ -294,7 +294,7 @@ def ue_daily():
     fecha_inicio = fecha_fin - timedelta(days=60)
 
     # Convertir las fechas a formato de cadena para MongoDB
-    fecha_inicio_str = fecha_inicio.strftime('%Y-%m-%d')
+    fecha_inicio_str =  '2025-05-01'
     fecha_fin_str = fecha_fin.strftime('%Y-%m-%d')
 
     # Variables de resumen agrupadas por día
@@ -498,7 +498,7 @@ def ue_daily():
             daily_summary[fecha]["total_lines"] += 1
             daily_summary[fecha]["gmv"] += producto.get('price_sale', 0) * producto.get('quantity', 0)
     # Procesar costos adicionales de la colección 'costs'
-    costs = db.costs.find({"typePeriod": "Diario"})
+    costs = db.costs.find({"typePeriod": "Diario",     "period": { "$gt": fecha_inicio_str }})
     for cost in costs:
         fecha = cost.get('period')
         if isinstance(fecha, str):
