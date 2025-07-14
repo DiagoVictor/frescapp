@@ -88,7 +88,7 @@
         <td>
           <div class="row">
             <div class="col-auto" >
-              <span (click)="openEditModal(order, 'update')" style="cursor: pointer;" data-bs-toggle="modal"
+              <span (click)="openEditModal(order, 'update')" style="cursor: pointer;" data-bs-toggle="modal" *ngIf="order.status == 'Creada'"
                 data-bs-target="#editOrderModal" data-bs-dismiss="modal">
                 <i class="fas fa-pencil-alt fa-lg text-primary"></i>
               </span>
@@ -149,7 +149,7 @@
             <div class="col-6">
               <div class="form-group">
                 <label for="documentType">Cliente:</label>
-                <ng-select [items]="customers" bindLabel="name" bindValue="id" [searchable]="true"
+                <ng-select [items]="customers"   bindLabel="customLabel" bindValue="id" [searchable]="true"
                   placeholder="Escribe para buscar..." [(ngModel)]="selectedCustomerId" (change)="onCustomerSelect()">
                 </ng-select>
               </div>

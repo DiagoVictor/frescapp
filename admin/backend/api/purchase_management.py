@@ -515,3 +515,29 @@ def get_purchase_detail(purchase_number):
         "per_seller": per_seller,
         "per_payment": per_payment
     }), 200
+
+@purchase_api.route('/purchase/delete_product', methods=['POST'])
+def delete_product_from_purchase():
+    data = request.get_json()
+    purchase_number = data.get('purchase_number')
+    sku = data.get('sku')
+    if not purchase_number or not sku:
+        return jsonify({"status": "failure", "message": "purchase_number y sku son requeridos."}), 400
+
+    purchase = purchase_collection.find_one({"purchase_number": purchase_number})
+
+    if not purchase:
+        return jsonify({"status": "failure", "message": "Compra no encontrada."}), 404
+
+    original_count = len(purchase['products'])
+    updated_products = [p for p in purchase['products'] if p.get('sku') != sku]
+
+    if len(updated_products) == original_count:
+        return jsonify({"status": "failure", "message": "SKU no encontrado en la compra."}), 404
+
+    purchase_collection.update_one(
+        {"purchase_number": purchase_number},
+        {"$set": {"products": updated_products}}
+    )
+
+    return jsonify({"status": "success", "message": f"Producto {sku} eliminado de la orden {purchase_number}."}), 200

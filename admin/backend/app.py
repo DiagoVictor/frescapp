@@ -64,6 +64,7 @@ if __name__ == '__main__':
 
 
     # Configurar CORS para permitir solicitudes desde cualquier origen
+    
     CORS(app, resources={"/*": {"origins": "*"}})
     context = ('/etc/ssl/certs/app_buyfrescapp_com.crt', '/etc/ssl/certs/app_buyfrescapp_com.key')
 

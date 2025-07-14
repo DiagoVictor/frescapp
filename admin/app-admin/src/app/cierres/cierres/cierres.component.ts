@@ -11,6 +11,9 @@ export class CierresComponent {
   newDate: string = '';
   minDate: string = ''
   cierres: any[] = [];
+validando: boolean = false;
+validacion: any = null;
+validacionExitosa: boolean = false;
   constructor(
     private cierresService: CierresService,
         private router: Router,
@@ -25,6 +28,32 @@ export class CierresComponent {
     this.minDate = `${yyyy}-${mm}-${dd}`;
     this.getCierres();
   }
+validarFecha() {
+  if (!this.newDate) return;
+
+  this.validando = true;
+  this.validacion = null;
+  this.validacionExitosa = false;
+
+  this.cierresService.validateCierre(this.newDate).subscribe({
+    next: (res: any) => {
+      console.log("Validación cierre:", res);
+      this.validacion = res;
+
+      // Bloquea solo si hay errores graves
+      const tieneErroresGraves = res.errores?.some((e: { tipo: string; }) => e.tipo === 'grave');
+      this.validacionExitosa = !tieneErroresGraves;
+    },
+    error: (err) => {
+      console.error("Error al validar cierre:", err);
+      this.validacion = {
+        errores: [{ tipo: 'grave', mensaje: "Error en la validación" }]
+      };
+      this.validacionExitosa = false;
+    },
+    complete: () => this.validando = false
+  });
+}
 
   createCierre() {
     if (!this.newDate) return;
@@ -64,4 +93,16 @@ export class CierresComponent {
   toCierre(cierre:any) {
     this.router.navigate(['/cierre', cierre.close_date]);
   }
+  getErroresAgrupados() {
+  const agrupados: { [key: string]: any[] } = {};
+  if (!this.validacion?.errores) return agrupados;
+
+  for (const error of this.validacion.errores) {
+    const clasificacion = error.clasificacion || 'general';
+    if (!agrupados[clasificacion]) agrupados[clasificacion] = [];
+    agrupados[clasificacion].push(error);
+  }
+
+  return agrupados;
+}
 }

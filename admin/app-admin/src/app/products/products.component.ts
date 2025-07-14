@@ -59,7 +59,7 @@ export class ProductsComponent implements OnInit {
         this.filterProducts(); // Filtra los productos basados en el texto de búsqueda inicial
       });
   }
-  exportToExcel() {
+  exportToExcel(descuento = 1): void {
     const exportData = this.products.map(p => ({
       SKU: p.sku,
       Nombre: p.name,
@@ -68,7 +68,7 @@ export class ProductsComponent implements OnInit {
         currency: 'COP',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-      }).format(p.price_sale * 0.93)
+      }).format(p.price_sale * descuento)
     }));
 
     const fechaHoy = new Date().toISOString().split('T')[0];

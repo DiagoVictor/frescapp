@@ -252,19 +252,31 @@ def products_history_new(operation_date):
         client.close()
         return total_precio / contador if contador > 0 else 0
 
+
+    def safe_round(value):
+        try:
+            return round(float(value))
+        except (TypeError, ValueError):
+            return 0
+
     def copiar_productos_activos_y_actualizar(uri: str, db_name: str, coleccion_origen: str, coleccion_destino: str, operation_date: str, equivalence_data: list):
         client = MongoClient(uri)
         db = client[db_name]
 
-        # Campos a excluir en la consulta
         exclusion = {"_id": 0, "image": 0, "description": 0}
         productos_activos = db[coleccion_origen].find({"status": "active"}, exclusion)
-        
+        def safe_float(value, default=1.0):
+            try:
+                return float(value) if value not in [None, '', 'null'] else default
+            except (ValueError, TypeError):
+                return default
         for producto in productos_activos:
-            # Obtiene el SKU del producto
+            # Asegura que no tenga _id
+            producto.pop("_id", None)
+
             sku = producto.get("sku")
             precio_compra_dia = precio_familia_compra(uri, db_name, sku, operation_date)
-            # Encuentra la equivalencia
+
             equivalence_match = next(
                 (
                     item for item in equivalence_data
@@ -273,40 +285,42 @@ def products_history_new(operation_date):
                 ),
                 None
             )
-            # Calcula valores mínimos, máximos y promedio
-            minimoKg = float(equivalence_match["MINIMO"])* float(producto["step_unit_sipsa"])  if equivalence_match else 0
-            maximoKg = float(equivalence_match["MAXIMO"])* float(producto["step_unit_sipsa"])  if equivalence_match else 0
-            promedioKg = float(equivalence_match["PROMEDIO"])* float(producto["step_unit_sipsa"])  if equivalence_match else 0
 
-            # Define el price_purchase según la regla dada
-            if precio_compra_dia != 0:
-                price_purchase = precio_compra_dia  * float(producto["step_unit"])
-            elif promedioKg != 0:
+            step_unit_sipsa = safe_float(producto.get("step_unit_sipsa"))
+            step_unit = float(producto.get("step_unit", 1))
+            factor_volumen = float(producto.get("factor_volumen", 1))
+            margen = float(producto.get("margen", 0))
+
+            minimoKg = safe_round(float(equivalence_match["MINIMO"]) * step_unit_sipsa) if equivalence_match else 0
+            maximoKg = safe_round(float(equivalence_match["MAXIMO"]) * step_unit_sipsa) if equivalence_match else 0
+            promedioKg = safe_round(float(equivalence_match["PROMEDIO"]) * step_unit_sipsa) if equivalence_match else 0
+
+            if precio_compra_dia:
+                price_purchase = precio_compra_dia * step_unit
+            elif promedioKg:
                 price_purchase = maximoKg
             else:
-                price_purchase = producto.get("price_purchase", 0)
+                price_purchase = float(producto.get("price_purchase", 0))
 
-
-            price_purchase = price_purchase * float(producto.get("factor_volumen", 1))
-            margen = producto.get("margen", 0)
+            price_purchase *= factor_volumen
             price_sale = price_purchase * (1 + margen)
 
-            # Actualiza el producto con la información nueva
             producto.update({
                 "operation_date": operation_date,
-                "last_price_purchased": round(precio_compra_dia) if precio_compra_dia else 0,
-                "minimoKg": round(minimoKg),
-                "maximoKg": round(maximoKg),
-                "promedioKg": round(promedioKg),
-                "price_purchase": round(price_purchase),
-                "price_sale": round(price_sale),
-                "last_price_purchase": round(producto.get("price_purchase", 0)),
-                "last_price_sale": round(producto.get("price_sale", 0))
+                "last_price_purchased": safe_round(precio_compra_dia),
+                "minimoKg": minimoKg,
+                "maximoKg": maximoKg,
+                "promedioKg": promedioKg,
+                "price_purchase": safe_round(price_purchase),
+                "price_sale": safe_round(price_sale),
+                "last_price_purchase": safe_round(producto.get("price_purchase", 0)),
+                "last_price_sale": safe_round(producto.get("price_sale", 0))
             })
 
-
-            # Inserta el producto actualizado en la colección de destino
-            db[coleccion_destino].insert_one(producto)
+            try:
+                db[coleccion_destino].insert_one(producto)
+            except Exception as e:
+                print(f"Error insertando producto con SKU {sku}: {e}")
 
         client.close()
         print("Productos actualizados y copiados exitosamente.")

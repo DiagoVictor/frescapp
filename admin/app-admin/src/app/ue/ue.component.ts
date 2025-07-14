@@ -16,8 +16,9 @@ interface UnitEconomicEntry {
 export class UeComponent implements OnInit {
   groupedData: { [fecha: string]: UnitEconomicEntry[] } = {};
   loading = true;
-  fechaInicio: string = '';
-  fechaFin: string = '';
+  fechaInicio: string = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  fechaFin: string = new Date().toISOString().split('T')[0];
+
 
   indicadores = [
     { key: 'gmv', label: 'GMV' },
@@ -87,25 +88,41 @@ export class UeComponent implements OnInit {
     const cogs = this.getResumenMensual(mes, 'cogs');
     return gmv !== 0 ? ((1-((cogs*-1 / gmv))) * 100).toFixed(2) + '%' : 'N/A';
   }
-
+  getMargenBrutoSemanal(semana: string): string {
+    const gmv = this.getResumenSemanal(semana, 'gmv');
+    const cogs = this.getResumenSemanal(semana, 'cogs');
+    return gmv !== 0 ? ((1-((cogs*-1 / gmv))) * 100).toFixed(2) + '%' : 'N/A';
+  }
   getMargenLogisticoMensual(mes: string): string {
     const gmv = this.getResumenMensual(mes, 'gmv');
     const logistics = this.getResumenMensual(mes, 'logistics_cost');
     return gmv !== 0 ? ((logistics / gmv) * 100).toFixed(2) + '%' : 'N/A';
   }
-
+  getMargenLogisticoSemanal(semana: string): string {
+    const gmv = this.getResumenSemanal(semana, 'gmv');
+    const logistics = this.getResumenSemanal(semana, 'logistics_cost');
+    return gmv !== 0 ? ((logistics / gmv) * 100).toFixed(2) + '%' : 'N/A';
+  }
   getAOVMensual(mes: string): string {
     const gmv = this.getResumenMensual(mes, 'gmv');
     const orders = this.getResumenMensual(mes, 'total_orders');
     return orders !== 0 ? (gmv / orders).toFixed(0) : 'N/A';
   }
-
+  getAOVSemanal(semana: string): string {
+    const gmv = this.getResumenSemanal(semana, 'gmv');
+    const orders = this.getResumenSemanal(semana, 'total_orders');
+    return orders !== 0 ? (gmv / orders).toFixed(0) : 'N/A';
+  }
   getAOLMensual(mes: string): string {
     const gmv = this.getResumenMensual(mes, 'gmv');
     const lines = this.getResumenMensual(mes, 'total_lines');
     return lines !== 0 ? (gmv / lines).toFixed(2) : 'N/A';
   }
-
+  getAOLSemanal(semana: string): string {
+    const gmv = this.getResumenSemanal(semana, 'gmv');
+    const lines = this.getResumenSemanal(semana, 'total_lines');
+    return lines !== 0 ? (gmv / lines).toFixed(2) : 'N/A';
+  }
   getAOV(entries: UnitEconomicEntry[]): string {
     const gmv = this.getResumen(entries, 'gmv');
     const orders = this.getResumen(entries, 'total_orders');

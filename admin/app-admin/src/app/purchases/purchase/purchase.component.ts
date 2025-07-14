@@ -25,6 +25,7 @@ export class PurchaseComponent {
   transactionTypes: string[] = ['Efectivo','Crédito'];
   private priceTolerance:number = 1;
   isPriceValid: boolean = true;
+  role: string[] = [];
   constructor(
     private route: ActivatedRoute,
     private purchaseService: PurchaseService,
@@ -37,6 +38,8 @@ export class PurchaseComponent {
   }
 
   ngOnInit(): void {
+    const roleString = localStorage.getItem('role');
+    this.role = roleString ? JSON.parse(roleString) : [];
     this.getPurchase();
     this.supplierService.getSuppliers().subscribe(
       (res: any) => {
@@ -143,5 +146,21 @@ export class PurchaseComponent {
   round(value: number): number {
     // Redondea el número a un entero (una cifra)
     return Math.round(value);
+  }
+  deleteProduct(product: any) {
+    this.purchaseService.deleteProductFromPurchase(this.purchaseNumber, product.sku).subscribe(
+      (res: any) => {
+        this.successMessage = 'Producto eliminado exitosamente.';
+        this.errorMessage = null;
+        this.getPurchase();
+      },
+      (error: any) => {
+        this.successMessage = null;
+        this.errorMessage = 'Error al eliminar el producto.';
+      }
+    );
+  }
+    hasRole(requiredRoles: string[]): boolean {
+    return requiredRoles.some(r => this.role.includes(r));
   }
 }

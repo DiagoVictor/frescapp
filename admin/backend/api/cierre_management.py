@@ -15,6 +15,9 @@ import api.purchase_management as purchase_api
 import api.inventory_management as inventory_api
 import api.ue_management as ue_api
 import time
+from models.product import Product
+from models.product_history import ProductHistory
+
 # Configuración de Flask Blueprint
 cierres_api = Blueprint('cierres', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
@@ -273,7 +276,6 @@ def list_cierres():
         for item in cierres
     ])
 
-
 # Endpoint para obtener un cierre por ID
 @cierres_api.route('/<fecha>/', methods=['GET'])
 def get_cierre(fecha):
@@ -310,10 +312,15 @@ def create_cierre(fecha_in):
             alegra_api.emit_invoice(order["alegra_id"])
             time.sleep(3)  
     # Paso 2: Generar DS de compras del dia en curso
-    purchase = Purchase.get_by_date(fecha_in)
-    if purchase:
-        if purchase.status != "Facturada":
+    fecha_obj = datetime.strptime(fecha_in, "%Y-%m-%d")
+
+    # Si NO es domingo, entonces procesamos la compra
+    if fecha_obj.weekday() != 6:
+        purchase = Purchase.get_by_date(fecha_in)
+        if purchase and purchase.status != "Facturada":
             alegra_api.func_send_purchase(fecha_in)
+    else:
+        print(f"Compra no generada porque {fecha_in} es domingo.")
 
     # Paso 3: Cerrar la ruta
     # rutas = Route.find_by_date(fecha_in)
@@ -343,12 +350,27 @@ def create_cierre(fecha_in):
     inventory = Inventory.get_by_date(fecha_siguiente)
     if inventory:
         inventory.delete()
-    inventory_api.func_create_inventory(fecha_siguiente)
+
+    # Si es domingo, duplicar inventario del sábado
+    fecha_obj = datetime.strptime(fecha_siguiente, "%Y-%m-%d")
+    if fecha_obj.weekday() == 6:  # 6 = domingo
+        sabado = (fecha_obj - timedelta(days=1)).strftime("%Y-%m-%d")
+        inventario_sabado = Inventory.get_by_date(sabado)
+        if inventario_sabado:
+            nuevo_inventario = Inventory(
+                close_date=fecha_siguiente,
+                products=inventario_sabado.products  # copiar tal cual
+            )
+            nuevo_inventario.save()
+            print(f"Inventario duplicado del sábado {sabado} al domingo {fecha_siguiente}")
+        else:
+            print(f"No se encontró inventario del sábado {sabado}")
+    else:
+        inventory_api.func_create_inventory(fecha_siguiente)
 
     # Paso 7: Calcular los datos del cierre
     func_create_cierre(fecha_in)
     return jsonify({"message": "Cierre creado exitosamente"}), 201
-
 
 # Endpoint para editar un cierre existente
 @cierres_api.route('/<id>/', methods=['PUT'])
@@ -389,3 +411,104 @@ def delete_cierre(id):
         return jsonify({"message": "Cierre eliminado"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@cierres_api.route('/validate/<fecha>', methods=['GET'])
+def validate_cierre(fecha):
+    fecha_siguiente = (datetime.strptime(fecha, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+    fecha_obj = datetime.strptime(fecha, "%Y-%m-%d")
+    dias_retroceso = 7 + fecha_obj.weekday()
+    lunes_ocho_dias_atras = (fecha_obj - timedelta(days=dias_retroceso)).strftime("%Y-%m-%d")
+
+    errores = []
+
+    # === COMPRAS ===
+    fecha_obj = datetime.strptime(fecha, "%Y-%m-%d")
+
+    # Si NO es domingo, entonces procesamos la compra
+    if fecha_obj.weekday() != 6:
+        purchase = Purchase.get_by_date(fecha)
+        if purchase.efectivoEntreado <= 0:
+            errores.append({
+                "tipo": "grave",
+                "clasificacion": "compras",
+                "mensaje": f"Compra del {purchase.date} sin efectivo registrado"
+            })
+        for prod in purchase.products:
+            final_price = prod.get("final_price_purchase")
+            if final_price is None or final_price == 0:
+                errores.append({
+                    "tipo": "grave",
+                    "clasificacion": "compras",
+                    "mensaje": f"Producto con precio final nulo o cero en compra del {purchase.date} ({prod.get('name')}: {prod.get('sku')})"
+                })
+
+    # === INVENTARIO ===
+    inventario_hoy = Inventory.get_by_date(fecha)
+    for prod in inventario_hoy.products:
+        quantity = prod.get("quantity", 0) or 0
+        sku = prod.get("sku")
+        if quantity < 0:
+            errores.append({
+                "tipo": "grave",
+                "clasificacion": "inventario",
+                "mensaje": f"Producto con cantidad negativa en inventario ({prod.get('name')}: {sku})"
+            })
+        elif quantity > 100:
+            errores.append({
+                "tipo": "medio",
+                "clasificacion": "inventario",
+                "mensaje": f"Producto con cantidad excesiva (>100) en inventario ({prod.get('name')}: {sku})"
+            })
+
+    # === RUTA ===
+    if fecha_obj.weekday() != 6:
+        ruta = Route.find_by_date(fecha)
+        if ruta.cost <= 0:
+            errores.append({
+                "tipo": "grave",
+                "clasificacion": "ruta",
+                "mensaje": f"Ruta {ruta.close_date} sin costo registrado"
+            })
+        for stop in ruta.stops:
+            if not stop.get("driver_name"):
+                errores.append({
+                    "tipo": "medio",
+                    "clasificacion": "ruta",
+                    "mensaje": f"Parada {stop.get('client_name')} sin conductor en ruta {ruta.close_date}"
+                })
+
+    # === PRECIOS ===
+    products = Product.objects()
+    products_history = ProductHistory.objects(fecha_inicio=lunes_ocho_dias_atras, fecha_fin=lunes_ocho_dias_atras)
+    hist_by_sku = {ph.get("sku"): ph for ph in products_history}
+    for product in products:
+        if product.get("status") == "active":
+            sku = product.get("sku")
+            name = product.get("name", "Sin nombre")
+
+            if not sku:
+                errores.append({
+                    "tipo": "grave",
+                    "clasificacion": "precio",
+                    "mensaje": f"Producto {name} sin SKU"
+                })
+                continue
+
+            historial = hist_by_sku.get(sku)
+            if historial:
+                actual = float(product.get("price_sale", 0))
+                historico = float(historial.get("price_sale", 0))
+                if historico > 0:
+                    diferencia = abs(actual - historico) / historico
+                    if diferencia > 0.30:
+                        errores.append({
+                            "tipo": "medio",
+                            "clasificacion": "precio",
+                            "mensaje": f"Producto {name} - ({sku}) con variación >30% en price_sale: actual={actual}, histórico={historico}"
+                        })
+
+    return jsonify({
+        "fecha": fecha,
+        "errores": errores or [{"tipo": "bajo", "clasificacion": "general", "mensaje": "Todo OK 😎"}]
+    })
+

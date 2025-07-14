@@ -15,7 +15,7 @@ export class CierresService {
     return this.http.get<any[]>(this.baseUrl+'api/cierres/'+fecha+'/');
   }
   updateCierre(cierre:any)  {
-    return this.http.put(`${this.baseUrl}/api/cierres/${cierre.id}`, cierre);
+    return this.http.put(`${this.baseUrl}api/cierres/${cierre.id}`, cierre);
   }
 
   deleteCierre(id: string) {
@@ -30,5 +30,8 @@ export class CierresService {
     } else {
       return this.createCierre(cierre.fecha);
     }
+  }
+  validateCierre(fecha:any): Observable<any> {
+    return this.http.get<any[]>(this.baseUrl+'api/cierres/validate/'+fecha);
   }
 }

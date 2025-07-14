@@ -13,12 +13,14 @@ class Purchase:
                  status=None,
                  products = None,
                  comments =None,
+                efectivoEntreado=0,
                  _id=None):
         self.date = date
         self.purchase_number = purchase_number
         self.status = status
         self.products = products if products is not None else [] 
         self.comments = comments if comments is not None else ""
+        self.efectivoEntreado = efectivoEntreado
         self.id = _id
     @staticmethod
     def total_by_date(fecha):
@@ -43,6 +45,7 @@ class Purchase:
             return Purchase(
                 date=purchase.get("date"),
                 purchase_number=purchase.get("purchase_number"),
+                efectivoEntreado=purchase.get("efectivoEntreado", 0),
                 status=purchase.get("status"),
                 products=purchase.get("products"),
                 comments = purchase.get("comments"),

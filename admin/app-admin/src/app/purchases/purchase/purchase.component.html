@@ -87,12 +87,24 @@
     </div>
   </div>
   <!-- Botón Guardar con Condicional de Activación -->
-  <div class="modal-footer">
+<div class="modal-footer d-flex align-items-center">
+  <button type="button" class="btn btn-link text-danger p-0 me-3"
+    *ngIf="hasRole(['administrador']) && selectedProduct.status != 'Facturada'"
+    (click)="deleteProduct(this.selectedProduct); modal.close('Delete click')">
+    <i class="fa fa-trash"></i>
+  </button>
+
+  <div class="ms-auto d-flex gap-2">
     <button type="button" class="btn btn-secondary" (click)="modal.dismiss('Cancel')">Cancelar</button>
-    <button type="button" class="btn" [ngClass]="{'btn-danger': !isPriceValid, 'btn-primary': isPriceValid}"
-      (click)="savePrice(); modal.close('Save click')" [disabled]="!isPriceValid"
+    <button type="button" class="btn"
+      [ngClass]="{'btn-danger': !isPriceValid, 'btn-primary': isPriceValid}"
+      (click)="savePrice(); modal.close('Save click')"
+      [disabled]="!isPriceValid"
       *ngIf="selectedProduct.status != 'Facturada'">
       Guardar
     </button>
   </div>
+</div>
+
+
 </ng-template>
