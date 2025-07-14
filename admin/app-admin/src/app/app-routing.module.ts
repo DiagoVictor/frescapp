@@ -29,6 +29,7 @@ import { CarteraComponent } from './cartera/cartera.component';
 import { StrikesComponent } from './strikes/strikes/strikes.component';
 import { StrikeComponent } from './strikes/strike/strike.component';
 import { UeComponent } from './ue/ue.component';
+import { PedidosReportComponent } from './pedidos-report/pedidos-report.component';
 
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent, canActivate: [AuthGuard] },
@@ -56,6 +57,7 @@ const routes: Routes = [
   { path: 'strikes', component: StrikesComponent, canActivate: [AuthGuard] },
   { path: 'strike/:id', component: StrikeComponent, canActivate: [AuthGuard] },
   { path: 'ue', component: UeComponent, canActivate: [AuthGuard] },
+  { path: 'pedidos-report', component: PedidosReportComponent, canActivate: [AuthGuard] },
 
   // públicas
   { path: 'login', component: LoginComponent },

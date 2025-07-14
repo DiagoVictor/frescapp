@@ -108,7 +108,6 @@ export class PurchaseComponent {
     this.selectedProduct.proveedor = this.suppliers.find(
       supplier => supplier._id === product.proveedor._id
     );
-    console.log(this.selectedProduct);
   }
 
   savePrice() {

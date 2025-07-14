@@ -97,7 +97,6 @@ export class PurchasesComponent {
   openDetailPurchase(purchase: any) {
     this.purchaseService.getDetailPurchase(purchase.purchase_number).subscribe(
       (data: any) => {
-        console.log(data);
             this.perSellerArray = this.convertToArray(data.per_seller);
     this.perPaymentArray = this.convertToArray(data.per_payment);
       }

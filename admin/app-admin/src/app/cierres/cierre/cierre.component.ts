@@ -55,7 +55,6 @@ export class CierreComponent implements OnInit {
       this.load_top_purchases();
       this.load_top_supplies();
       this.loadPurchasesByStatus();
-      console.log(this.getFacturadoRegistradoPercent());
     });
   }
 load_top_purchases(): void {

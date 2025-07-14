@@ -37,7 +37,7 @@ import { StrikeComponent } from './strikes/strike/strike.component';
 import { StrikesComponent } from './strikes/strikes/strikes.component';
 import { MoneyFormatPipe } from './money-format.pipe';
 import { UeComponent } from './ue/ue.component'; // Importa el componente UE si es necesario
-
+import { PedidosReportComponent } from './pedidos-report/pedidos-report.component'; // Importa el componente de reportes de pedidos
 
 @NgModule({
   declarations: [
@@ -70,7 +70,8 @@ import { UeComponent } from './ue/ue.component'; // Importa el componente UE si 
     CarteraComponent,
     StrikeComponent,
     StrikesComponent,
-    UeComponent
+    UeComponent,
+    PedidosReportComponent
   ],
   bootstrap: [AppComponent],
   imports: [

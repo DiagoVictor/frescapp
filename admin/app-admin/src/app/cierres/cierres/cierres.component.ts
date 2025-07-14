@@ -37,7 +37,6 @@ validarFecha() {
 
   this.cierresService.validateCierre(this.newDate).subscribe({
     next: (res: any) => {
-      console.log("Validación cierre:", res);
       this.validacion = res;
 
       // Bloquea solo si hay errores graves
@@ -45,7 +44,6 @@ validarFecha() {
       this.validacionExitosa = !tieneErroresGraves;
     },
     error: (err) => {
-      console.error("Error al validar cierre:", err);
       this.validacion = {
         errores: [{ tipo: 'grave', mensaje: "Error en la validación" }]
       };
