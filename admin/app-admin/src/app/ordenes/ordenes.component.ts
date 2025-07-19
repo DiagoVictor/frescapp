@@ -387,6 +387,8 @@ getCustomers() {
     }
     return true;
   }
-
+  navigateToOrden(orderNumber: string) {
+    this.router.navigate(['/orden', orderNumber]);
+  }
 }
 

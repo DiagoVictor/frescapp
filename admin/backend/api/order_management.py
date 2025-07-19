@@ -21,7 +21,7 @@ import csv
 from models.product import Product
 from models.customer import Customer
 from models.route import Route
-
+import os,re
 
 
 order_api = Blueprint('order', __name__)
@@ -628,3 +628,161 @@ def download_orders_csv():
     response.headers['Content-Disposition'] = 'inline; filename=orders.csv'
     return response
 
+def limpiar_valor(valor_str):
+    """Limpia el valor, eliminando caracteres no numéricos y formatea como float."""
+    if not valor_str:
+        return 0.0
+    # Reemplaza puntos, comas, símbolos y deja solo números y decimales
+    valor_str = re.sub(r'[^\d,]', '', valor_str)
+    valor_str = valor_str.replace(',', '.')
+    try:
+        return float(valor_str)
+    except ValueError:
+        return 0.0
+
+
+def limpiar_valor(valor_str):
+    if not valor_str:
+        return 0.0
+    valor_str = re.sub(r'[^\d,]', '', valor_str)
+    valor_str = valor_str.replace(',', '.')
+    try:
+        return float(valor_str)
+    except ValueError:
+        return 0.0
+@order_api.route('/order/order_file', methods=['POST'])
+def update_order():
+    print("Actualizando orden desde CSV")
+    try:
+        # Validación de archivo CSV
+        if 'file' not in request.files or 'data' not in request.form:
+            return jsonify({'message': 'Archivo CSV o datos faltantes'}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'message': 'Archivo no seleccionado'}), 400
+
+        # Parsear JSON con datos de la orden
+        data = json.loads(request.form['data'])
+
+        # Leer productos del CSV
+        stream = io.StringIO(file.stream.read().decode("utf-8"))
+        reader = csv.DictReader(stream, delimiter=';')
+
+        productos = []
+        total = 0.0
+
+        for row in reader:
+            sku = row.get('SKU').strip() if row.get('SKU') else ''
+            quantity = limpiar_valor(row.get('CANTIDAD'))
+            price = limpiar_valor(row.get('PRECIO'))
+
+            if not sku:
+                continue
+
+            product = Product.find_by_sku(sku=sku)
+            if not product:
+                continue
+
+            product_dict = product
+            product_dict['quantity'] = quantity
+            product_dict['price_sale'] = price
+            productos.append(product_dict)
+            total += quantity * price
+
+        # Construir objeto Order
+        order = Order(
+            id=data.get('id'),
+            order_number=data.get('order_number'),
+            customer_email=data.get('email') or data.get('customer_email', ''),
+            customer_phone=data.get('phoneNumber') or data.get('customer_phone', ''),
+            customer_documentNumber=(data.get('documentNumber') or data.get('customer_documentNumber') or '').split('-')[0],
+            customer_documentType=data.get('documentType') or data.get('customer_documentType', ''),
+            customer_name=(data.get('customerName') or data.get('customer_name', '')).capitalize(),
+            delivery_date=data.get('deliveryDate') or data.get('delivery_date', ''),
+            status=data.get('status') or 'Creada',
+            created_at=data.get('created_at', None),
+            updated_at=data.get('updated_at', None),
+            products=productos,
+            total=total,
+            deliverySlot=data.get('deliverySlot', '09:00-12:00'),
+            paymentMethod=data.get('paymentMethod', 'Cash'),
+            deliveryAddress=data.get('deliveryAddress', 'Default Address'),
+            deliveryAddressDetails=data.get('deliveryAddressDetails', ''),
+            deliveryCost=data.get('deliveryCost', 0.0),
+            discount=data.get("discount", 0.0),
+            alegra_id=data.get('alegra_id', '000'),
+            open_hour=data.get('open_hour', ''),
+            payment_date=data.get('payment_date', data.get('delivery_date')),
+            driver_name=data.get('driver_name', ''),
+            seller_name=data.get('seller_name', ''),
+            source=data.get('source', 'Aplicación'),
+            totalPayment=0.0,
+            status_payment=data.get('status_payment', 'Pendiente')
+        )
+        print(order.to_json())
+        # Validación mínima
+        # if not order.customer_email or not order.delivery_date:
+        #     return jsonify({'message': 'Campos requeridos faltantes'}), 400
+
+        # # Verificar existencia
+        # existing = Order.find_by_order_number(order.order_number)
+        # if existing:
+        #     order.updated()
+        # else:
+        #     order.save()
+        #     send_order_email(order.order_number, order.customer_email, order.delivery_date, productos, total)
+
+        return jsonify({'message': 'Orden creada exitosamente'}), 201
+
+    except Exception as e:
+        print(f"Error creando orden desde CSV: {e}")
+        return jsonify({'message': str(e)}), 500
+    
+@order_api.route('/order/auto_order/<string:order_number>', methods=['GET'])
+def update_order_from_csv(order_number, filename='clinica_daniel.csv'):
+    try:
+        # Construir ruta al archivo CSV desde el directorio de ejecución
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(current_dir, filename)
+
+        if not os.path.exists(file_path):
+            return jsonify({'message': f'CSV file not found: {filename}'}), 404
+
+        # Buscar la orden existente
+        order = Order.find_by_order_number(order_number=order_number)
+        if not order:
+            return jsonify({'message': f'Order {order_number} not found'}), 404
+
+        # Leer CSV con separador ;
+        with open(file_path, 'r', encoding='utf-8') as csv_file:
+            reader = csv.DictReader(csv_file, delimiter=';')
+
+            updated_products = []
+            total = 0.0
+
+            for row in reader:
+                sku = row.get('SKU').strip() if row.get('SKU') else ''
+                quantity = limpiar_valor(row.get('CANTIDAD'))
+                price = limpiar_valor(row.get('PRECIO'))
+                print(f"Processing SKU: {sku}, Quantity: {quantity}, Price: {price}")
+                if not sku:
+                    continue
+
+                product = Product.find_by_sku(sku=sku)
+                if not product:
+                    continue
+
+                product_dict = product
+                product_dict['quantity'] = quantity
+                product_dict['price_sale'] = price
+                updated_products.append(product_dict)
+                total += quantity * price
+        order.products = updated_products
+        order.updated()
+
+        return jsonify({'message': 'Order updated successfully'}), 200
+
+    except Exception as e:
+        print(f"Error updating order from CSV: {e}")
+        return jsonify({'message': str(e)}), 500

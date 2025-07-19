@@ -38,7 +38,7 @@ import { StrikesComponent } from './strikes/strikes/strikes.component';
 import { MoneyFormatPipe } from './money-format.pipe';
 import { UeComponent } from './ue/ue.component'; // Importa el componente UE si es necesario
 import { PedidosReportComponent } from './pedidos-report/pedidos-report.component'; // Importa el componente de reportes de pedidos
-
+import { OrdenComponent } from './ordenes/orden/orden.component';
 @NgModule({
   declarations: [
     MoneyFormatPipe,
@@ -71,7 +71,8 @@ import { PedidosReportComponent } from './pedidos-report/pedidos-report.componen
     StrikeComponent,
     StrikesComponent,
     UeComponent,
-    PedidosReportComponent
+    PedidosReportComponent,
+    OrdenComponent
   ],
   bootstrap: [AppComponent],
   imports: [
@@ -81,8 +82,8 @@ import { PedidosReportComponent } from './pedidos-report/pedidos-report.componen
     NgSelectModule,
     HttpClientModule,
     ReactiveFormsModule,
-    NgbModule
-  ],
+    NgbModule,
+],
   providers: [DatePipe,{ provide: LocationStrategy, useClass: HashLocationStrategy }],
 })
 export class AppModule { }

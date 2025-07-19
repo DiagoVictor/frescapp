@@ -458,14 +458,16 @@ def get_report_purchase(purchase_number):
     response.headers['Content-Disposition'] = 'inline; filename=compra_num_{}_{}.pdf'.format(purchase_number, str(products[0].get('date')))
     return response
 
+from collections import OrderedDict
+
 @purchase_api.route('/purchase/detail/<string:purchase_number>', methods=['GET'])
 def get_purchase_detail(purchase_number):
     purchase = purchase_collection.find_one({"purchase_number": purchase_number}, {'_id': 0})
     if not purchase:
         return jsonify({"status": "failure", "message": "Purchase not found."}), 404
 
-    per_seller = {}
-    per_payment = {}
+    per_seller = OrderedDict()
+    per_payment = OrderedDict()
 
     for product in purchase.get('products', []):
         proveedor_doc = product.get('proveedor', {})
@@ -477,7 +479,6 @@ def get_purchase_detail(purchase_number):
         cantidad = product.get('total_quantity', 0)
         precio_estimado = product.get('price_purchase', 0)
         precio_real = product.get('final_price_purchase', 0)
-
 
         # ---------- Agrupar por nickname del proveedor ----------
         if proveedor_nickname not in per_seller:
@@ -503,11 +504,27 @@ def get_purchase_detail(purchase_number):
         per_payment[type_transaction]["valor_estimado"] += cantidad * precio_estimado
         per_payment[type_transaction]["valor_real"] += cantidad * precio_real
 
-    # Redondear para presentación
-    for d in (per_seller, per_payment):
-        for key in d:
-            d[key]["valor_estimado"] = round(d[key]["valor_estimado"], 2)
-            d[key]["valor_real"] = round(d[key]["valor_real"], 2)
+    # Redondear y calcular totales al final
+    def calcular_totales(grupo):
+        total = {"cantidad_productos": 0, "valor_estimado": 0.0, "valor_real": 0.0}
+        for key, val in grupo.items():
+            val["valor_estimado"] = round(val["valor_estimado"], 2)
+            val["valor_real"] = round(val["valor_real"], 2)
+            total["cantidad_productos"] += val["cantidad_productos"]
+            total["valor_estimado"] += val["valor_estimado"]
+            total["valor_real"] += val["valor_real"]
+
+        total["valor_estimado"] = round(total["valor_estimado"], 2)
+        total["valor_real"] = round(total["valor_real"], 2)
+        grupo["Total"] = total
+        # Reordenar para poner TOTAL al final
+        items = list(grupo.items())
+        if items[-1][0] == "Total":
+            items.append(items.pop())  # mover al final si no lo está
+        return OrderedDict(items)
+
+    per_seller = calcular_totales(per_seller)
+    per_payment = calcular_totales(per_payment)
 
     return jsonify({
         "purchase_number": purchase.get("purchase_number"),
@@ -515,29 +532,3 @@ def get_purchase_detail(purchase_number):
         "per_seller": per_seller,
         "per_payment": per_payment
     }), 200
-
-@purchase_api.route('/purchase/delete_product', methods=['POST'])
-def delete_product_from_purchase():
-    data = request.get_json()
-    purchase_number = data.get('purchase_number')
-    sku = data.get('sku')
-    if not purchase_number or not sku:
-        return jsonify({"status": "failure", "message": "purchase_number y sku son requeridos."}), 400
-
-    purchase = purchase_collection.find_one({"purchase_number": purchase_number})
-
-    if not purchase:
-        return jsonify({"status": "failure", "message": "Compra no encontrada."}), 404
-
-    original_count = len(purchase['products'])
-    updated_products = [p for p in purchase['products'] if p.get('sku') != sku]
-
-    if len(updated_products) == original_count:
-        return jsonify({"status": "failure", "message": "SKU no encontrado en la compra."}), 404
-
-    purchase_collection.update_one(
-        {"purchase_number": purchase_number},
-        {"$set": {"products": updated_products}}
-    )
-
-    return jsonify({"status": "success", "message": f"Producto {sku} eliminado de la orden {purchase_number}."}), 200

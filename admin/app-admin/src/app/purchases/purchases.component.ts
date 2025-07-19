@@ -26,8 +26,9 @@ export class PurchasesComponent {
   pdfData:any;
   product: any;
   efectivoEntreado: number = 0;
-    perSellerArray: any[] = [];
+  perSellerArray: any[] = [];
   perPaymentArray: any[] = [];
+  dateDetail: string = '';
   constructor(
     private purchaseService: PurchaseService,
     private alegraService: AlegraService,
@@ -97,8 +98,9 @@ export class PurchasesComponent {
   openDetailPurchase(purchase: any) {
     this.purchaseService.getDetailPurchase(purchase.purchase_number).subscribe(
       (data: any) => {
-            this.perSellerArray = this.convertToArray(data.per_seller);
-    this.perPaymentArray = this.convertToArray(data.per_payment);
+        this.perSellerArray = this.convertToArray(data.per_seller);
+        this.perPaymentArray = this.convertToArray(data.per_payment);
+        this.dateDetail = purchase.date;
       }
     );
   }

@@ -8,6 +8,11 @@ interface UnitEconomicEntry {
   variable: string;
 }
 
+interface IndicadorValor {
+  label: string;
+  valores: { periodo: string; valor: string | number }[];
+}
+
 @Component({
   selector: 'app-ue',
   templateUrl: './ue.component.html',
@@ -19,23 +24,18 @@ export class UeComponent implements OnInit {
   fechaInicio: string = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   fechaFin: string = new Date().toISOString().split('T')[0];
 
+  indicadores: IndicadorValor[] = [];
+  indicadoresMensuales: IndicadorValor[] = [];
+  indicadoresSemanales: IndicadorValor[] = [];
+  indicadoresDiarios: IndicadorValor[] = [];
+  a: ((a: IndicadorValor, b: IndicadorValor) => number) | undefined;
 
-  indicadores = [
-    { key: 'gmv', label: 'GMV' },
-    { key: 'cogs', label: 'COGS' },
-    { key: 'cost_others', label: 'Otros Costos' },
-    { key: 'logistics_cost', label: 'Logística' },
-    { key: 'perssonel', label: 'Personal' },
-    { key: 'cost_tech', label: 'Tecnología' },
-    { key: 'total_orders', label: 'Órdenes' },
-    { key: 'total_lines', label: 'Líneas' },
-  ];
-
-  constructor(private unitEconomicsService: UnitEconomicsService) {}
+  constructor(private unitEconomicsService: UnitEconomicsService) { }
 
   ngOnInit(): void {
     this.unitEconomicsService.getUnitEconomics().subscribe(data => {
       this.groupedData = this.groupByDate(data);
+      this.generarIndicadores();
       this.loading = false;
     }, error => {
       console.error('Error fetching unit economics data:', error);
@@ -50,91 +50,6 @@ export class UeComponent implements OnInit {
       acc[fecha].push(item);
       return acc;
     }, {});
-  }
-
-  getResumen(entries: UnitEconomicEntry[], variable: string): number {
-    return entries.filter(e => e.variable === variable)
-                  .reduce((sum, e) => sum + e.valor, 0);
-  }
-
-  getUtilidad(entries: UnitEconomicEntry[]): number {
-    return ['gmv', 'cogs', 'cost_others', 'logistics_cost', 'perssonel', 'cost_tech']
-      .map(v => this.getResumen(entries, v))
-      .reduce((a, b) => a + b, 0);
-  }
-
-  getMargen(entries: UnitEconomicEntry[]): string {
-    const gmv = this.getResumen(entries, 'gmv');
-    const utilidad = this.getUtilidad(entries);
-    return gmv !== 0 ? ((utilidad / gmv) * 100).toFixed(2) + '%' : 'N/A';
-  }
-
-  getMargenBruto(entries: UnitEconomicEntry[]): string {
-    const gmv = this.getResumen(entries, 'gmv');
-    const cogs = this.getResumen(entries, 'cogs');
-    if (gmv === 0) return 'N/A';
-    return ((1-(cogs*-1 / gmv)) * 100).toFixed(2) + '%';
-  }
-
-  getMargenLogistico(entries: UnitEconomicEntry[]): string {
-    const gmv = this.getResumen(entries, 'gmv');
-    const logistics = this.getResumen(entries, 'logistics_cost');
-    if (gmv === 0) return 'N/A';
-    return ((logistics / gmv) * 100).toFixed(2) + '%';
-  }
-
-  getMargenBrutoMensual(mes: string): string {
-    const gmv = this.getResumenMensual(mes, 'gmv');
-    const cogs = this.getResumenMensual(mes, 'cogs');
-    return gmv !== 0 ? ((1-((cogs*-1 / gmv))) * 100).toFixed(2) + '%' : 'N/A';
-  }
-  getMargenBrutoSemanal(semana: string): string {
-    const gmv = this.getResumenSemanal(semana, 'gmv');
-    const cogs = this.getResumenSemanal(semana, 'cogs');
-    return gmv !== 0 ? ((1-((cogs*-1 / gmv))) * 100).toFixed(2) + '%' : 'N/A';
-  }
-  getMargenLogisticoMensual(mes: string): string {
-    const gmv = this.getResumenMensual(mes, 'gmv');
-    const logistics = this.getResumenMensual(mes, 'logistics_cost');
-    return gmv !== 0 ? ((logistics / gmv) * 100).toFixed(2) + '%' : 'N/A';
-  }
-  getMargenLogisticoSemanal(semana: string): string {
-    const gmv = this.getResumenSemanal(semana, 'gmv');
-    const logistics = this.getResumenSemanal(semana, 'logistics_cost');
-    return gmv !== 0 ? ((logistics / gmv) * 100).toFixed(2) + '%' : 'N/A';
-  }
-  getAOVMensual(mes: string): string {
-    const gmv = this.getResumenMensual(mes, 'gmv');
-    const orders = this.getResumenMensual(mes, 'total_orders');
-    return orders !== 0 ? (gmv / orders).toFixed(0) : 'N/A';
-  }
-  getAOVSemanal(semana: string): string {
-    const gmv = this.getResumenSemanal(semana, 'gmv');
-    const orders = this.getResumenSemanal(semana, 'total_orders');
-    return orders !== 0 ? (gmv / orders).toFixed(0) : 'N/A';
-  }
-  getAOLMensual(mes: string): string {
-    const gmv = this.getResumenMensual(mes, 'gmv');
-    const lines = this.getResumenMensual(mes, 'total_lines');
-    return lines !== 0 ? (gmv / lines).toFixed(2) : 'N/A';
-  }
-  getAOLSemanal(semana: string): string {
-    const gmv = this.getResumenSemanal(semana, 'gmv');
-    const lines = this.getResumenSemanal(semana, 'total_lines');
-    return lines !== 0 ? (gmv / lines).toFixed(2) : 'N/A';
-  }
-  getAOV(entries: UnitEconomicEntry[]): string {
-    const gmv = this.getResumen(entries, 'gmv');
-    const orders = this.getResumen(entries, 'total_orders');
-    if (orders === 0) return 'N/A';
-    return (gmv / orders).toFixed(0);
-  }
-
-  getAOL(entries: UnitEconomicEntry[]): string {
-    const lines = this.getResumen(entries, 'total_lines');
-    const gmv = this.getResumen(entries, 'gmv');
-    if (lines === 0) return 'N/A';
-    return (gmv / lines).toFixed(2);
   }
 
   getFechas(): string[] {
@@ -156,26 +71,6 @@ export class UeComponent implements OnInit {
     return Array.from(meses).sort();
   }
 
-  getResumenMensual(mes: string, variable: string): number {
-    return this.getFechas()
-      .filter(f => f.startsWith(mes))
-      .flatMap(f => this.groupedData[f])
-      .filter(e => e.variable === variable)
-      .reduce((sum, e) => sum + e.valor, 0);
-  }
-
-  getUtilidadMensual(mes: string): number {
-    return ['gmv', 'cogs', 'cost_others', 'logistics_cost', 'perssonel', 'cost_tech']
-      .map(v => this.getResumenMensual(mes, v))
-      .reduce((a, b) => a + b, 0);
-  }
-
-  getMargenMensual(mes: string): string {
-    const gmv = this.getResumenMensual(mes, 'gmv');
-    const utilidad = this.getUtilidadMensual(mes);
-    return gmv !== 0 ? ((utilidad / gmv) * 100).toFixed(2) + '%' : 'N/A';
-  }
-
   getSemanas(): string[] {
     const semanas = new Set<string>();
     this.getFechas().forEach(f => {
@@ -187,38 +82,258 @@ export class UeComponent implements OnInit {
     return Array.from(semanas).sort();
   }
 
-  getResumenSemanal(semana: string, variable: string): number {
-    return this.getFechas()
-      .filter(f => this.getSemanaISO(f) === semana)
-      .flatMap(f => this.groupedData[f])
-      .filter(e => e.variable === variable)
-      .reduce((sum, e) => sum + e.valor, 0);
+  getISOWeek(d: Date): number {
+    const date = new Date(d.getTime());
+    date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return weekNo;
   }
 
-  getUtilidadSemanal(semana: string): number {
-    return ['gmv', 'cogs', 'cost_others', 'logistics_cost', 'perssonel', 'cost_tech']
-      .map(v => this.getResumenSemanal(semana, v))
-      .reduce((a, b) => a + b, 0);
-  }
-
-  getMargenSemanal(semana: string): string {
-    const gmv = this.getResumenSemanal(semana, 'gmv');
-    const utilidad = this.getUtilidadSemanal(semana);
-    return gmv !== 0 ? ((utilidad / gmv) * 100).toFixed(2) + '%' : 'N/A';
-  }
-
-  private getSemanaISO(fecha: string): string {
+  getSemanaISO(fecha: string): string {
     const d = new Date(fecha);
     const y = d.getFullYear();
     const w = this.getISOWeek(d);
     return `${y}-W${w.toString().padStart(2, '0')}`;
   }
 
-  private getISOWeek(d: Date): number {
-    const date = new Date(d.getTime());
-    date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
-    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return weekNo;
+  getResumenPorPeriodo(periodo: string, variable: string, tipo: 'mes' | 'semana' | 'dia'): number {
+    return this.getFechas()
+      .filter(f =>
+        tipo === 'mes' ? f.startsWith(periodo) :
+          tipo === 'semana' ? this.getSemanaISO(f) === periodo :
+            f === periodo
+      )
+      .flatMap(f => this.groupedData[f])
+      .filter(e => e.variable === variable)
+      .reduce((sum, e) => sum + e.valor, 0);
+  }
+
+  generarIndicadores() {
+    const variables = [
+      { key: 'gmv', label: '1. GMV', esDinero: true },
+      { key: 'cogs', label: '2. COGS', esDinero: true },
+      { key: 'logistics_cost', label: '4. Costo Logístico', esDinero: true },
+      { key: 'perssonel', label: '5. Costo de Personal', esDinero: true },
+      { key: 'cost_tech', label: '6. Costo de Tecnología', esDinero: true },
+      { key: 'cost_others', label: '7. Otros Costos', esDinero: true },
+      { key: 'total_orders', label: '9.1. Órdenes', esDinero: false },
+      { key: 'total_lines', label: '9.2. Líneas', esDinero: false }
+    ];
+
+    const meses = this.getMeses();
+    const semanas = this.getSemanas();
+    const dias = this.getFechasFiltradas();
+
+    this.indicadoresMensuales = [
+      ...variables.map(v => ({
+        label: v.label,
+        valores: meses.map(m => {
+          const valor = this.getResumenPorPeriodo(m, v.key, 'mes');
+          return {
+            periodo: m,
+            valor: v.esDinero
+              ? valor.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+              : valor
+          };
+        })
+      })),
+      {
+        label: '9.3. AOV',
+        valores: meses.map(m => {
+          const gmv = this.getResumenPorPeriodo(m, 'gmv', 'mes');
+          const orders = this.getResumenPorPeriodo(m, 'total_orders', 'mes') || 1;
+          return {
+            periodo: m,
+            valor: (gmv / orders).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+          };
+        })
+      },
+      {
+        label: '9.4. AOL',
+        valores: meses.map(m => {
+          const gmv = this.getResumenPorPeriodo(m, 'gmv', 'mes');
+          const lines = this.getResumenPorPeriodo(m, 'total_lines', 'mes') || 1;
+          return {
+            periodo: m,
+            valor: (gmv / lines).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+          };
+        })
+      },
+      {
+        label: '3. Margen Bruto',
+        valores: meses.map(m => {
+          const gmv = this.getResumenPorPeriodo(m, 'gmv', 'mes');
+          const cogs = this.getResumenPorPeriodo(m, 'cogs', 'mes');
+          return {
+            periodo: m,
+            valor: gmv ? ((1 - (cogs * -1 / gmv)) * 100).toFixed(2) + '%' : 'N/A'
+          };
+        })
+      },
+      {
+        label: '4.1. Margen Logístico',
+        valores: meses.map(m => {
+          const gmv = this.getResumenPorPeriodo(m, 'gmv', 'mes');
+          const log = this.getResumenPorPeriodo(m, 'logistics_cost', 'mes');
+          return {
+            periodo: m,
+            valor: gmv ? ((log / gmv) * 100).toFixed(2) + '%' : 'N/A'
+          };
+        })
+      },
+      {
+        label: '8. Utilidad Neta',
+        valores: meses.map(m => {
+          const gmv = this.getResumenPorPeriodo(m, 'gmv', 'mes');
+          const cogs = this.getResumenPorPeriodo(m, 'cogs', 'mes');
+          const log = this.getResumenPorPeriodo(m, 'logistics_cost', 'mes');
+          const personnel = this.getResumenPorPeriodo(m, 'perssonel', 'mes');
+          const tech = this.getResumenPorPeriodo(m, 'cost_tech', 'mes');
+          const others = this.getResumenPorPeriodo(m, 'cost_others', 'mes');
+          const utilidadNeta = gmv + cogs + log + personnel + tech + others;
+          return {
+            periodo: m,
+            valor: utilidadNeta.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+          };
+        })
+      },
+      {
+        label: '8.1. Utilidad Neta %',
+        valores: meses.map(m => {
+          const gmv = this.getResumenPorPeriodo(m, 'gmv', 'mes');
+          const cogs = this.getResumenPorPeriodo(m, 'cogs', 'mes');
+          const log = this.getResumenPorPeriodo(m, 'logistics_cost', 'mes');
+          const personnel = this.getResumenPorPeriodo(m, 'perssonel', 'mes');
+          const tech = this.getResumenPorPeriodo(m, 'cost_tech', 'mes');
+          const others = this.getResumenPorPeriodo(m, 'cost_others', 'mes');
+          const utilidadNeta = gmv + cogs + log + personnel + tech + others;
+          return {
+            periodo: m,
+            valor: gmv ? ((utilidadNeta / gmv) * 100).toFixed(2) + '%' : 'N/A'
+          };
+        })
+      }
+    ];
+    this.indicadoresSemanales = [
+      ...variables.map(v => ({
+        label: v.label,
+        valores: semanas.map(s => {
+          const valor = this.getResumenPorPeriodo(s, v.key, 'semana');
+          return {
+            periodo: s,
+            valor: v.esDinero
+              ? valor.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+              : valor
+          };
+        })
+      })),
+      {
+        label: '8.3. AOV',
+        valores: semanas.map(s => {
+          const gmv = this.getResumenPorPeriodo(s, 'gmv', 'semana');
+          const orders = this.getResumenPorPeriodo(s, 'total_orders', 'semana') || 1;
+          return {
+            periodo: s,
+            valor: (gmv / orders).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+          };
+        })
+      },
+      {
+        label: '8.4. AOL',
+        valores: semanas.map(s => {
+          const gmv = this.getResumenPorPeriodo(s, 'gmv', 'semana');
+          const lines = this.getResumenPorPeriodo(s, 'total_lines', 'semana') || 1;
+          return {
+            periodo: s,
+            valor: (gmv / lines).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+          };
+        })
+      },
+      {
+        label: '3. Margen Bruto',
+        valores: semanas.map(s => {
+          const gmv = this.getResumenPorPeriodo(s, 'gmv', 'semana');
+          const cogs = this.getResumenPorPeriodo(s, 'cogs', 'semana');
+          return {
+            periodo: s,
+            valor: gmv ? ((1 - (cogs * -1 / gmv)) * 100).toFixed(2) + '%' : 'N/A'
+          };
+        })
+      },
+      {
+        label: '4.1. Margen Logístico',
+        valores: semanas.map(s => {
+          const gmv = this.getResumenPorPeriodo(s, 'gmv', 'semana');
+          const log = this.getResumenPorPeriodo(s, 'logistics_cost', 'semana');
+          return {
+            periodo: s,
+            valor: gmv ? ((log / gmv) * 100).toFixed(2) + '%' : 'N/A'
+          };
+        })
+      }
+    ];
+    this.indicadoresDiarios = [
+      ...variables.map(v => ({
+        label: v.label,
+        valores: dias.map(d => {
+          const valor = this.getResumenPorPeriodo(d, v.key, 'dia');
+          return {
+            periodo: d,
+            valor: v.esDinero
+              ? valor.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+              : valor
+          };
+        })
+      })),
+      {
+        label: '8.3. AOV',
+        valores: dias.map(d => {
+          const gmv = this.getResumenPorPeriodo(d, 'gmv', 'dia');
+          const orders = this.getResumenPorPeriodo(d, 'total_orders', 'dia') || 1;
+          return {
+            periodo: d,
+            valor: (gmv / orders).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+          };
+        })
+      },
+      {
+        label: '8.4. AOL',
+        valores: dias.map(d => {
+          const gmv = this.getResumenPorPeriodo(d, 'gmv', 'dia');
+          const lines = this.getResumenPorPeriodo(d, 'total_lines', 'dia') || 1;
+          return {
+            periodo: d,
+            valor: (gmv / lines).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+          };
+        })
+      },
+      {
+        label: '3. Margen Bruto',
+        valores: dias.map(d => {
+          const gmv = this.getResumenPorPeriodo(d, 'gmv', 'dia');
+          const cogs = this.getResumenPorPeriodo(d, 'cogs', 'dia');
+          return {
+            periodo: d,
+            valor: gmv ? ((1 - (cogs * -1 / gmv)) * 100).toFixed(2) + '%' : 'N/A'
+          };
+        })
+      },
+      {
+        label: '4.1. Margen Logístico',
+        valores: dias.map(d => {
+          const gmv = this.getResumenPorPeriodo(d, 'gmv', 'dia');
+          const log = this.getResumenPorPeriodo(d, 'logistics_cost', 'dia');
+          return {
+            periodo: d,
+            valor: gmv ? ((log / gmv) * 100).toFixed(2) + '%' : 'N/A'
+          };
+        })
+      }
+    ];
+
+    this.indicadoresMensuales.sort((a, b) => a.label.localeCompare(b.label));
+    this.indicadoresSemanales.sort((a, b) => a.label.localeCompare(b.label));
+    this.indicadoresDiarios.sort((a, b) => a.label.localeCompare(b.label));
   }
 }

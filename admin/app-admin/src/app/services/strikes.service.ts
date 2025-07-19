@@ -48,6 +48,7 @@ export class StrikesService {
       order_number: strike.order_number,
       sku: strike.sku,
       strike_type: strike.strike_type,
+      name: strike.name,
       missing_quantity: strike.missing_quantity,
       detail: strike.detail
     };
@@ -59,6 +60,7 @@ export class StrikesService {
     const payload: any = {};
     if (strike.order_number    != null) payload.order_number    = strike.order_number;
     if (strike.sku            != null) payload.sku             = strike.sku;
+    if (strike.name           != null) payload.name            = strike.name;
     if (strike.strike_type     != null) payload.strike_type     = strike.strike_type;
     if (strike.missing_quantity!= null) payload.missing_quantity= strike.missing_quantity;
     if (strike.detail         != null) payload.detail          = strike.detail;

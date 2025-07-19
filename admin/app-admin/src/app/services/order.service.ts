@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class OrderService {
  private baseUrl = 'https://app.buyfrescapp.com:5000/';
- //private baseUrl = 'http://127.0.0.1:5000/';
+ //private baseUrl = 'http://localhost:5000/';
 
   constructor(private http: HttpClient) { }
 
@@ -34,5 +34,13 @@ export class OrderService {
   }
   getLastOrdersByCustomerId(customerEmail:string): Observable<any> {
     return this.http.get<any>(this.baseUrl+ 'api/order/orders_latest_customer/'+customerEmail);
+  }
+  createOrderFromFile(file: File | null, orderData: any): Observable<any> {
+    const formData = new FormData();
+    if (file) {
+      formData.append('file', file);
+    }
+    formData.append('data', JSON.stringify(orderData));
+    return this.http.post(this.baseUrl + 'api/order/order/order_file', formData);
   }
 }

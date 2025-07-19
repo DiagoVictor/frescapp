@@ -110,24 +110,35 @@
 <div class="modal fade" id="addcomments" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" >Agregar comentario</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">📝 Agregar comentario</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="fecha">Efectivo entregado:</label>
-          <input type="number" class="form-control" id="efectivoEntreado" name="efectivoEntreado" [(ngModel)]="efectivoEntreado">
+
+      <div class="modal-body p-4">
+        <div class="mb-3">
+          <label for="efectivoEntreado" class="form-label">💵 Efectivo entregado:</label>
+          <input type="number" class="form-control" id="efectivoEntreado" name="efectivoEntreado" [(ngModel)]="purchaseSelect.efectivoEntreado" placeholder="Ingresa el valor entregado">
         </div>
-        <input type="text" [(ngModel)]="purchaseSelect.comments" class="form-control">
+
+        <div class="mb-3">
+          <label for="comentario" class="form-label">💬 Comentario:</label>
+          <textarea class="form-control" id="comentario" rows="3" [(ngModel)]="purchaseSelect.comments" placeholder="Escribe aquí tus observaciones..."></textarea>
+        </div>
       </div>
+
       <div class="modal-footer">
-        <button class="btn btn-primary" (click)="comments()">Agregar Comentario</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button class="btn btn-success" (click)="comments()">
+          <i class="fas fa-check-circle me-1"></i>Agregar Comentario
+        </button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times-circle me-1"></i>Cerrar
+        </button>
       </div>
     </div>
   </div>
 </div>
+
 
 <div class="modal fade" id="newPurchase" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
@@ -221,7 +232,7 @@
 
       <div class="modal-header">
         <h5 class="modal-title" id="purchaseDetailModalLabel">
-          Detalle de Compra
+          Detalle de Compra del {{ dateDetail }}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>

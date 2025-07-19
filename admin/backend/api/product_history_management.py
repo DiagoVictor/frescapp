@@ -252,7 +252,6 @@ def products_history_new(operation_date):
         client.close()
         return total_precio / contador if contador > 0 else 0
 
-
     def safe_round(value):
         try:
             return round(float(value))
@@ -294,11 +293,13 @@ def products_history_new(operation_date):
             minimoKg = safe_round(float(equivalence_match["MINIMO"]) * step_unit_sipsa) if equivalence_match else 0
             maximoKg = safe_round(float(equivalence_match["MAXIMO"]) * step_unit_sipsa) if equivalence_match else 0
             promedioKg = safe_round(float(equivalence_match["PROMEDIO"]) * step_unit_sipsa) if equivalence_match else 0
-
-            if precio_compra_dia:
-                price_purchase = precio_compra_dia * step_unit
-            elif promedioKg:
-                price_purchase = maximoKg
+            if producto.get("tipo_pricing") == "Auto":
+                if precio_compra_dia:
+                    price_purchase = precio_compra_dia * step_unit
+                elif promedioKg:
+                    price_purchase = maximoKg
+                else:
+                    price_purchase = float(producto.get("price_purchase", 0))
             else:
                 price_purchase = float(producto.get("price_purchase", 0))
 

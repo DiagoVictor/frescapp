@@ -6,6 +6,11 @@
         <i class="fas fa-plus-circle fa-lg"></i>
         Nueva Orden</button>
     </div>
+        <div class="col-auto">
+      <button type="button" class="btn btn-warning" (click)="navigateToOrden('new')">
+        <i class="fas fa-plus-circle fa-lg"></i>
+        Nueva Orden</button>
+    </div>
     <div class="col-3">
       <input type="text" class="form-control" placeholder="Buscar orden..." [(ngModel)]="searchText"
         (keyup)="filterOrders()">
@@ -88,7 +93,7 @@
         <td>
           <div class="row">
             <div class="col-auto" >
-              <span (click)="openEditModal(order, 'update')" style="cursor: pointer;" data-bs-toggle="modal" *ngIf="order.status == 'Creada'"
+              <span (click)="openEditModal(order, 'update')" style="cursor: pointer;" data-bs-toggle="modal"
                 data-bs-target="#editOrderModal" data-bs-dismiss="modal">
                 <i class="fas fa-pencil-alt fa-lg text-primary"></i>
               </span>
@@ -105,11 +110,11 @@
                 <i class="fas fa-file-pdf fa-lg text-primary"></i>
               </span>
             </div>
-            <!-- <div class="col-auto" *ngIf="order.alegra_id === '000'">
+            <div class="col-auto" *ngIf="order.alegra_id === '000'">
               <span (click)="sync_allegra(order.order_number)" style="cursor: pointer;">
                 <img src="assets/alegra.png" alt="icono" style="width: 24px; height: 24px;" />
               </span>
-            </div> -->
+            </div>
             <div class="col-auto" *ngIf="order.status == 'Creada'">
               <span (click)="delete_order(order.id)" style="cursor: pointer;">
                 <i class="fas fa-trash fa-lg text-danger"></i>

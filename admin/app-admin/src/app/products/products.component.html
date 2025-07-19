@@ -39,6 +39,7 @@
         <th (click)="sortBy('margen')">Margen</th>
         <th (click)="sortBy('step_unit')">Step Unit</th>
         <th (click)="sortBy('factor_volumen')">Factor de Volumen</th>
+        <th>Imagen</th>
         <th >Acciones</th>
       </tr>
     </thead>
@@ -54,6 +55,8 @@
         <td>{{ product.margen }}</td>
         <td>{{ product.step_unit }}</td>
         <td>{{ product.factor_volumen }}</td>
+        <td>
+          <img [src]="product.image" alt="Imagen del producto" class="img-fluid" width="50" height="50  ">
         <td>
           <!-- Utiliza solo el ícono sin el marco del botón -->
           <span (click)="openEditModal(product,'update')" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#editProductModal" data-bs-dismiss="modal">

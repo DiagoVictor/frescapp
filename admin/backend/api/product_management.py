@@ -328,7 +328,7 @@ def list_product_institucion(email):
         wb = Workbook()
         ws = wb.active
         ws.title = "Productos"
-        ws.append(["Nombre", "Unidad", "Categoria", "Precio"])
+        ws.append(["Nombre", "Unidad", "Categoria", "Precio","SKU"])
 
         if not email:
             for p in Product.objects('active'):
@@ -375,7 +375,7 @@ def list_product_institucion(email):
                     unidad = ""
                     categoria = ""
 
-                ws.append([nombre, unidad, categoria, precio_descuento])
+                ws.append([nombre, unidad, categoria, precio_descuento,sku])
 
         return wb
 
