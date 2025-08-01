@@ -20,6 +20,7 @@ import certifi
 import urllib.request
 from datetime import datetime, timedelta
 from models.purchase import Purchase
+from collections import OrderedDict
 
 
 purchase_api = Blueprint('purchase', __name__)
@@ -458,8 +459,6 @@ def get_report_purchase(purchase_number):
     response.headers['Content-Disposition'] = 'inline; filename=compra_num_{}_{}.pdf'.format(purchase_number, str(products[0].get('date')))
     return response
 
-from collections import OrderedDict
-
 @purchase_api.route('/purchase/detail/<string:purchase_number>', methods=['GET'])
 def get_purchase_detail(purchase_number):
     purchase = purchase_collection.find_one({"purchase_number": purchase_number}, {'_id': 0})
@@ -532,3 +531,15 @@ def get_purchase_detail(purchase_number):
         "per_seller": per_seller,
         "per_payment": per_payment
     }), 200
+
+@purchase_api.route('/purchase/<string:purchase_number>/remove-product/<string:sku>', methods=['DELETE'])
+def remove_product_from_purchase(purchase_number, sku):
+    result = purchase_collection.update_one(
+        {"purchase_number": purchase_number},
+        {"$pull": {"products": {"sku": sku}}}
+    )
+
+    if result.modified_count == 0:
+        return jsonify({"status": "failure", "message": "Producto no encontrado o ya fue eliminado."}), 404
+
+    return jsonify({"status": "success", "message": f"Producto con SKU {sku} eliminado de la compra {purchase_number}."}), 200

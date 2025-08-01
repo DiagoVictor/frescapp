@@ -35,6 +35,6 @@ export class PurchaseService {
     return this.http.get<any>(`${this.baseUrl}api/purchase/purchase/detail/${purchase_number}`);
   }
   deleteProductFromPurchase(purchase_number: string, sku: string): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}api/purchase/purchase/delete_product`, {purchase_number: purchase_number, sku : sku});
+    return this.http.delete<any>(`${this.baseUrl}api/purchase/purchase/${purchase_number}/remove-product/${sku}`);
   }
 }

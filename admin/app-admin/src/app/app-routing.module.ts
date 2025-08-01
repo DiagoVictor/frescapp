@@ -2,35 +2,36 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './auth.guard';
 
-import { ProductsComponent } from './products/products.component';
-import { ClientesComponent } from './clientes/clientes.component';
-import { OrdenesComponent } from './ordenes/ordenes.component';
-import { LoginComponent } from './login/login.component';
-import { HomeComponent } from './home/home.component';
-import { ReportsComponent } from './reports/reports.component';
-import { RestorePasswordComponent } from './restore-password/restore-password.component';
-import { DeleteAccountComponent } from './delete-account/delete-account.component';
-import { PurchasesComponent } from './purchases/purchases.component';
-import { PurchaseComponent } from './purchases/purchase/purchase.component';
-import { ListActionnsCustomersComponent } from './crm/list-actionns-customers/list-actionns-customers.component';
-import { EditActionComponent } from './crm/edit-action/edit-action.component';
-import { NewActionComponent } from './crm/new-action/new-action.component';
-import { SuppliersComponent } from './purchases/suppliers/suppliers.component';
-import { StopsComponent } from './ruta/stops/stops.component';
-import { ListRutasComponent } from './ruta/list-rutas/list-rutas.component';
-import { PricingComponent } from './pricing/pricing.component';
-import { CostsComponent } from './costs/costs.component';
-import { InventoryComponent } from './inventory/inventory.component';
-import { EditInventoryComponent } from './inventory/edit-inventory/edit-inventory.component';
-import { CierresComponent } from './cierres/cierres/cierres.component';
-import { CierreComponent } from './cierres/cierre/cierre.component';
-import { ProductsAnalyticsComponent } from './products-analytics/products-analytics.component';
-import { CarteraComponent } from './cartera/cartera.component';
-import { StrikesComponent } from './strikes/strikes/strikes.component';
-import { StrikeComponent } from './strikes/strike/strike.component';
-import { UeComponent } from './ue/ue.component';
-import { PedidosReportComponent } from './pedidos-report/pedidos-report.component';
-import { OrdenComponent } from './ordenes/orden/orden.component';
+import { ProductsComponent } from './components/products/products.component';
+import { ClientesComponent } from './components/clientes/clientes.component';
+import { OrdenesComponent } from './components/ordenes/ordenes.component';
+import { LoginComponent } from './components/login/login.component';
+import { HomeComponent } from './components/home/home.component';
+import { ReportsComponent } from './components/reports/reports.component';
+import { RestorePasswordComponent } from './components/restore-password/restore-password.component';
+import { DeleteAccountComponent } from './components/delete-account/delete-account.component';
+import { PurchasesComponent } from './components/purchases/purchases.component';
+import { PurchaseComponent } from './components/purchases/purchase/purchase.component';
+import { ListActionnsCustomersComponent } from './components/crm/list-actionns-customers/list-actionns-customers.component';
+import { EditActionComponent } from './components/crm/edit-action/edit-action.component';
+import { NewActionComponent } from './components/crm/new-action/new-action.component';
+import { SuppliersComponent } from './components/purchases/suppliers/suppliers.component';
+import { StopsComponent } from './components/ruta/stops/stops.component';
+import { ListRutasComponent } from './components/ruta/list-rutas/list-rutas.component';
+import { PricingComponent } from './components/pricing/pricing.component';
+import { CostsComponent } from './components/costs/costs.component';
+import { InventoryComponent } from './components/inventory/inventory.component';
+import { EditInventoryComponent } from './components/inventory/edit-inventory/edit-inventory.component';
+import { CierresComponent } from './components/cierres/cierres/cierres.component';
+import { CierreComponent } from './components/cierres/cierre/cierre.component';
+import { ProductsAnalyticsComponent } from './components/products-analytics/products-analytics.component';
+import { CarteraComponent } from './components/cartera/cartera.component';
+import { StrikesComponent } from './components/strikes/strikes/strikes.component';
+import { StrikeComponent } from './components/strikes/strike/strike.component';
+import { UeComponent } from './components/ue/ue.component';
+import { PedidosReportComponent } from './components/pedidos-report/pedidos-report.component';
+import { OrdenComponent } from './components/ordenes/orden/orden.component';
+import { InstitucionalComponent } from './components/institucional/institucional.component';
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent, canActivate: [AuthGuard] },
   { path: 'clientes', component: ClientesComponent, canActivate: [AuthGuard] },
@@ -59,6 +60,7 @@ const routes: Routes = [
   { path: 'ue', component: UeComponent, canActivate: [AuthGuard] },
   { path: 'pedidos-report', component: PedidosReportComponent, canActivate: [AuthGuard] },
   { path: 'orden/:id', component: OrdenComponent, canActivate: [AuthGuard] },
+  { path: 'institucional', component: InstitucionalComponent, canActivate: [AuthGuard] },
 
   // públicas
   { path: 'login', component: LoginComponent },
