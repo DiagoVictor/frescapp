@@ -464,19 +464,20 @@ def validate_cierre(fecha):
     # === RUTA ===
     if fecha_obj.weekday() != 6:
         ruta = Route.find_by_date(fecha)
-        if ruta.cost <= 0:
-            errores.append({
-                "tipo": "grave",
-                "clasificacion": "ruta",
-                "mensaje": f"Ruta {ruta.close_date} sin costo registrado"
-            })
-        for stop in ruta.stops:
-            if not stop.get("driver_name"):
+        if ruta is not None:
+            if ruta.cost <= 0:
                 errores.append({
-                    "tipo": "medio",
+                    "tipo": "grave",
                     "clasificacion": "ruta",
-                    "mensaje": f"Parada {stop.get('client_name')} sin conductor en ruta {ruta.close_date}"
+                    "mensaje": f"Ruta {ruta.close_date} sin costo registrado"
                 })
+            for stop in ruta.stops:
+                if not stop.get("driver_name"):
+                    errores.append({
+                        "tipo": "medio",
+                        "clasificacion": "ruta",
+                        "mensaje": f"Parada {stop.get('client_name')} sin conductor en ruta {ruta.close_date}"
+                    })
 
     # === PRECIOS ===
     products = Product.objects()
