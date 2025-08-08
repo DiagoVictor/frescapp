@@ -427,20 +427,21 @@ def validate_cierre(fecha):
     # Si NO es domingo, entonces procesamos la compra
     if fecha_obj.weekday() != 6:
         purchase = Purchase.get_by_date(fecha)
-        if purchase.efectivoEntreado <= 0:
-            errores.append({
-                "tipo": "grave",
-                "clasificacion": "compras",
-                "mensaje": f"Compra del {purchase.date} sin efectivo registrado"
-            })
-        for prod in purchase.products:
-            final_price = prod.get("final_price_purchase")
-            if final_price is None or final_price == 0:
+        if purchase is not None:
+            if purchase.efectivoEntreado<= 0:
                 errores.append({
                     "tipo": "grave",
                     "clasificacion": "compras",
-                    "mensaje": f"Producto con precio final nulo o cero en compra del {purchase.date} ({prod.get('name')}: {prod.get('sku')})"
+                    "mensaje": f"Compra del {purchase.date} sin efectivo registrado"
                 })
+            for prod in purchase.products:
+                final_price = prod.get("final_price_purchase")
+                if final_price is None or final_price == 0:
+                    errores.append({
+                        "tipo": "grave",
+                        "clasificacion": "compras",
+                        "mensaje": f"Producto con precio final nulo o cero en compra del {purchase.date} ({prod.get('name')}: {prod.get('sku')})"
+                    })
 
     # === INVENTARIO ===
     inventario_hoy = Inventory.get_by_date(fecha)
