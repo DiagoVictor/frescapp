@@ -417,7 +417,8 @@ def products_history_new(operation_date):
     filepath = os.path.join(os.path.dirname(__file__), f"sipsaexporta_{operation_date}.xls")
 
 
-    sipsa = obtenerSipsa(operation_date,filepath)
+    #sipsa = obtenerSipsa(operation_date,filepath)
+    sipsa = None
     delete_product_history(operation_date)
     print("Historial de productos eliminado.")
     if sipsa:
