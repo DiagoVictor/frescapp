@@ -120,12 +120,12 @@ def transform_and_send_invoice(order, client, items):
         "client": client_data,
         "purchaseOrderNumber":  str(order["order_number"]),
         "numberTemplate": {
-            "id": "16",
-            "prefix": "FRES",
+            "id": "18",
+            "prefix": "FAPP",
             "number": order["order_number"],
-            "text": "Autorización de numeración de facturación N°18764069939613 de 2024-04-30 Modalidad Factura Electrónica Desde N° FRES1100 hasta FRES3500 con vigencia hasta 2026-04-30",
+            "text": "Autorización de numeración de facturación N° 18764097910620 de 2025-08-31 Modalidad Factura Electrónica Desde N° FAPP2000 hasta FAPP6000 con vigencia hasta 2027-08-31",
             "documentType": "invoice",
-            "fullNumber": f"FRES{order['order_number']}",
+            "fullNumber": f"FAPP{order['order_number']}",
             "formattedNumber": order["order_number"],
             "isElectronic": True
         },
