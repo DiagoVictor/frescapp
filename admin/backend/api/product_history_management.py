@@ -268,6 +268,7 @@ def products_history_new(operation_date):
             try:
                 return float(value) if value not in [None, '', 'null'] else default
             except (ValueError, TypeError):
+                print(f"Warning: Could not convert value '{value}' to float. Using default {default}.")
                 return default
         for producto in productos_activos:
             # Asegura que no tenga _id
@@ -287,7 +288,10 @@ def products_history_new(operation_date):
 
             step_unit_sipsa = safe_float(producto.get("step_unit_sipsa"))
             step_unit = float(producto.get("step_unit", 1))
-            factor_volumen = float(producto.get("factor_volumen", 1))
+            try:
+                factor_volumen = float(producto.get("factor_volumen") or 1)
+            except (TypeError, ValueError):
+                factor_volumen = 1
             margen = float(producto.get("margen", 0))
 
             minimoKg = safe_round(float(equivalence_match["MINIMO"]) * step_unit_sipsa) if equivalence_match else 0
@@ -425,9 +429,13 @@ def products_history_new(operation_date):
         data = extractDataFromExcel(filepath, operation_date)
     else:
         data = []
+    print("Datos extraídos de SIPSA.")
     copiar_productos_activos_y_actualizar(uri, db_name, coleccion_origen, coleccion_destino, operation_date, data)
+    print("Productos copiados y actualizados en products_history.")
     actualizar_precios_en_products(uri, db_name, coleccion_destino, operation_date)
+    print("Precios actualizados en products.")
     update_price_page()
+    print("Precios actualizados en WooCommerce.")
     # if os.path.exists(filepath):
     #     os.remove(filepath)
     return jsonify({"message": "Productos actualizados."}),  200
