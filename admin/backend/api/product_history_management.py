@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from models.product_history import ProductHistory
+from ..models.product_history import ProductHistory
 import json, dump
 from flask_bcrypt import Bcrypt
 from datetime import datetime
@@ -10,7 +10,6 @@ import json, requests
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 import time
-
 
 product_history_api = Blueprint('products_history', __name__)
 

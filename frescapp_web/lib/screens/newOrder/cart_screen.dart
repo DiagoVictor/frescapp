@@ -12,6 +12,8 @@ import 'package:frescapp/models/order.dart' as orden;
 import 'package:frescapp/api_routes.dart';
 import 'package:http/http.dart' as http;
 import 'package:frescapp/screens/login_screen.dart';
+import 'package:frescapp/screens/discounts/descuentos_page.dart';
+import 'package:frescapp/services/cart_service.dart';
 
 class CartScreen extends StatefulWidget {
   final List<Product> productsInCart;
@@ -30,10 +32,11 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   late bool _userActive = false;
+  final NumberFormat _numFmt = NumberFormat('#,###');
+
   @override
   void initState() {
     _checkTokenValidity();
-
     super.initState();
   }
 
@@ -48,19 +51,14 @@ class _CartScreenState extends State<CartScreen> {
       String message =
           'Hola, soy $name y mis datos son:\nEmail: $email\nTeléfono: $phone. Tengo la siguiente duda.';
 
-      // Codificar el mensaje para que se pueda enviar correctamente en la URL
       String encodedMessage = Uri.encodeComponent(message);
-
-      // Construir la URL para abrir WhatsApp con el mensaje predefinido
       String url = 'whatsapp://send?phone=$contactPhone&text=$encodedMessage';
 
-      // Lanzar la URL para abrir WhatsApp
       await launchUrlString(url);
     } catch (error) {
       if (kDebugMode) {
         print('Error opening WhatsApp: $error');
       }
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error al abrir WhatsApp.'),
@@ -92,193 +90,404 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  // Helpers que operan sobre CartService
+  void _increase(Product product) {
+    try {
+      CartService().addProduct(product);
+      setState(() {}); // fuerza re-render con snapshot actualizado
+    } catch (e) {
+      if (kDebugMode) print('Error adding product to cart: $e');
+    }
+  }
+
+  void _decrease(Product product) {
+    try {
+      CartService().removeProduct(product);
+      setState(() {}); // fuerza re-render con snapshot actualizado
+    } catch (e) {
+      if (kDebugMode) print('Error removing product from cart: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Filtra los productos con una cantidad mayor a cero
-    final List<Product> productsWithQuantity = widget.productsInCart
-        .where((product) => product.quantity! > 0)
-        .cast<Product>()
-        .toList();
+    // list snapshot from CartService (source of truth)
+    final List<Product> productsWithQuantity =
+        CartService().items.where((p) => (p.quantity ?? 0) > 0).toList();
 
-    // Calcula el total del pedido
-    double total = 0;
-    for (var product in productsWithQuantity) {
-      total += product.quantity! *
-          product
-              .priceSale!; // Multiplica la cantidad por el precio de venta y lo suma al total
-    }
+    // totals from CartService (accurate with snapshots)
+    final double total = CartService().total;
+    final double totalSavings = CartService().savings;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tu Pedido'),
+        actions: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                onPressed: () {
+                  // Mantén coherencia con HomeScreen: pasar order actualizado
+                  widget.order.products = CartService().items;
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HomeScreen(order: widget.order),
+                    ),
+                  );
+                },
+              ),
+              // contador pequeño opcional: muestra número total de items
+              if (CartService().items.fold<int>(0, (s, p) => s + (p.quantity ?? 0)) >
+                  0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      CartService().items
+                          .fold<int>(0, (s, p) => s + (p.quantity ?? 0))
+                          .toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                )
+            ],
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            ListView.builder(
-              shrinkWrap: true,
-              physics:
-                  const NeverScrollableScrollPhysics(), // Para evitar que el ListView ocupe todo el espacio disponible
-              itemCount: productsWithQuantity.length,
-              itemBuilder: (context, index) {
-                final Product product = productsWithQuantity[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.white,
-                    backgroundImage: NetworkImage(
-                        product.image ?? ''), // Ejemplo: imagen del producto
-                  ),
-                  title: RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                            text: '${product.name ?? ''} - ',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.black)),
-                        TextSpan(
-                            text:
-                                '\nPrecio \$ ${NumberFormat('#,###').format(product.priceSale ?? 0)}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black)),
-                        TextSpan(
-                            text:
-                                '\nSubtotal \$ ${NumberFormat('#,###').format((product.priceSale ?? 0) * (product.quantity ?? 0))}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black))
-                      ],
-                    ),
-                  ),
-                  subtitle: Text(product.category ?? ''),
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return StatefulBuilder(
-                          builder:
-                              (BuildContext context, StateSetter setState) {
-                            return AlertDialog(
-                              title: Text(product.name as String,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18),
-                                  textAlign: TextAlign.center),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Image.network(
-                                    product.image as String,
-                                    height: 200,
-                                    width: 200,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Text(product.name as String,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.center),
-                                  Text(
-                                    ' \$  ${NumberFormat('#,###').format(product.priceSale)}',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Text(product.category as String,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.center),
-                                  // Agregar más atributos aquí según sea necesario
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('Cerrar'),
-                                ),
-                              ],
-                            );
-                          },
+            // Si el carrito está vacío mostramos mensaje
+            if (productsWithQuantity.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  children: [
+                    const Icon(Icons.remove_shopping_cart, size: 64, color: Colors.grey),
+                    const SizedBox(height: 12),
+                    const Text('Tu carrito está vacío',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    TextButton(
+                      onPressed: () {
+                        widget.order.products = CartService().items;
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => HomeScreen(order: widget.order)),
                         );
                       },
-                    );
-                  },
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.remove),
-                        onPressed: () {
-                          setState(() {
-                            if (product.quantity! > 0) {
-                              product.quantity = product.quantity! -
-                                  1; // Disminuye la cantidad del producto
-                            }
-                          });
-                        },
+                      child: const Text('Volver al catálogo'),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: productsWithQuantity.length,
+                itemBuilder: (context, index) {
+                  final Product product = productsWithQuantity[index];
+
+                  final double originalPrice = product.priceSale ?? 0;
+                  final double finalPrice = product.finalPrice ?? originalPrice;
+                  final bool hasDiscount = product.hasDiscount;
+                  final double discountPct = product.savingsPct ?? 0;
+                  final int qty = product.quantity ?? 0;
+                  final double subTotal = finalPrice * qty;
+
+                  return ListTile(
+                    leading: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.white,
+                          backgroundImage: NetworkImage(product.image ?? ''),
+                          // mostrar placeholder si falla
+                          onBackgroundImageError: (_, __) {},
+                        ),
+                        if (hasDiscount)
+                          Positioned(
+                            right: -2,
+                            top: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: const BoxDecoration(
+                                color: Colors.yellow,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '-${discountPct.toInt()}%',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    title: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${product.name ?? ''} - ',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                              color: Colors.black,
+                            ),
+                          ),
+                          if (hasDiscount) ...[
+                            TextSpan(
+                              text:
+                                  '\nPrecio \$ ${_numFmt.format(originalPrice)} ',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                                decoration: TextDecoration.lineThrough,
+                                fontSize: 12,
+                              ),
+                            ),
+                            TextSpan(
+                              text:
+                                  '\$ ${_numFmt.format(finalPrice)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ] else ...[
+                            TextSpan(
+                              text:
+                                  '\nPrecio \$ ${_numFmt.format(originalPrice)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                          TextSpan(
+                            text:
+                                '\nSubtotal \$ ${_numFmt.format(subTotal)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(product.quantity
-                          .toString()), // Muestra la cantidad del producto
-                      IconButton(
-                        icon: const Icon(Icons.add),
-                        onPressed: () {
-                          setState(() {
-                            product.quantity = product.quantity! +
-                                1; // Aumenta la cantidad del producto
-                          });
+                    ),
+                    subtitle: Text(product.category ?? ''),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return StatefulBuilder(
+                            builder:
+                                (BuildContext context, StateSetter setState) {
+                              return AlertDialog(
+                                title: Text(
+                                  product.name ?? "",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Image.network(
+                                      product.image ?? '',
+                                      height: 200,
+                                      width: 200,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        height: 200,
+                                        width: 200,
+                                        color: Colors.grey.shade200,
+                                        child: const Icon(Icons.image_not_supported),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Text(
+                                      product.name ?? "",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    if (hasDiscount)
+                                      Column(
+                                        children: [
+                                          Text(
+                                            '\$ ${_numFmt.format(originalPrice)}',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey,
+                                                decoration:
+                                                    TextDecoration.lineThrough),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          Text(
+                                            '\$ ${_numFmt.format(finalPrice)}',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.green,
+                                                fontSize: 16),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      )
+                                    else
+                                      Text(
+                                        ' \$  ${_numFmt.format(originalPrice)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    Text(
+                                      product.category ?? "",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('Cerrar'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            // Muestra el total del pedido
+                      );
+                    },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove),
+                          onPressed: qty > 0
+                              ? () {
+                                  _decrease(product);
+                                }
+                              : null,
+                        ),
+                        Text(qty.toString()),
+                        IconButton(
+                          icon: const Icon(Icons.add),
+                          onPressed: () {
+                            _increase(product);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+
+            const SizedBox(height: 10),
+
+            // 1. TOTAL
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.only(
+                  top: 16.0, left: 16.0, right: 16.0, bottom: 5.0),
               child: Text(
-                'Total: \$ ${NumberFormat('#,###').format(total)}',
+                'Total: \$ ${_numFmt.format(total)}',
                 style:
                     const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-            if (total < 100000)
-              const Padding(
-                padding: EdgeInsets.only(top: 8.0),
+
+            // 2. AHORRO (CON TEXTO "Ahorraste: $...")
+            if (totalSavings > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'El monto mínimo de la orden debe ser 100,000',
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                  textAlign: TextAlign.center,
+                  'Ahorraste: \$ ${_numFmt.format(totalSavings)}',
+                  style: const TextStyle(
+                      fontSize:
+                          18, // Tamaño ligeramente más grande para resaltar
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green),
                 ),
               ),
-            // Botón para confirmar el pedido
+
+            const SizedBox(height: 10),
+
+            // BOTÓN CONFIRMAR
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
-                onPressed: total >= 100000
+                style: ElevatedButton.styleFrom(
+                  // Esto asegura que el texto sea ROJO cuando el botón está deshabilitado (onPressed es null)
+                  disabledForegroundColor: Colors.red,
+                ),
+                onPressed: total >= 100000 && productsWithQuantity.isNotEmpty
                     ? () {
+                        // Aseguramos que la orden tenga la lista actual del carrito
+                        widget.order.products = CartService().items;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => OrderDetailScreen(
-                                productsInCart: productsWithQuantity,
+                                productsInCart: CartService().items,
                                 order: widget.order),
                           ),
-                        );
+                        ).then((_) {
+                          // refresca tras volver
+                          setState(() {});
+                        });
                       }
                     : null,
-                child: const Text('Confirmar Pedido'),
+                child: Text(
+                  total >= 100000
+                      ? 'Confirmar Pedido'
+                      : 'Mínimo de compra \$ 100.000',
+                  // Si prefieres forzar el estilo del texto directamente:
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: total >= 100000
+                        ? null
+                        : Colors.red, // Rojo explícito si no cumple
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
+
+      // BOTTOM NAV
       bottomNavigationBar: SafeArea(
         child: BottomNavigationBar(
           currentIndex: 0,
           selectedItemColor: Colors.lightGreen.shade900,
           unselectedItemColor: Colors.grey,
+          type: BottomNavigationBarType.fixed,
           items: [
             const BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -300,43 +509,56 @@ class _CartScreenState extends State<CartScreen> {
                 label: 'Perfil',
               ),
             const BottomNavigationBarItem(
+              icon: Icon(Icons.local_offer),
+              label: 'Descuentos',
+            ),
+            const BottomNavigationBarItem(
               icon: Icon(Icons.message_rounded),
               label: 'WhatsApp',
             ),
           ],
           onTap: (int index) {
-            // Lista de funciones para cada botón
-            final actions = [
-              () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => HomeScreen(order: widget.order)),
-                  ),
-              if (_userActive)
-                () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              OrdersScreen(order: widget.order)),
-                    ),
-              if (!_userActive)
-                () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()),
-                    ),
-              if (_userActive)
-                () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              ProfileScreen(order: widget.order)),
-                    ),
-              () => _openWhatsApp(context),
-            ];
+            // Lista de acciones
+            List<VoidCallback> activeActions = [];
 
-            // Ejecutar la acción correspondiente si existe
-            if (index < actions.length && actions[index] != null) {
-              actions[index]();
+            // 0. Inicio
+            activeActions.add(() => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => HomeScreen(order: widget.order))));
+
+            // 1. Pedidos (si activo)
+            if (_userActive) {
+              activeActions.add(() => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          OrdersScreen(order: widget.order))));
+            }
+
+            // 2. Login/Perfil
+            if (!_userActive) {
+              activeActions.add(() => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => LoginScreen())));
+            } else {
+              activeActions.add(() => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          ProfileScreen(order: widget.order))));
+            }
+
+            // 3. Descuentos
+            activeActions.add(() => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const DescuentosPage())));
+
+            // 4. WhatsApp
+            activeActions.add(() => _openWhatsApp(context));
+
+            if (index < activeActions.length) {
+              activeActions[index]();
             }
           },
         ),

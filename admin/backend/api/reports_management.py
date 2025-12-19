@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, send_file, Response
-from models.order import Order
+from ..models.order import Order
 import json
 from flask_bcrypt import Bcrypt
 from datetime import datetime
@@ -20,15 +20,15 @@ from pymongo import MongoClient
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak
 import locale
-from models.customer import Customer
-from models.product import Product
-from models.inventory import Inventory
+from ..models.customer import Customer
+from ..models.product import Product
+from ..models.inventory import Inventory
 from datetime import datetime, timedelta
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 report_api = Blueprint('report', __name__)
-client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
-db = client['frescapp']
+from ..db import get_db
+db = get_db()
 orders_collection = db['orders']  
 products_collection = db['orders']  
 @report_api.route('/picking/<string:startDate>/<string:endDate>', methods=['GET'])

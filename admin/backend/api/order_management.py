@@ -1,5 +1,6 @@
+import io
 from flask import Blueprint, jsonify, request, send_file, Response
-from models.order import Order
+from ..models.order import Order
 import json
 from flask_bcrypt import Bcrypt
 from datetime import datetime
@@ -15,101 +16,132 @@ from flask import Response
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from io import BytesIO
-from utils.email_utils import send_new_order
+from ..utils.email_utils import send_new_order
 from io import StringIO
 import csv
-from models.product import Product
-from models.customer import Customer
-from models.route import Route
+from ..models.product import Product
+from ..models.customer import Customer
+from ..models.route import Route
 import os,re
+from .product_discount_management import _find_applicable_discount_for_product, compute_final_price
 
 
 order_api = Blueprint('order', __name__)
+
 
 @order_api.route('/order', methods=['POST'])
 @order_api.route('/order/<string:order_number>', methods=['POST'])
 def create_order(order_number=None):
     data = request.get_json()
-    id = data.get('id', None)
+    if not data:
+        return jsonify({'message': 'No data provided'}), 400
+
+    # Información del cliente y orden
+    id = data.get('id')
     order_number = data.get('order_number', order_number)
     customer_email = data.get('email') or data.get('customer_email') or ''
-    customer_phone = data.get('phoneNumber') or data.get('customer_phone')  or ''
+    customer_phone = data.get('phoneNumber') or data.get('customer_phone') or ''
     customer_documentNumber = data.get('documentNumber') or data.get('customer_documentNumber') or ''
     customer_documentType = data.get('documentType') or data.get('customer_documentType') or ''
-    customer_name = data.get('customerName') or data.get('customer_name')  or ''
+    customer_name = data.get('customerName') or data.get('customer_name') or ''
     delivery_date = data.get('deliveryDate') or data.get('delivery_date') or ''
     status = data.get('status') or 'Creada'
-    created_at = data.get('created_at', None)
-    updated_at = data.get('updated_at', None)
+    created_at = data.get('created_at')
+    updated_at = data.get('updated_at')
     products = data.get('products', [])
-    total = data.get('total', 0.0)
+
+    if not customer_email or not delivery_date:
+        return jsonify({'message': 'Missing required fields'}), 400
+
+    # Obtener datos del cliente
+    customer = Customer.find_by_email(customer_email)
+    open_hour_customer = customer.get('open_hour', '') if customer else ''
+
+    # --- Aplicar descuentos activos a cada producto ---
+    total = 0.0
+    for product in products:
+        discount, origin = _find_applicable_discount_for_product(product)
+        original_price = float(product.get('price_sale', 0))
+        if discount:
+            #final_price, _ = compute_final_price(original_price, discount)
+            product['price_sale'] = original_price
+            product['applied_discount'] = {
+                "discount_id": str(discount["_id"]),
+                "discount_type": discount.get("discount_type"),
+                "value": discount.get("value"),
+                "origin": origin
+            }
+        else:
+            product['applied_discount'] = None
+        quantity = float(product.get('quantity', 1))
+        total += product['price_sale'] * quantity
+
+    # Otros campos de la orden
     paymentMethod = data.get('paymentMethod', 'Cash')
     deliveryAddress = data.get('deliveryAddress', 'Default Address')
     deliveryAddressDetails = data.get('deliveryAddressDetails') or ''
     deliveryCost = data.get('deliveryCost', 0.0)
-    discount = data.get("discount", 0.0)
+    discount_value = data.get("discount", 0.0)
     alegra_id = data.get('alegra_id','000')
     deliverySlot = data.get('deliverySlot', '09:00-12:00')
-    open_hour = data.get('open_hour', '')
-    payment_date = data.get('payment_date', delivery_date) 
+    payment_date = data.get('payment_date', delivery_date)
     driver_name = data.get('driver_name', '')
     seller_name = data.get('seller_name', '')
     source = data.get('source', 'Aplicación')
     totalPayment = 0.0
     status_payment = data.get('status_payment', 'Pendiente') or 'Pendiente'
-    if not customer_email or not delivery_date:
-        return jsonify({'message': 'Missing required fields'}), 400
-    customer = Customer.find_by_email(customer_email)
-    try:
-        open_hour_customer = customer.get('open_hour','') or ''
-    except:
-        open_hour_customer  =''
+
+    # Crear objeto Order
     order = Order(      
-        id = id,  
-        order_number = order_number,
-        customer_email = customer_email,
-        customer_phone = customer_phone,
-        customer_documentNumber = customer_documentNumber.split('-')[0],
-        customer_documentType = customer_documentType,
-        customer_name = customer_name.capitalize(),
-        delivery_date = delivery_date,
-        status = status,
-        created_at = created_at,
-        updated_at = updated_at,
-        products = products,
-        total = total,
-        deliverySlot = deliverySlot,
-        paymentMethod = paymentMethod,
-        deliveryAddress = deliveryAddress,
-        deliveryAddressDetails = deliveryAddressDetails,
-        deliveryCost = deliveryCost,
-        discount=discount,
-        alegra_id = alegra_id,
+        id=id,
+        order_number=order_number,
+        customer_email=customer_email,
+        customer_phone=customer_phone,
+        customer_documentNumber=customer_documentNumber.split('-')[0],
+        customer_documentType=customer_documentType,
+        customer_name=customer_name.capitalize(),
+        delivery_date=delivery_date,
+        status=status,
+        created_at=created_at,
+        updated_at=updated_at,
+        products=products,
+        total=total,
+        deliverySlot=deliverySlot,
+        paymentMethod=paymentMethod,
+        deliveryAddress=deliveryAddress,
+        deliveryAddressDetails=deliveryAddressDetails,
+        deliveryCost=deliveryCost,
+        discount=discount_value,
+        alegra_id=alegra_id,
         open_hour=open_hour_customer,
         payment_date=payment_date,
         driver_name=driver_name,
         seller_name=seller_name,
         source=source,
-        totalPayment=0.0,
+        totalPayment=totalPayment,
         status_payment=status_payment
     )
-    finded_order = Order.find_by_order_number(order_number=order_number)
-    ruta = Route.find_by_date(delivery_date)
-    if finded_order:
+
+    # Guardar o actualizar orden
+    existing_order = Order.find_by_order_number(order_number)
+    if existing_order:
         order.updated()
     else:
         order.save()
         send_order_email(order_number, customer_email, delivery_date, products, total)
+
+    # Actualizar ruta si existe
+    ruta = Route.find_by_date(delivery_date)
     if ruta:
-        for stop in ruta.get('stops'):
+        for stop in ruta.get('stops', []):
             if stop["order_number"] == order_number:
-                stop["total_charged"] = sum(item['price_sale'] * item['quantity'] for item in order.products)
-                stop["total_to_charge"] = sum(item['price_sale'] * item['quantity'] for item in order.products)
-                stop["quantity_sku"] = len(order.products)
-                stop["payment_method"] = order.paymentMethod
-                stop["payment_date"] = order.payment_date
-                stop["address"] = order.deliveryAddress
-                stop["driver_name"] = order.driver_name
+                stop["total_charged"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
+                stop["total_to_charge"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
+                stop["quantity_sku"] = len(products)
+                stop["payment_method"] = paymentMethod
+                stop["payment_date"] = payment_date
+                stop["address"] = deliveryAddress
+                stop["driver_name"] = driver_name
         route_exist = Route(
             id=ruta['id'],
             route_number=ruta.get('route_number'),
@@ -118,7 +150,14 @@ def create_order(order_number=None):
             stops=ruta.get('stops')
         )
         route_exist.update()
-    return jsonify({'message': 'Order created successfully'}), 201
+
+    return jsonify({
+        'message': 'Order created successfully',
+        'total': total,
+        'products': products
+    }), 200
+
+
 @order_api.route('/order/<string:id>', methods=['DELETE'])
 def delete_order(id=None):
     # Buscar la orden por su ID
@@ -386,244 +425,292 @@ def orders_latest_customer(email):
 
 
 def send_order_email(order_number, customer_email, delivery_date, products, total):
-    subject = f'Orden confirmada - Orden #{order_number}'
+    subject = f'✅ Orden confirmada - #{order_number}'
     orden = Order.find_by_order_number(order_number)
-    # Construir la lista de productos en HTML
-    product_list_html = ""
-    for product in products:
-        subtotal = product['quantity'] * float(product['price_sale'])
-        price_formatted = f'{float(product["price_sale"]):,.2f}'  
-        subtotal_formatted = f'{subtotal:,.2f}'  #
-        product_list_html += f"<tr><td>{product['name']}</td><td style='text-align: center;'>{product['quantity']}</td><td style='text-align: center;'>{price_formatted}</td><td style='text-align: center;'>{subtotal_formatted}</td></tr>"
-    
-    # Construir el mensaje HTML completo
+
+    # Helpers
+    def money(x):
+        try:
+            return f"{float(x):,.2f}"
+        except Exception:
+            return "0.00"
+
+    # Construir filas de productos en HTML
+    product_rows_html = ""
+    for p in products:
+        qty = int(p.get("quantity", 0) or 0)
+        price = float(p.get("finalPrice", 0) or 0)
+        subtotal = qty * price
+
+        name = (p.get("name") or "").strip()
+        product_rows_html += f"""
+        <tr>
+          <td style="padding:12px 14px; border-bottom:1px solid #eef2f7; color:#111827;">
+            {name}
+          </td>
+          <td style="padding:12px 14px; border-bottom:1px solid #eef2f7; text-align:center; color:#111827;">
+            {qty}
+          </td>
+          <td style="padding:12px 14px; border-bottom:1px solid #eef2f7; text-align:right; color:#111827;">
+            ${money(price)}
+          </td>
+          <td style="padding:12px 14px; border-bottom:1px solid #eef2f7; text-align:right; font-weight:700; color:#111827;">
+            ${money(subtotal)}
+          </td>
+        </tr>
+        """
+
+    customer_name = (getattr(orden, "customer_name", "") or "").strip()
+    delivery_address = (getattr(orden, "deliveryAddress", "") or "").strip()
+    delivery_slot = (getattr(orden, "deliverySlot", "") or "").strip()
+
+    # Mensaje HTML mejorado
     html_message = f"""
-    <!DOCTYPE html>
-    <html lang="es" style="height: 100%; position: relative;" height="100%">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <meta content="width=device-width, initial-scale=1.0" name="viewport">
-        <title>Frescapp</title>
-    </head>
-    <body leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0"
-        class="kt-woo-wrap order-items-normal k-responsive-normal title-style-none email-id-new_order"
-        style="height: 100%; position: relative; background-color: #f7f7f7; margin: 0; padding: 0;" height="100%"
-        backgound-color="#f7f7f7">
-        <div id="wrapper" dir="ltr"
-            style="background-color: #f7f7f7; margin: 0; padding: 70px 0 70px 0; width: 100%; padding-top: 70px; padding-bottom: px; -webkit-text-size-adjust: none; "
-            backgound-color="#f7f7f7" width="100%" text-align="center">
-            <table cellpadding="0" cellspacing="0" height="100%" width="100%">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frescapp - Orden confirmada</title>
+</head>
+
+<body style="margin:0; padding:0; background:#f3f4f6; font-family:Arial, Helvetica, sans-serif; color:#111827;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6; padding:28px 12px;">
+    <tr>
+      <td align="center">
+
+        <!-- Contenedor -->
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:14px; overflow:hidden; box-shadow:0 10px 25px rgba(17,24,39,0.08);">
+          
+          <!-- Hero / Banner -->
+          <tr>
+            <td style="background:#97D700;">
+              <a href="https://www.buyfrescapp.com" target="_blank" style="display:block; text-decoration:none;">
+                <img src="https://app.buyfrescapp.com:5000/api/shared/banner1.png"
+                     alt="Frescapp"
+                     width="600"
+                     style="display:block; width:100%; max-width:600px; height:auto; border:0;" />
+              </a>
+            </td>
+          </tr>
+
+          <!-- Encabezado -->
+          <tr>
+            <td style="padding:26px 28px 10px 28px;">
+              <div style="font-size:12px; letter-spacing:1px; text-transform:uppercase; color:#6b7280;">
+                Confirmación de compra
+              </div>
+              <div style="margin-top:6px; font-size:22px; font-weight:800; color:#111827;">
+                ¡Tu orden #{order_number} quedó lista! ✅
+              </div>
+
+              <div style="margin-top:14px; font-size:14px; line-height:1.6; color:#374151;">
+                Hola <b style="color:#111827;">{customer_name}</b>,<br/>
+                Recibimos tu pedido y lo estamos preparando con cariño (y sin bugs, o al menos con pocos 😄).
+              </div>
+            </td>
+          </tr>
+
+          <!-- Tarjeta de entrega -->
+          <tr>
+            <td style="padding:10px 28px 18px 28px;">
+              <table width="100%" cellpadding="0" cellspacing="0"
+                     style="background:#f9fafb; border:1px solid #eef2f7; border-radius:12px;">
                 <tr>
-                    <td text-align="center" vtext-align="top">
-                        <table id="template_header_image_container" style="width: 100%; background-color: transparent;"
-                            width="100%" backgound-color="transparent">
-                            <tr id="template_header_image">
-                                <td text-align="center" vtext-align="middle">
-                                    <table cellpadding="0" cellspacing="0" width="100%" id="template_header_image_table">
-                                        <tr>
-                                            <td text-align="center" vtext-align="middle"
-                                                style="text-text-align: center; padding-top: 0px; padding-bottom: 0px;">
-                                                <p style="margin-bottom: 0; margin-top: 0;"><a
-                                                        href="https://www.buyfrescapp.com" target="_blank"
-                                                        style="font-weight: normal; color: #97d700; display: block; text-decoration: none;"><img
-                                                            src="https://app.buyfrescapp.com:5000/api/shared/banner1.png"
-                                                            alt="Frescapp" width="600"
-                                                            style="border: none; display: inline; font-weight: bold; height: auto; outline: none; text-decoration: none; text-transform: capitalize; font-size: 14px; line-height: 24px; max-width: 100%; width: 600px;"></a>
-                                                </p>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                        <table cellpadding="0" cellspacing="0" width="600" id="template_container"
-                            style="background-color: #fff; overflow: hidden; border-style: solid; border-width: 1px; border-right-width: px; border-bottom-width: px; border-left-width: px; border-color: #dedede; border-radius: 3px; box-shadow: 0 1px 4px 1px rgba(0,0,0,.1);"
-                            backgound-color="#fff">
-                            <tr>
-                                <td text-align="center" vtext-align="top">
-                                    <!-- Header -->
-                                    <table cellpadding="0" cellspacing="0" width="100%" id="template_header"
-                                        style='border-bottom: 0; font-weight: bold; line-height: 100%; vertical-text-align: middle; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; background-color: #97d700; color: #fff;'
-                                        backgound-color="#97d700">
-                                        <tr>
-                                            <td id="header_wrapper"
-                                                style="padding: 36px 48px; text-align: left; background-color: #97D700; color: white; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5;">
-                                                <p style="margin: 0; font-size: 18px; font-weight: bold;">Hola</p>
-                                                <p style="margin: 8px 0; font-size: 22px; font-weight: bold;">{orden.customer_name},</p>
-                                                <p style="margin: 8px 0;">Hemos recibido tu nueva orden y será entregada el {delivery_date} en {orden.deliveryAddress} entre {orden.deliverySlot}.</p>
-                                                <p style="margin: 8px 0;">Será un gusto entregarla. Gracias</p>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    <!-- End Header -->
-                                    <!-- Products List -->
-                                    <table cellpadding="0" cellspacing="0" width="100%" id="template_product_list"
-                                        style="font-family: 'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif; font-size: 14px; line-height: 24px; color: #333; width: 100%;"
-                                        backgound-color="#ffffff">
-                                        <tr>
-                                            <th>Producto</th>
-                                            <th style="text-align: center;">Cantidad</th>
-                                            <th style="text-align: center;">Precio Unitario</th>
-                                            <th style="text-align: center;">Subtotal</th>
-                                        </tr>
-                                        {product_list_html}
-                                    </table>
-                                    <!-- End Products List -->
-                                    <!-- Total -->
-                                    <p style="text-align: right;"><b>Total: </b>{total:,.2f}</p>
-                                    <!-- End Total -->
-                                </td>
-                            </tr>
-                        </table> <!-- End template container -->
-                    </td>
+                  <td style="padding:14px 14px;">
+                    <div style="font-size:14px; font-weight:800; color:#111827; margin-bottom:6px;">
+                      📦 Detalles de entrega
+                    </div>
+                    <div style="font-size:13px; color:#374151; line-height:1.6;">
+                      <b>Fecha:</b> {delivery_date}<br/>
+                      <b>Dirección:</b> {delivery_address}<br/>
+                      <b>Franja:</b> {delivery_slot}
+                    </div>
+                  </td>
                 </tr>
-            </table>
-        </div>
-    </body>
-    </html>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Tabla productos -->
+          <tr>
+            <td style="padding:0 28px 8px 28px;">
+              <div style="font-size:16px; font-weight:800; color:#111827; margin:6px 0 10px;">
+                🧾 Resumen del pedido
+              </div>
+
+              <table width="100%" cellpadding="0" cellspacing="0"
+                     style="border:1px solid #eef2f7; border-radius:12px; overflow:hidden;">
+                <tr style="background:#111827;">
+                  <th align="left" style="padding:12px 14px; font-size:12px; letter-spacing:.5px; text-transform:uppercase; color:#ffffff;">
+                    Producto
+                  </th>
+                  <th align="center" style="padding:12px 14px; font-size:12px; letter-spacing:.5px; text-transform:uppercase; color:#ffffff;">
+                    Cant.
+                  </th>
+                  <th align="right" style="padding:12px 14px; font-size:12px; letter-spacing:.5px; text-transform:uppercase; color:#ffffff;">
+                    Precio
+                  </th>
+                  <th align="right" style="padding:12px 14px; font-size:12px; letter-spacing:.5px; text-transform:uppercase; color:#ffffff;">
+                    Subtotal
+                  </th>
+                </tr>
+
+                {product_rows_html}
+              </table>
+            </td>
+          </tr>
+
+          <!-- Total -->
+          <tr>
+            <td style="padding:10px 28px 22px 28px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="left" style="font-size:13px; color:#6b7280;">
+                    Si necesitas ajustes, respóndenos este correo.
+                  </td>
+                  <td align="right" style="font-size:16px; font-weight:900; color:#111827;">
+                    Total: <span style="color:#16a34a;">${money(total)}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td style="padding:0 28px 26px 28px;">
+              <table width="100%" cellpadding="0" cellspacing="0"
+                     style="background:#97D700; border-radius:12px;">
+                <tr>
+                  <td style="padding:14px 16px; color:#0b1f00; font-size:13px; line-height:1.6;">
+                    <b>Gracias por comprar con Frescapp.</b><br/>
+                    Estamos listos para llevarte frescura de verdad. 🌿
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:18px 28px; background:#f9fafb; border-top:1px solid #eef2f7;">
+              <div style="font-size:12px; color:#6b7280; line-height:1.6;">
+                <b>Frescapp</b> · www.buyfrescapp.com<br/>
+                Soporte: responde a este correo<br/>
+                <span style="color:#9ca3af;">Este mensaje fue generado automáticamente para confirmar tu orden.</span>
+              </div>
+            </td>
+          </tr>
+
+        </table>
+        <!-- Fin contenedor -->
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
     """
-    
-    # Envía el correo
+
     send_new_order(subject, html_message, customer_email)
 
 @order_api.route('/orders/csv', methods=['GET'])
 def download_orders_csv():
-    # Obtener todas las órdenes
     orders_cursor = Order.objects()
-
-    # Crear un objeto StringIO para escribir el CSV en memoria
     csv_file = StringIO()
     csv_writer = csv.writer(csv_file)
 
-    # Escribir la cabecera del CSV
+    # Cabecera
     csv_writer.writerow([
-        "Order ID"
-        , "Order Number"
-        , "Customer Email"
-        , "Customer Phone"
-        ,"Customer Document Number"
-        , "Customer Document Type"
-        , "Customer Name"
-        ,"Delivery Date"
-        , "Status"
-        , "Created At"
-        , "Updated At"
-        , "Total"
-        , "Delivery Slot"
-        , "Payment Method"
-       , "Delivery Address"
-        , "Delivery Address Details"
-        ,"Product SKU"
-        , "Product Name"
-        , "Product Description"
-        , "Product Quantity"
-        ,"Product Price Sale"
-        , "Product Price Purchase"
-        , "Product Category"
-        , "Product Root"
-        , "Product Child"
-        , "Product Discount"
-        , "Product Margen"
-        , "Product IVA"
-        , "Product IVA Value"
-        , "Product Status"
-        , "Product Proveedor"
-        , "Product Step Unit"
+        "Order ID", "Order Number", "Customer Email", "Customer Phone",
+        "Customer Document Number", "Customer Document Type", "Customer Name",
+        "Delivery Date", "Status", "Created At", "Updated At", "Total",
+        "Delivery Slot", "Payment Method", "Delivery Address", "Delivery Address Details",
+        "Product SKU", "Product Name", "Product Description", "Product Quantity",
+        "Product Price Sale", "Product Price Purchase", "Product Category", "Product Root",
+        "Product Child", "Product Discount", "Product Applied Discount",
+        "Product Margen", "Product IVA", "Product IVA Value", "Product Status",
+        "Product Proveedor", "Product Step Unit"
     ])
 
-    # Escribir los datos de las órdenes y productos
     for order in orders_cursor:
         order_id = str(order["_id"])
-        order_number = order["order_number"] if order["order_number"] else order["orderNumber"]
-        customer_email = order["customer_email"] if order["customer_email"] else order["customerEmail"]
-        customer_phone = order["customer_phone"] if order["customer_phone"] else order["customerPhone"]
+        order_number = order.get("order_number") or order.get("orderNumber")
+        customer_email = order.get("customer_email") or order.get("customerEmail")
+        customer_phone = order.get("customer_phone") or order.get("customerPhone")
         customer_document_number = order.get("customer_documentNumber", order.get("customerDocumentNumber", "N/A"))
         customer_document_type = order.get("customer_documentType", order.get("customerDocumentType", "N/A"))
-        customer_name = order["customer_name"] if order["customer_name"] else order["customerName"]
-        delivery_date = order["delivery_date"] if order["delivery_date"] else order["deliveryDate"]
-        status = order["status"]
-        created_at = order["created_at"]
-        updated_at = order["updated_at"]
-        total = order["total"]
-        delivery_slot = order["deliverySlot"]
-        payment_method = order["paymentMethod"]
-        delivery_address = order["deliveryAddress"]
-        delivery_address_details = order["deliveryAddressDetails"]
+        customer_name = order.get("customer_name") or order.get("customerName")
+        delivery_date = order.get("delivery_date") or order.get("deliveryDate")
+        status = order.get("status")
+        created_at = order.get("created_at")
+        updated_at = order.get("updated_at")
+        total = order.get("total")
+        delivery_slot = order.get("deliverySlot")
+        payment_method = order.get("paymentMethod")
+        delivery_address = order.get("deliveryAddress")
+        delivery_address_details = order.get("deliveryAddressDetails")
 
         for product in order["products"]:
             product_sku = product.get("sku", "")
-            product_quantity = product.get("quantity", "")
-            product_price_sale = product.get("price_sale", "")
-            
-            # Buscar el producto en la colección de productos usando el SKU
-            product_data = Product.find_by_sku(sku=product_sku)
-            if product_data:
-                product_name = product_data["name"]
-                product_description = product_data["description"]
-                product_price_purchase = product_data["price_purchase"]
-                product_category = product_data["category"]
-                product_root = product_data["root"]
-                product_child = product_data["child"]
-                product_discount = product_data["discount"]
-                product_margen = product_data["margen"]
-                product_iva = product_data["iva"]
-                product_iva_value = product_data["iva_value"]
-                product_status = product_data["status"]
-                product_proveedor = product_data["proveedor"]
-                product_step_unit = product_data["step_unit"]
-            else:
-                product_name = "Unknown"
-                product_description = "Unknown"
-                product_price_purchase = "N/A"
-                product_category = "N/A"
-                product_root = "N/A"
-                product_child = "N/A"
-                product_discount = "N/A"
-                product_margen = "N/A"
-                product_iva = "N/A"
-                product_iva_value = "N/A"
-                product_status = "N/A"
-                product_proveedor = "N/A"
-                product_step_unit = "N/A"
+            product_quantity = product.get("quantity", 1)
+            product_price_sale = float(product.get('price_sale', 0))
+            applied_discount = product.get('applied_discount', None)
+
+            # Datos del producto desde la colección
+            product_data = Product.find_by_sku(sku=product_sku) or {}
+            product_name = product_data.get("name", "Unknown")
+            product_description = product_data.get("description", "Unknown")
+            product_price_purchase = product_data.get("price_purchase", 0)
+            product_category = product_data.get("category", "N/A")
+            product_root = product_data.get("root", "N/A")
+            product_child = product_data.get("child", "N/A")
+            product_discount = product_data.get("discount", 0)
+            product_margen = product_data.get("margen", 0)
+            product_iva = product_data.get("iva", True)
+            product_iva_value = product_data.get("iva_value", 0)
+            product_status = product_data.get("status", "")
+            product_proveedor = product_data.get("proveedor", "")
+            product_step_unit = product_data.get("step_unit", 1)
 
             csv_writer.writerow([
-                order_id
-                , order_number
-                , customer_email
-                , customer_phone
-                , customer_document_number
-                , customer_document_type
-                , customer_name
-                , delivery_date
-                , status
-                , created_at
-                , updated_at
-                , total
-                , delivery_slot
-                , payment_method
-                , delivery_address
-                , delivery_address_details
-                , product_sku
-                , product_name
-                , product_description
-                , product_quantity
-                , product_price_sale
-                , product_price_purchase
-                , product_category
-                , product_root
-                , product_child
-                , product_discount
-                , product_margen
-                , product_iva
-                , product_iva_value
-                , product_status
-                , product_proveedor
-                , product_step_unit                
+                order_id,
+                order_number,
+                customer_email,
+                customer_phone,
+                customer_document_number,
+                customer_document_type,
+                customer_name,
+                delivery_date,
+                status,
+                created_at,
+                updated_at,
+                total,
+                delivery_slot,
+                payment_method,
+                delivery_address,
+                delivery_address_details,
+                product_sku,
+                product_name,
+                product_description,
+                product_quantity,
+                product_price_sale,
+                product_price_purchase,
+                product_category,
+                product_root,
+                product_child,
+                product_discount,
+                applied_discount,
+                product_margen,
+                product_iva,
+                product_iva_value,
+                product_status,
+                product_proveedor,
+                product_step_unit
             ])
 
     csv_file.seek(0)
-
-    # Crear una respuesta y añadir los headers adecuados
     response = Response(csv_file.getvalue(), mimetype='text/csv')
     response.headers['Content-Disposition'] = 'inline; filename=orders.csv'
     return response
