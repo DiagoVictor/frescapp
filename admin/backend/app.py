@@ -125,13 +125,9 @@ context = (
 )
 
 if __name__ == '__main__':
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("FLASK_DEBUG", "True").lower() == "true"
 
     print(f"🚀 Servidor iniciado en: http://127.0.0.1:{port}")
     app.run(host='0.0.0.0', port=port,  ssl_context=context)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
-
-print("\n🚀 RUTAS REGISTRADAS EN FLASK 🚀")
-for rule in app.url_map.iter_rules():
-    print(f"{rule} | {','.join(rule.methods)}")
