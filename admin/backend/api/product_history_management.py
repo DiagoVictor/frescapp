@@ -11,6 +11,7 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta
 import time
 
+
 product_history_api = Blueprint('products_history', __name__)
 
 @product_history_api.route('/products_history/<string:operation_date_start>/<string:operation_date_end>', methods=['GET'])
