@@ -77,6 +77,10 @@ app.register_blueprint(debug_db_api, url_prefix="/api/debug")
 app.register_blueprint(debug_prod_api)
 app.register_blueprint(admin_api)
 CORS(app)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+SHARED_DIR = os.path.join(BASE_DIR, "shared")
+PRODUCTS_DIR = os.path.join(SHARED_DIR, "products")
 # ---------------------------
 # Ruta raíz
 # ---------------------------
@@ -103,18 +107,11 @@ def test_db():
 # ---------------------------
 @app.route('/api/shared/<path:filename>')
 def serve_static(filename):
-    """
-    Sirve imágenes de productos.
-    """
-    root_dir = os.path.dirname(os.getcwd())
-    products_dir = os.path.join(root_dir, 'backend', 'shared', 'products')
-    file_path = os.path.join(products_dir, filename)
+    file_path = os.path.join(PRODUCTS_DIR, filename)
 
-    if os.path.exists(file_path):
-        return send_from_directory(products_dir, filename)
-    else:
-        return send_from_directory(os.path.join(root_dir, 'backend', 'shared'), 'sin_foto.png')
-
+    if os.path.isfile(file_path):
+        return send_from_directory(PRODUCTS_DIR, filename)
+    return send_from_directory(SHARED_DIR, "sin_foto.png")
 
 # ---------------------------
 # Ejecutar servidor
