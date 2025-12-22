@@ -19,8 +19,8 @@ from ..models.product_history import ProductHistory
 # Configuración de Flask Blueprint
 # Configuración de Flask Blueprint
 cierres_api = Blueprint('cierres', __name__)
-client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
-db = client['frescapp']
+from ..db import get_db
+db = get_db()
 orders_collection = db['orders']
 purchases_collection = db['purchases']
 routes_collection = db['routes']
