@@ -31,8 +31,194 @@ counters_collection = db['counters']
 
 
 def func_create_purchase(date,efectivo=0):
-        return jsonify({"status": "failure", "message": "No products found for the given date."}), 404
-@purchase_api.route('/create/', methods=['POST'])
+    date_object = datetime.strptime(date, "%Y-%m-%d")
+    yesterday = date_object - timedelta(days=1)
+    yesterday_str = yesterday.strftime("%Y-%m-%d")
+    date_str = date
+    pipeline = [ 
+        {
+            "$match": {
+                "delivery_date": date_str
+            }
+        },
+        {
+            "$unwind": "$products"
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "products.sku",
+                "foreignField": "sku",
+                "as": "product_info"
+            }
+        },
+        {
+            "$unwind": "$product_info"
+        },
+        {
+            "$addFields": {
+                "is_child": {"$eq": ["$product_info.root", "0"]},
+                "parent_sku": "$product_info.child",
+                "adjusted_quantity": {
+                    "$cond": {
+                        "if": {"$eq": ["$product_info.root", "0"]},
+                        "then": {"$multiply": ["$products.quantity", "$product_info.step_unit"]},
+                        "else": "$products.quantity"
+                    }
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "sku": {"$cond": [{"$eq": ["$is_child", True]}, "$parent_sku", "$products.sku"]},
+                    "client_name": "$customer_name"
+                },
+                "total_quantity_ordered": {"$sum": "$adjusted_quantity"}
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id.sku",
+                "total_quantity_ordered": {"$sum": "$total_quantity_ordered"},
+                "clients": {
+                    "$push": {
+                        "client_name": "$_id.client_name",
+                        "quantity": "$total_quantity_ordered"
+                    }
+                }
+            }
+        },
+        {
+            "$lookup": {
+                "from": "products",
+                "localField": "_id",
+                "foreignField": "sku",
+                "as": "product_info"
+            }
+        },
+        {
+            "$unwind": "$product_info"
+        },
+        {
+        "$lookup": {
+            "from": "suppliers",
+            "localField": "product_info.proveedor",
+            "foreignField": "nickname",
+            "as": "supplier_info"
+        }
+        },
+        {
+        "$unwind": {
+            "path": "$supplier_info",
+            "preserveNullAndEmptyArrays": True
+        }
+        },
+        {
+        "$addFields": {
+            "supplier_info._id": {
+            "$toString": "$supplier_info._id"
+            }
+        }
+        },
+        {
+            "$lookup": {
+                "from": "inventory",
+                "let": {"sku": "$_id", "close_date": yesterday_str},
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": ["$close_date", "$$close_date"]},
+                                    {"$in": ["$$sku", "$products.sku"]}
+                                ]
+                            }
+                        }
+                    },
+                    {"$unwind": "$products"},
+                    {
+                        "$match": {
+                            "$expr": {"$eq": ["$products.sku", "$$sku"]}
+                        }
+                    },
+                    {
+                        "$project": {
+                            "quantity": "$products.quantity",
+                            "_id": 0
+                        }
+                    }
+                ],
+                "as": "inventory_info"
+            }
+        },
+        {
+            "$addFields": {
+                "inventory": {
+                    "$ifNull": [{"$arrayElemAt": ["$inventory_info.quantity", 0]}, 0]
+                }
+            }
+        },
+        {
+            "$addFields": {
+                "total_quantity": {
+                    "$ceil": {
+                        "$add": [
+                            "$total_quantity_ordered",
+                            {"$ifNull": ["$forecast", 0]},
+                            {"$multiply": ["$inventory", -1]}
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "$match": {
+                "total_quantity": {"$gt": 0}
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "sku": "$_id",
+                "name": "$product_info.name",
+                "total_quantity_ordered": 1,
+                "price_purchase": "$product_info.price_purchase",
+                "forecast": {"$literal": 0},
+                "inventory": 1,
+                "proveedor": "$supplier_info",
+                "type_transaction" : "$supplier_info.type_transaction",
+                "total_quantity": 1,
+                "category": "$product_info.category",
+                "unit": "$product_info.unit",
+                "status": "Creada",
+                "link_document_support": "",
+                "final_price_purchase": {"$literal": 0.0},
+                "clients": 1
+            }
+        }
+    ]
+
+    products = list(orders_collection.aggregate(pipeline))
+    if products:
+        purchase_number = db['counters'].find_one_and_update(
+            {"_id": "purchase_id"},
+            {"$inc": {"sequence_value": 1}},
+            upsert=True,
+            return_document=True
+        )["sequence_value"]
+        purchase_document = {
+            "date": date,
+            "purchase_number": str(purchase_number),
+            "efectivoEntreado": efectivo,
+            "status": "Creada",
+            "products": products,
+            "comments" :""
+        }
+        purchase_collection.insert_one(purchase_document)
+        return jsonify({"status": "success", "message": "Purchase document saved.", "purchase_number": purchase_number}), 201
+    else:
+        return jsonify({"status": "failure", "message": "No products found for the given date."}), 404@purchase_api.route('/create/', methods=['POST'])
 def create_purchase():
     return func_create_purchase(date,efectivo)
 
