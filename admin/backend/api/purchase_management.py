@@ -219,8 +219,10 @@ def func_create_purchase(date,efectivo=0):
         return jsonify({"status": "success", "message": "Purchase document saved.", "purchase_number": purchase_number}), 201
     else:
         return jsonify({"status": "failure", "message": "No products found for the given date."}), 404@purchase_api.route('/create/', methods=['POST'])
+@purchase_api.route('/create/', methods=['POST'])
 def create_purchase():
-    return func_create_purchase(date,efectivo)
+    data = request.get_json()
+    return func_create_purchase(data.get("date"), data.get("efectivoEntregado", 0))
 
 @purchase_api.route('/purchases/', methods=['GET'])
 def list_purchases():
