@@ -128,4 +128,4 @@ if __name__ == '__main__':
     debug = os.getenv("FLASK_DEBUG", "True").lower() == "true"
 
     print(f"🚀 Servidor iniciado en: http://127.0.0.1:{port}")
-    app.run(host='0.0.0.0', port=port,  ssl_context=context)
+    app.run(host='0.0.0.0', port=port, ssl_context=context)
