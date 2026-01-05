@@ -6,8 +6,8 @@ import os
 # ---------------------------
 # Cargar variables de entorno
 # ---------------------------
-#load_dotenv(dotenv_path="/home/ubuntu/frescapp/admin/backend/.env")
-load_dotenv(dotenv_path="C:/Users/Usuario/Documents/frescapp/admin/backend/env")
+load_dotenv(dotenv_path="/home/ubuntu/frescapp/admin/backend/.env")
+#load_dotenv(dotenv_path="C:/Users/Usuario/Documents/frescapp/admin/backend/env")
 
 # ---------------------------
 # Inicializar aplicación Flask
