@@ -311,6 +311,7 @@ def create_cierre(fecha_in):
             alegra_api.func_send_invoice(order["order_number"])
             time.sleep(3)  
     orders = Order.find_by_date(fecha_in,fecha_in)
+    print("Emitiendo facturas en Alegra...")
     for order in orders:
         if order.get("alegra_id") != "000":
             alegra_api.emit_invoice(order["alegra_id"])
@@ -330,7 +331,7 @@ def create_cierre(fecha_in):
     # rutas = Route.find_by_date(fecha_in)
     # for ruta in rutas:
     #     ruta.close_route()
-    
+    print(f"Ruta del {fecha_in} cerrada.")
     # Paso 4: Crear la ruta del dia siguiente
     fecha_siguiente = (datetime.strptime(fecha_in, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
     ruta = Route.find_by_date(fecha_siguiente)
@@ -343,18 +344,18 @@ def create_cierre(fecha_in):
         if order_to_update:
             order_to_update.status = "Ruteada"
             order_to_update.updated()
-    
+    print(f"Ruta del {fecha_siguiente} creada.")
     # Paso 5: Crear la OC del dia siguiente
     purchase = Purchase.get_by_date(fecha_siguiente)
     if purchase:
         purchase.delete()
     purchase_api.func_create_purchase(fecha_siguiente)
-
+    print(f"Orden de compra del {fecha_siguiente} creada.")
     # Paso 6: Crear el inventario del dia siguiente
     inventory = Inventory.get_by_date(fecha_siguiente)
     if inventory:
         inventory.delete()
-
+    print(f"Inventario del {fecha_siguiente} creado.")
     # Si es domingo, duplicar inventario del sábado
     fecha_obj = datetime.strptime(fecha_siguiente, "%Y-%m-%d")
     if fecha_obj.weekday() == 6:  # 6 = domingo

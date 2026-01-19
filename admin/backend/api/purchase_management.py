@@ -218,12 +218,14 @@ def func_create_purchase(date,efectivo=0):
         purchase_collection.insert_one(purchase_document)
         return jsonify({"status": "success", "message": "Purchase document saved.", "purchase_number": purchase_number}), 201
     else:
-        return jsonify({"status": "failure", "message": "No products found for the given date."}), 404@purchase_api.route('/create/', methods=['POST'])
+        return jsonify({"status": "failure", "message": "No products found for the given date."}), 404
 @purchase_api.route('/create/', methods=['POST'])
 def create_purchase():
     data = request.get_json()
     return func_create_purchase(data.get("date"), data.get("efectivoEntregado", 0))
-
+@purchase_api.route('/create/<string:date>', methods=['GET'])
+def create_purchase2(date):
+    return func_create_purchase(date, 0)
 @purchase_api.route('/purchases/', methods=['GET'])
 def list_purchases():
     purchases = list(
