@@ -335,7 +335,8 @@ def generate_remision(id_order):
     total_formatted = locale.format_string('%.2f', total, grouping=True)
     image_path_payment = 'https://buyfrescapp.com/images/medio_pago.png'  # URL o ruta local de la imagen del medio de pago
     payment_image = Image(image_path_payment, width=290, height=100)  # Ajustar tamaño de la imagen
-    product_data.extend([[payment_image,'','','Costo domicilio', order.deliveryCost],
+    costo_domicilio = locale.format_string('%.2f', order.get('deliveryCost', 0.0), grouping=True)
+    product_data.extend([[payment_image,'','','Costo domicilio', costo_domicilio],
         ['', '', '', 'Subtotal', subtotal_formatted],
         ['', '', '', 'Descuentos', descuentos_formatted],
         ['', '', '', 'Total', total_formatted]
