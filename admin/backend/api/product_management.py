@@ -264,7 +264,7 @@ def update_product(product_id):
     product.step_unit_sipsa = step_unit_sipsa or product.step_unit_sipsa
     product.sipsa_id = sipsa_id or product.sipsa_id
     product.tipo_pricing = tipo_pricing or product.tipo_pricing
-    product.updated()
+    product.update()
 
     return jsonify({'message': 'Product updated successfully'}), 200
 

@@ -116,7 +116,7 @@ def transform_and_send_invoice(order, client, items):
         "date": order["delivery_date"],
         "dueDate": order["delivery_date"],
         "datetime": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        "observations": None,
+        "observations": order["deliveryAddress"],
         "anotation": "",
         "termsConditions": "Esta factura se asimila en todos sus efectos a una letra de cambio de conformidad con el Art. 774 del código de comercio. Autorizo que en caso de incumplimiento de esta obligación sea reportado a las centrales de riesgo, se cobraran intereses por mora.",
         "status": "open",

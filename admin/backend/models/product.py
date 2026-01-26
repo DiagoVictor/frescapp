@@ -41,10 +41,12 @@ class Product:
         factor_volumen=None,
         sipsa_id=None,
         last_price_purchase=None,
-
+        step_unit_sipsa=None,
         status="active",
         created_at=None,
         updated_at=None,
+        image=None,
+        quantity=None
     ):
         self.id = str(id) if id else None
 
@@ -69,7 +71,7 @@ class Product:
         self.step_unit = float(step_unit)
 
         self.is_visible = bool(is_visible)
-
+        self.step_unit_sipsa = step_unit_sipsa
         self.tipo_pricing = tipo_pricing
         self.rate_root = rate_root
         self.factor_volumen = factor_volumen
@@ -79,6 +81,8 @@ class Product:
         self.status = status
         self.created_at = created_at or datetime.utcnow()
         self.updated_at = updated_at or datetime.utcnow()
+        self.image = image
+        self.quantity = quantity
 
 
     def to_dict(self):
@@ -185,6 +189,13 @@ class Product:
         if status:
             return products_collection.find({"status": status})
         return products_collection.find()
+    @staticmethod
+    def object(id):
+        product_data = products_collection.find_one({'_id': ObjectId(id) }, {'_id': 0})
+        if product_data:
+            return Product(**product_data)
+        else:
+            return None
     @staticmethod
     def objects_customer(customer_email):
         customers_collection = db["customers"]

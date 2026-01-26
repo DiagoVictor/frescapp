@@ -131,25 +131,25 @@ def create_order(order_number=None):
         send_order_email(order_number, customer_email, delivery_date, products, total)
 
     # Actualizar ruta si existe
-    ruta = Route.find_by_date(delivery_date)
-    if ruta:
-        for stop in ruta.get('stops', []):
-            if stop["order_number"] == order_number:
-                stop["total_charged"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
-                stop["total_to_charge"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
-                stop["quantity_sku"] = len(products)
-                stop["payment_method"] = paymentMethod
-                stop["payment_date"] = payment_date
-                stop["address"] = deliveryAddress
-                stop["driver_name"] = driver_name
-        route_exist = Route(
-            id=ruta['id'],
-            route_number=ruta.get('route_number'),
-            close_date=ruta.get('close_date'),
-            cost=ruta.get('cost'),
-            stops=ruta.get('stops')
-        )
-        route_exist.update()
+    # ruta = Route.find_by_date(delivery_date)
+    # if ruta:
+    #     for stop in ruta.get('stops', []):
+    #         if stop["order_number"] == order_number:
+    #             stop["total_charged"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
+    #             stop["total_to_charge"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
+    #             stop["quantity_sku"] = len(products)
+    #             stop["payment_method"] = paymentMethod
+    #             stop["payment_date"] = payment_date
+    #             stop["address"] = deliveryAddress
+    #             stop["driver_name"] = driver_name
+    #     route_exist = Route(
+    #         id=ruta['id'],
+    #         route_number=ruta.get('route_number'),
+    #         close_date=ruta.get('close_date'),
+    #         cost=ruta.get('cost'),
+    #         stops=ruta.get('stops')
+    #     )
+    #     route_exist.update()
 
     return jsonify({
         'message': 'Order created successfully',

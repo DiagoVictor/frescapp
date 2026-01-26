@@ -6,7 +6,7 @@
         <i class="fas fa-plus-circle fa-lg"></i>
         Nueva Orden</button>
     </div>
-        <div class="col-auto">
+    <div class="col-auto">
       <button type="button" class="btn btn-warning" (click)="navigateToOrden('new')">
         <i class="fas fa-plus-circle fa-lg"></i>
         Nueva Orden</button>
@@ -92,7 +92,7 @@
         <td>{{ order.status }}</td>
         <td>
           <div class="row">
-            <div class="col-auto" >
+            <div class="col-auto">
               <span (click)="openEditModal(order, 'update')" style="cursor: pointer;" data-bs-toggle="modal"
                 data-bs-target="#editOrderModal" data-bs-dismiss="modal">
                 <i class="fas fa-pencil-alt fa-lg text-primary"></i>
@@ -139,186 +139,197 @@
     <div class="modal-content">
       <div class="modal-header d-flex justify-content-between align-items-center">
         <h5 class="modal-title m-0">Editar Orden</h5>
-        <button
-          type="button"
-          class="btn btn-sm btn-outline-secondary ms-2"
-          (click)="toggleHeaderOrder()"
-        >
+        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="toggleHeaderOrder()">
           <i class="bi" [class.bi-chevron-down]="!showHeaderOrder" [class.bi-chevron-up]="showHeaderOrder"></i>
         </button>
       </div>
       <div class="modal-body">
         <div class="container-fluid">
           <div id="headerOrder" [class.d-none]="!showHeaderOrder">
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="documentType">Cliente:</label>
-                <ng-select [items]="customers"   bindLabel="customLabel" bindValue="id" [searchable]="true"
-                  placeholder="Escribe para buscar..." [(ngModel)]="selectedCustomerId" (change)="onCustomerSelect()">
-                </ng-select>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="documentType">Cliente:</label>
+                  <ng-select [items]="customers" bindLabel="customLabel" bindValue="id" [searchable]="true"
+                    placeholder="Escribe para buscar..." [(ngModel)]="selectedCustomerId" (change)="onCustomerSelect()">
+                  </ng-select>
+                </div>
               </div>
-            </div>
 
-            <div class="col-6">
-              <div class="form-group">
-                <label for="order_number">Número de Orden:</label>
-                <input type="text" class="form-control" id="order_number" name="order_number"
-                  [(ngModel)]="order.order_number">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="order_number">Número de Orden:</label>
+                  <input type="text" class="form-control" id="order_number" name="order_number"
+                    [(ngModel)]="order.order_number">
+                </div>
               </div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="customer_email">Email del Cliente:</label>
-                <input type="email" class="form-control" id="customer_email" name="customer_email"
-                  [(ngModel)]="order.customer_email" required>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="customer_email">Email del Cliente:</label>
+                  <input type="email" class="form-control" id="customer_email" name="customer_email"
+                    [(ngModel)]="order.customer_email" required>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="customer_name">Nombre del Cliente:</label>
+                  <input type="text" class="form-control" id="customer_name" name="customer_name"
+                    [(ngModel)]="order.customer_name" required>
+                </div>
               </div>
             </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="customer_name">Nombre del Cliente:</label>
-                <input type="text" class="form-control" id="customer_name" name="customer_name"
-                  [(ngModel)]="order.customer_name" required>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="documentType">Tipo de Documento:</label>
+                  <select class="form-control" id="documentType" name="documentType"
+                    [(ngModel)]="order.customer_documentType">
+                    <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
+                  </select>
+                </div>
               </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="documentType">Tipo de Documento:</label>
-                <select class="form-control" id="documentType" name="documentType"
-                  [(ngModel)]="order.customer_documentType">
-                  <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
-                </select>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="customer_documentNumber">Número de Documento del Cliente:</label>
+                  <input type="text" class="form-control" id="customer_documentNumber" name="customer_documentNumber"
+                    [(ngModel)]="order.customer_documentNumber">
+                </div>
               </div>
-            </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="customer_documentNumber">Número de Documento del Cliente:</label>
-                <input type="text" class="form-control" id="customer_documentNumber" name="customer_documentNumber"
-                  [(ngModel)]="order.customer_documentNumber">
-              </div>
-            </div>
 
-          </div>
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="customer_phone">Teléfono del Cliente:</label>
-                <input type="text" class="form-control" id="customer_phone" name="customer_phone"
-                  [(ngModel)]="order.customer_phone">
-              </div>
             </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="total">Total:</label>
-                <input type="number" class="form-control" id="total" name="total" [(ngModel)]="order.total"
-                  [disabled]="true">
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="customer_phone">Teléfono del Cliente:</label>
+                  <input type="text" class="form-control" id="customer_phone" name="customer_phone"
+                    [(ngModel)]="order.customer_phone">
+                </div>
               </div>
-            </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="discount">Descuento:</label>
+                  <input type="number" class="form-control" id="discount" name="discount" [(ngModel)]="order.discount"
+                    (input)="updated_order()" [disabled]="true">
+                </div>
+              </div>
 
-          </div>
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="delivery_date">Fecha de Entrega:</label>
-                <input type="date" class="form-control" id="delivery_date" name="delivery_date"
-                  [(ngModel)]="order.delivery_date"
-                  [ngClass]="{'is-invalid': order.delivery_date === ''}">
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="subtotal">Subtotal:</label>
+                  <input type="number" class="form-control" id="subtotal" name="subtotal" [(ngModel)]="order.subtotal"
+                    [disabled]="true">
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="total">Total:</label>
+                  <input type="number" class="form-control" id="total" name="total" [(ngModel)]="order.total"
+                    [disabled]="true">
+                </div>
               </div>
             </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="deliverySlot">Horario de Entrega:</label>
-                <select class="form-control" id="deliverySlot" name="deliverySlot" [(ngModel)]="order.deliverySlot"
-                [ngClass]="{'is-invalid': order.deliverySlot === ''}">
-                  <option *ngFor="let slot of deliverySlots" [value]="slot">{{ slot }}</option>
-                </select>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="delivery_date">Fecha de Entrega:</label>
+                  <input type="date" class="form-control" id="delivery_date" name="delivery_date"
+                    [(ngModel)]="order.delivery_date" [ngClass]="{'is-invalid': order.delivery_date === ''}">
+                </div>
               </div>
-            </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="deliverySlot">Horario de Entrega:</label>
+                  <select class="form-control" id="deliverySlot" name="deliverySlot" [(ngModel)]="order.deliverySlot"
+                    [ngClass]="{'is-invalid': order.deliverySlot === ''}">
+                    <option *ngFor="let slot of deliverySlots" [value]="slot">{{ slot }}</option>
+                  </select>
+                </div>
+              </div>
 
-          </div>
-          <div class="row">
+            </div>
+            <div class="row">
 
 
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="paymentMethod">Método de Pago:</label>
+                  <select class="form-control" id="paymentMethod" name="paymentMethod" [(ngModel)]="order.paymentMethod"
+                    [ngClass]="{'is-invalid': order.paymentMethod === ''}">
+                    <option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="payment_date">Fecha de Pago:</label>
+                  <input type="date" class="form-control" id="payment_date" name="payment_date"
+                    [(ngModel)]="order.payment_date">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="deliveryAddress">Dirección de Entrega:</label>
+                  <input type="text" class="form-control" id="deliveryAddress" name="deliveryAddress"
+                    [(ngModel)]="order.deliveryAddress" [ngClass]="{'is-invalid': order.deliveryAddress === ''}">
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="deliveryAddressDetails">Detalles de la Dirección de Entrega:</label>
+                  <input type="text" class="form-control" id="deliveryAddressDetails" name="deliveryAddressDetails"
+                    [(ngModel)]="order.deliveryAddressDetails">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="status">Estado:</label>
+                  <select class="form-control" id="status" name="status" [(ngModel)]="order.status"
+                    [ngClass]="{'is-invalid': order.status === ''}">
+                    <option *ngFor="let statu of statusOrders" [value]="statu">{{ statu }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="status">Vendedor:</label>
+                  <select class="form-control" id="status" name="status" [(ngModel)]="order.seller_name"
+                    [ngClass]="{'is-invalid': order.seller_name === ''}">
+                    <option *ngFor="let sell of seller" [value]="sell">{{ sell }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="status">Fuente:</label>
+                  <select class="form-control" id="status" name="status" [(ngModel)]="order.source"
+                    [ngClass]="{'is-invalid': order.source === ''}">
+                    <option *ngFor="let fuente of source" [value]="fuente">{{ fuente }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label for="status">Conductor:</label>
+                  <select class="form-control" id="status" name="status" [(ngModel)]="order.driver_name"
+                    [ngClass]="{'is-invalid': order.driver_name === ''}">
+                    <option *ngFor="let conductor of driver" [value]="conductor">{{ conductor }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="paymentMethod">Método de Pago:</label>
-                <select class="form-control" id="paymentMethod" name="paymentMethod" [(ngModel)]="order.paymentMethod"
-                [ngClass]="{'is-invalid': order.paymentMethod === ''}">
-                  <option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="payment_date">Fecha de Pago:</label>
-                <input type="date" class="form-control" id="payment_date" name="payment_date"
-                  [(ngModel)]="order.payment_date">
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="deliveryAddress">Dirección de Entrega:</label>
-                <input type="text" class="form-control" id="deliveryAddress" name="deliveryAddress"
-                  [(ngModel)]="order.deliveryAddress" [ngClass]="{'is-invalid': order.deliveryAddress === ''}">
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="deliveryAddressDetails">Detalles de la Dirección de Entrega:</label>
-                <input type="text" class="form-control" id="deliveryAddressDetails" name="deliveryAddressDetails"
-                  [(ngModel)]="order.deliveryAddressDetails">
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="status">Estado:</label>
-                <select class="form-control" id="status" name="status" [(ngModel)]="order.status"
-                [ngClass]="{'is-invalid': order.status === ''}">
-                  <option *ngFor="let statu of statusOrders" [value]="statu">{{ statu }}</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="status">Vendedor:</label>
-                <select class="form-control" id="status" name="status" [(ngModel)]="order.seller_name"
-                [ngClass]="{'is-invalid': order.seller_name === ''}">
-                  <option *ngFor="let sell of seller" [value]="sell">{{ sell }}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="status">Fuente:</label>
-                <select class="form-control" id="status" name="status" [(ngModel)]="order.source"
-                [ngClass]="{'is-invalid': order.source === ''}">
-                  <option *ngFor="let fuente of source" [value]="fuente">{{ fuente }}</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="status">Conductor:</label>
-                <select class="form-control" id="status" name="status" [(ngModel)]="order.driver_name"
-                [ngClass]="{'is-invalid': order.driver_name === ''}">
-                  <option *ngFor="let conductor of driver" [value]="conductor">{{ conductor }}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
           <br><br>
           <div class="row">
             <div class="col-12">
@@ -329,8 +340,8 @@
                     <th>sku</th>
                     <th>Precio Venta</th>
                     <th>Cantidad</th>
-                    <th>IVA</th>
-                    <th>Valor IVA</th>
+                    <th>Decuento</th>
+                    <th>Subtotal</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -341,15 +352,16 @@
                     </ng-select>
                     <td><input type="text" class="form-control" [(ngModel)]="product.sku"></td>
                     <td>
-                      <input
-                        type="number"
-                        class="form-control"
-                        [(ngModel)]="product.price_sale"
-                      >
+                      <input type="number" class="form-control" [(ngModel)]="product.price_sale"
+                        (input)="updated_order()">
                     </td>
-                    <td><input type="number" class="form-control" [(ngModel)]="product.quantity"></td>
-                    <td><input type="checkbox" [(ngModel)]="product.iva"></td>
-                    <td><input type="number" class="form-control" [(ngModel)]="product.iva_value"></td>
+                    <td><input type="number" class="form-control" [(ngModel)]="product.quantity"
+                        (input)="updated_order()"></td>
+                    <td><input type="number" class="form-control" [(ngModel)]="product.discount"
+                        (input)="updated_order()"></td>
+                    <td>
+                      <input type="text" class="form-control" [value]="product.subtotal | currency" disabled>
+                    </td>
                     <td>
                       <button type="button" class="btn btn-sm btn-danger" (click)="removeProduct(product)">
                         <i class="fas fa-trash"></i> <!-- Icono de papelera -->
