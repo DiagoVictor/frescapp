@@ -63,7 +63,7 @@ class Order:
         self.deliveryAddressDetails = deliveryAddressDetails
 
         self.deliveryCost = float(deliveryCost)
-        self.discount = float(discount)
+        self.discount = float(discount or 0.0)
         self.alegra_id = alegra_id
 
         self.open_hour = open_hour
@@ -154,7 +154,7 @@ class Order:
             "seller_name": self.seller_name,
             "source": self.source,
             "totalPayment": self.totalPayment,
-            "status_payment": self.status_payment,
+            "status_payment": self.status_payment
         }
 
     # ----------------------------------------------------

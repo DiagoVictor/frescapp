@@ -217,14 +217,21 @@
 
             </div>
             <div class="row">
-              <div class="col-6">
+                <div class="col-4">
+                <div class="form-group">
+                  <label for="deliveryCost">Costo Domicilio:</label>
+                  <input type="number" class="form-control" id="deliveryCost" name="deliveryCost" [(ngModel)]="order.deliveryCost"
+                    [disabled]="false">
+                </div>
+              </div>
+              <div class="col-4">
                 <div class="form-group">
                   <label for="subtotal">Subtotal:</label>
                   <input type="number" class="form-control" id="subtotal" name="subtotal" [(ngModel)]="order.subtotal"
                     [disabled]="true">
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-4">
                 <div class="form-group">
                   <label for="total">Total:</label>
                   <input type="number" class="form-control" id="total" name="total" [(ngModel)]="order.total"

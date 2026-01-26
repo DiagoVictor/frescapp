@@ -131,25 +131,25 @@ def create_order(order_number=None):
         send_order_email(order_number, customer_email, delivery_date, products, total)
 
     # Actualizar ruta si existe
-    # ruta = Route.find_by_date(delivery_date)
-    # if ruta:
-    #     for stop in ruta.get('stops', []):
-    #         if stop["order_number"] == order_number:
-    #             stop["total_charged"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
-    #             stop["total_to_charge"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
-    #             stop["quantity_sku"] = len(products)
-    #             stop["payment_method"] = paymentMethod
-    #             stop["payment_date"] = payment_date
-    #             stop["address"] = deliveryAddress
-    #             stop["driver_name"] = driver_name
-    #     route_exist = Route(
-    #         id=ruta['id'],
-    #         route_number=ruta.get('route_number'),
-    #         close_date=ruta.get('close_date'),
-    #         cost=ruta.get('cost'),
-    #         stops=ruta.get('stops')
-    #     )
-    #     route_exist.update()
+    ruta = Route.find_by_date(delivery_date)
+    if ruta:
+        for stop in ruta.get('stops', []):
+            if stop["order_number"] == order_number:
+                stop["total_charged"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
+                stop["total_to_charge"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
+                stop["quantity_sku"] = len(products)
+                stop["payment_method"] = paymentMethod
+                stop["payment_date"] = payment_date
+                stop["address"] = deliveryAddress
+                stop["driver_name"] = driver_name
+        route_exist = Route(
+            id=ruta['id'],
+            route_number=ruta.get('route_number'),
+            close_date=ruta.get('close_date'),
+            cost=ruta.get('cost'),
+            stops=ruta.get('stops')
+        )
+        route_exist.update()
 
     return jsonify({
         'message': 'Order created successfully',
@@ -213,7 +213,8 @@ def list_orders(startDate,endDate):
          "driver_name" : order["driver_name"],
          "seller_name" : order["seller_name"],
          "source" : order["source"],
-         "totalPayment" : order["totalPayment"]
+         "totalPayment" : order["totalPayment"],
+         "deliveryCost": order["deliveryCost"], 
          }
         for order in orders_cursor
     ]
@@ -334,7 +335,7 @@ def generate_remision(id_order):
     total_formatted = locale.format_string('%.2f', total, grouping=True)
     image_path_payment = 'https://buyfrescapp.com/images/medio_pago.png'  # URL o ruta local de la imagen del medio de pago
     payment_image = Image(image_path_payment, width=290, height=100)  # Ajustar tamaño de la imagen
-    product_data.extend([[payment_image,'','','',''],
+    product_data.extend([[payment_image,'','','Costo domicilio', order.deliveryCost],
         ['', '', '', 'Subtotal', subtotal_formatted],
         ['', '', '', 'Descuentos', descuentos_formatted],
         ['', '', '', 'Total', total_formatted]
@@ -809,16 +810,16 @@ def update_order():
         )
         print(order.to_json())
         # Validación mínima
-        # if not order.customer_email or not order.delivery_date:
-        #     return jsonify({'message': 'Campos requeridos faltantes'}), 400
+        if not order.customer_email or not order.delivery_date:
+            return jsonify({'message': 'Campos requeridos faltantes'}), 400
 
-        # # Verificar existencia
-        # existing = Order.find_by_order_number(order.order_number)
-        # if existing:
-        #     order.updated()
-        # else:
-        #     order.save()
-        #     send_order_email(order.order_number, order.customer_email, order.delivery_date, productos, total)
+        # Verificar existencia
+        existing = Order.find_by_order_number(order.order_number)
+        if existing:
+            order.updated()
+        else:
+            order.save()
+            send_order_email(order.order_number, order.customer_email, order.delivery_date, productos, total)
 
         return jsonify({'message': 'Orden creada exitosamente'}), 201
 

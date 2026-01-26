@@ -103,12 +103,12 @@ def transform_and_send_invoice(order, client, items):
                 "name": product["name"],
                 "description": "",
                 "price": product["price_sale"],
-                "discount": 0,
+                "discount": product["discount"] if "discount" in product else 0 ,
                 "reference": product["sku"],
                 "quantity": product["quantity"],
                 "unit": "unit",
                 "tax": [],
-                "total": product["price_sale"] * product["quantity"]
+                "total": product["price_sale"] * product["quantity"] * (1 - (product["discount"] / 100) if "discount" in product else 1)
             })
 
     invoice_data = {
@@ -117,7 +117,7 @@ def transform_and_send_invoice(order, client, items):
         "dueDate": order["delivery_date"],
         "datetime": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         "observations": order["deliveryAddress"],
-        "anotation": "",
+        "anotation": order["deliveryAddress"],
         "termsConditions": "Esta factura se asimila en todos sus efectos a una letra de cambio de conformidad con el Art. 774 del código de comercio. Autorizo que en caso de incumplimiento de esta obligación sea reportado a las centrales de riesgo, se cobraran intereses por mora.",
         "status": "open",
         "client": client_data,
@@ -133,10 +133,10 @@ def transform_and_send_invoice(order, client, items):
             "isElectronic": True
         },
         "subtotal": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
-        "discount": order["discount"],
+        "discount": 0,
         "tax": 0,
-        "total": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
-        "totalPaid": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
+        "total": sum(item["price_sale"] * item["quantity"] * (1 - (item["discount"] / 100) if "discount" in item else 1) for item in order["products"]),
+        "totalPaid": sum(item["price_sale"] * item["quantity"] * (1 - (item["discount"] / 100) if "discount" in item else 1) for item in order["products"]),
         "balance": 0,
         "decimalPrecision": "0",
         "warehouse": {
@@ -150,7 +150,7 @@ def transform_and_send_invoice(order, client, items):
         "paymentMethod": "CASH",
         "payments": [
         {
-            "amount": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
+            "amount": sum(item["price_sale"] * item["quantity"] * (1 - (item["discount"] / 100) if "discount" in item else 1) for item in order["products"]),
             "paymentMethod": "cash",
             "date": order["delivery_date"],
             "account": { "id": 1 },

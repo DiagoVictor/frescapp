@@ -123,6 +123,8 @@ export class OrdenesComponent implements OnInit {
   }
   openEditModal(order: any, type: any): void {
     this.order = order;
+    console.log(order);
+    this.updated_order();
     this.actionType = type;
     if (Object.keys(order).length === 0) {
       this.order.order_number = this.order_numer_sug;

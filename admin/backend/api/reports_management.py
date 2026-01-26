@@ -111,7 +111,7 @@ def get_picking(startDate, endDate):
         total_formatted = locale.format_string('%.2f', total, grouping=True)
         image_path_payment = 'https://buyfrescapp.com/images/medio_pago.png'  # URL o ruta local de la imagen del medio de pago
         payment_image = Image(image_path_payment, width=290, height=80)  # Ajustar tamaño de la imagen
-        product_data.extend([[payment_image,'','','',''],
+        product_data.extend([[payment_image,'','','Costo domicilio', order.deliveryCost or '0.00'],
             ['', '', '', 'Subtotal', subtotal_formatted],
             ['', '', '', 'Descuentos', descuentos_formatted],
             ['', '', '', 'Total', total_formatted]
