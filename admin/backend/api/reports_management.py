@@ -103,7 +103,7 @@ def get_picking(startDate, endDate):
             product_row = [sku, name_paragraph, str(quantity)  + "  " + str(product.get('unit', '')), price_sale, total]
             product_data.append(product_row)
 
-        subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order['products']))
+        subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order['products'])) +  order.get('deliveryCost', 0.0)
         descuentos = float(order.get('discount', 0))
         total = subtotal - descuentos
         subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)

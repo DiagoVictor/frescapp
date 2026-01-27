@@ -324,7 +324,7 @@ def generate_remision(id_order):
         product_row = [sku, name_paragraph, str(quantity)  + "  " + str(product.get('unit', '')), price_sale, total]
         product_data.append(product_row)
 
-    subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order.products))
+    subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order.products)) + order.deliveryCost
     try:
         descuentos = float(order.discount)
     except:
@@ -335,7 +335,7 @@ def generate_remision(id_order):
     total_formatted = locale.format_string('%.2f', total, grouping=True)
     image_path_payment = 'https://buyfrescapp.com/images/medio_pago.png'  # URL o ruta local de la imagen del medio de pago
     payment_image = Image(image_path_payment, width=290, height=100)  # Ajustar tamaño de la imagen
-    costo_domicilio = locale.format_string('%.2f', order.get('deliveryCost', 0.0), grouping=True)
+    costo_domicilio = locale.format_string('%.2f', order.deliveryCost, grouping=True)
     product_data.extend([[payment_image,'','','Costo domicilio', costo_domicilio],
         ['', '', '', 'Subtotal', subtotal_formatted],
         ['', '', '', 'Descuentos', descuentos_formatted],
