@@ -126,13 +126,16 @@ def login_admin():
     # --- CÓDIGO NUEVO (MODO DIOS / BYPASS) ---
     try:
         print("📢 INTENTO DE LOGIN ADMIN (BYPASS ACTIVADO)")
-        
+        data = request.json or {}
+        user = (data.get('user') or '').strip().lower()
+        user_data = users_collection.find_one({'user': user})
         # 1. ID falso de MongoDB
         fake_id = "507f1f77bcf86cd799439011"
+        user_data['_id'] = str(user_data['_id'])
 
         # 2. Generar Token
         token_payload = {
-            'user_id': fake_id, 
+            'user_id': user_data['_id'], 
             'role': 'admin', 
             'exp': datetime.utcnow() + timedelta(days=TOKEN_EXP_DAYS)
         }
@@ -144,7 +147,7 @@ def login_admin():
             'message': 'Admin login successful (BYPASS)', 
             'token': token, 
             'user_data': {
-                "_id": fake_id,
+                "_id": user_data['_id'],
                 "user": "admin",
                 "name": "Super Admin",
                 # IMPORTANTE: Array y nombre exacto que espera el Angular
