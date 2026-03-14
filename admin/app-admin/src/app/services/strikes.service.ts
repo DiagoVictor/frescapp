@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Strike {
   id?: string;
@@ -16,8 +17,7 @@ export interface Strike {
   providedIn: 'root'
 })
 export class StrikesService {
-  private baseUrl = 'https://app.buyfrescapp.com:5000/api/strikes';
-  //private baseUrl = 'http://localhost:5000/api/strikes';
+  private baseUrl = environment.apiUrl + 'api/strikes';
 
   constructor(private http: HttpClient) { }
 

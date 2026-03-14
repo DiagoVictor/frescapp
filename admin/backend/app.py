@@ -6,8 +6,8 @@ import os
 # ---------------------------
 # Cargar variables de entorno
 # ---------------------------
-load_dotenv(dotenv_path="/home/ubuntu/frescapp/admin/backend/.env")
-#load_dotenv(dotenv_path="C:/Users/Usuario/Documents/frescapp/admin/backend/env")
+#load_dotenv(dotenv_path="/home/ubuntu/frescapp/admin/backend/.env")
+load_dotenv(dotenv_path="C:/Users/RENTAS 14882/Documents/frescapp/admin/backend/env")
 
 # ---------------------------
 # Inicializar aplicación Flask
@@ -117,10 +117,6 @@ def serve_static(filename):
 # ---------------------------
 # Ejecutar servidor
 # ---------------------------
-context = (
-    '/etc/letsencrypt/live/app.buyfrescapp.com/fullchain.pem',
-    '/etc/letsencrypt/live/app.buyfrescapp.com/privkey.pem'
-)
 
 if __name__ == '__main__':
     CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
@@ -128,4 +124,13 @@ if __name__ == '__main__':
     debug = os.getenv("FLASK_DEBUG", "True").lower() == "true"
 
     print(f"🚀 Servidor iniciado en: http://127.0.0.1:{port}")
-    app.run(host='0.0.0.0', port=port, ssl_context=context)
+    if os.getenv("FLASK_ENV") == "production":
+        print("🔒 Modo producción: Usando SSL/TLS")
+        context = (
+            '/etc/letsencrypt/live/app.buyfrescapp.com/fullchain.pem',
+            '/etc/letsencrypt/live/app.buyfrescapp.com/privkey.pem'
+        )
+        app.run(host='0.0.0.0', port=port, ssl_context=context)
+    else:
+        print("⚠️ Modo desarrollo: No se está usando SSL/TLS")
+        app.run(host='0.0.0.0', port=port)

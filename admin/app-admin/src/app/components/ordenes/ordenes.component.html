@@ -6,11 +6,11 @@
         <i class="fas fa-plus-circle fa-lg"></i>
         Nueva Orden</button>
     </div>
-    <div class="col-auto">
+    <!-- <div class="col-auto">
       <button type="button" class="btn btn-warning" (click)="navigateToOrden('new')">
         <i class="fas fa-plus-circle fa-lg"></i>
         Nueva Orden</button>
-    </div>
+    </div> -->
     <div class="col-3">
       <input type="text" class="form-control" placeholder="Buscar orden..." [(ngModel)]="searchText"
         (keyup)="filterOrders()">
@@ -22,7 +22,6 @@
       <input type="date" class="form-control" [(ngModel)]="searchEndDate" (change)="getOrders('date')">
     </div>
     <div class="col-auto">
-      <!-- Agregamos [(ngModel)] para enlazar el modelo -->
       <select class="form-control" [(ngModel)]="searchStatus" (change)="getOrders('status')">
         <option *ngFor="let statusOrder of statusOrders" [value]="statusOrder">
           {{ statusOrder }}
@@ -133,264 +132,511 @@
   </table>
 </div>
 
-<!-- Agrega esto al final de tu archivo HTML -->
+<!-- Modal de Creación/Edición de Orden -->
 <div class="modal fade bd-example-modal-lg" id="editOrderModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 80%;">
+  <div class="modal-dialog modal-dialog-centered modal-90" role="document">
     <div class="modal-content">
-      <div class="modal-header d-flex justify-content-between align-items-center">
-        <h5 class="modal-title m-0">Editar Orden</h5>
-        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="toggleHeaderOrder()">
-          <i class="bi" [class.bi-chevron-down]="!showHeaderOrder" [class.bi-chevron-up]="showHeaderOrder"></i>
-        </button>
+
+      <!-- Header -->
+      <div class="modal-header py-2">
+        <div>
+          <h5 class="modal-title mb-0">
+            <i class="fas fa-shopping-cart me-2 text-primary"></i>
+            {{ actionType === 'new' ? 'Nueva Orden' : 'Editar Orden' }}
+            <span class="badge bg-secondary ms-2" *ngIf="order.order_number">#{{ order.order_number }}</span>
+          </h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <div class="container-fluid">
-          <div id="headerOrder" [class.d-none]="!showHeaderOrder">
-            <div class="row">
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="documentType">Cliente:</label>
-                  <ng-select [items]="customers" bindLabel="customLabel" bindValue="id" [searchable]="true"
-                    placeholder="Escribe para buscar..." [(ngModel)]="selectedCustomerId" (change)="onCustomerSelect()">
-                  </ng-select>
-                </div>
-              </div>
 
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="order_number">Número de Orden:</label>
-                  <input type="text" class="form-control" id="order_number" name="order_number"
-                    [(ngModel)]="order.order_number">
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="customer_email">Email del Cliente:</label>
-                  <input type="email" class="form-control" id="customer_email" name="customer_email"
-                    [(ngModel)]="order.customer_email" required>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="customer_name">Nombre del Cliente:</label>
-                  <input type="text" class="form-control" id="customer_name" name="customer_name"
-                    [(ngModel)]="order.customer_name" required>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="documentType">Tipo de Documento:</label>
-                  <select class="form-control" id="documentType" name="documentType"
-                    [(ngModel)]="order.customer_documentType">
-                    <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="customer_documentNumber">Número de Documento del Cliente:</label>
-                  <input type="text" class="form-control" id="customer_documentNumber" name="customer_documentNumber"
-                    [(ngModel)]="order.customer_documentNumber">
-                </div>
-              </div>
+      <!-- Barra de resumen superior -->
+      <div class="order-summary-bar d-flex flex-wrap gap-3 px-4 py-2 border-bottom align-items-center">
+        <span class="text-muted small">
+          <i class="fas fa-box me-1"></i>
+          <strong>{{ order.products?.length || 0 }}</strong> producto(s)
+        </span>
+        <span class="text-muted small">
+          Subtotal: <strong>{{ order.subtotal | currency:'COP':'$ ':'1.0-0' }}</strong>
+        </span>
+        <span class="text-danger small" *ngIf="order.discount > 0">
+          Descuento: <strong>-{{ order.discount | currency:'COP':'$ ':'1.0-0' }}</strong>
+        </span>
+        <span class="text-muted small" *ngIf="order.deliveryCost > 0">
+          Domicilio: <strong>+{{ order.deliveryCost | currency:'COP':'$ ':'1.0-0' }}</strong>
+        </span>
+        <span class="ms-auto fs-5 fw-bold text-primary">
+          Total: {{ order.total | currency:'COP':'$ ':'1.0-0' }}
+        </span>
+        <span *ngIf="hasAtypicalProducts()" class="badge bg-warning text-dark">
+          <i class="fas fa-exclamation-triangle me-1"></i> Valores atípicos
+        </span>
+      </div>
 
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="customer_phone">Teléfono del Cliente:</label>
-                  <input type="text" class="form-control" id="customer_phone" name="customer_phone"
-                    [(ngModel)]="order.customer_phone">
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="discount">Descuento:</label>
-                  <input type="number" class="form-control" id="discount" name="discount" [(ngModel)]="order.discount"
-                    (input)="updated_order()" [disabled]="true">
-                </div>
-              </div>
+      <!-- Pestañas de navegación -->
+      <ul class="nav nav-tabs px-3 pt-2 bg-light">
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab === 'cliente'" (click)="activeTab = 'cliente'">
+            <i class="fas fa-user me-1"></i> 1. Cliente
+            <span class="badge bg-success ms-1" *ngIf="isClienteTabComplete()">
+              <i class="fas fa-check"></i>
+            </span>
+            <span class="badge bg-danger ms-1" *ngIf="!isClienteTabComplete()">!</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab === 'entrega'" (click)="activeTab = 'entrega'">
+            <i class="fas fa-truck me-1"></i> 2. Entrega &amp; Pago
+            <span class="badge bg-success ms-1" *ngIf="isEntregaTabComplete()">
+              <i class="fas fa-check"></i>
+            </span>
+            <span class="badge bg-danger ms-1" *ngIf="!isEntregaTabComplete()">!</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab === 'productos'" (click)="activeTab = 'productos'">
+            <i class="fas fa-box me-1"></i> 3. Productos
+            <span class="badge bg-primary ms-1" *ngIf="order.products?.length">{{ order.products?.length }}</span>
+            <span class="badge bg-warning ms-1" *ngIf="hasAtypicalProducts()">
+              <i class="fas fa-exclamation-triangle"></i>
+            </span>
+          </button>
+        </li>
+      </ul>
 
-            </div>
-            <div class="row">
-                <div class="col-4">
-                <div class="form-group">
-                  <label for="deliveryCost">Costo Domicilio:</label>
-                  <input type="number" class="form-control" id="deliveryCost" name="deliveryCost" [(ngModel)]="order.deliveryCost"
-                    [disabled]="false">
-                </div>
-              </div>
-              <div class="col-4">
-                <div class="form-group">
-                  <label for="subtotal">Subtotal:</label>
-                  <input type="number" class="form-control" id="subtotal" name="subtotal" [(ngModel)]="order.subtotal"
-                    [disabled]="true">
-                </div>
-              </div>
-              <div class="col-4">
-                <div class="form-group">
-                  <label for="total">Total:</label>
-                  <input type="number" class="form-control" id="total" name="total" [(ngModel)]="order.total"
-                    [disabled]="true">
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="delivery_date">Fecha de Entrega:</label>
-                  <input type="date" class="form-control" id="delivery_date" name="delivery_date"
-                    [(ngModel)]="order.delivery_date" [ngClass]="{'is-invalid': order.delivery_date === ''}">
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="deliverySlot">Horario de Entrega:</label>
-                  <select class="form-control" id="deliverySlot" name="deliverySlot" [(ngModel)]="order.deliverySlot"
-                    [ngClass]="{'is-invalid': order.deliverySlot === ''}">
-                    <option *ngFor="let slot of deliverySlots" [value]="slot">{{ slot }}</option>
-                  </select>
-                </div>
-              </div>
+      <div class="modal-body tab-content-scroll">
 
-            </div>
-            <div class="row">
+        <!-- ==================== TAB 1: CLIENTE ==================== -->
+        <div *ngIf="activeTab === 'cliente'" class="p-4">
 
-
+          <!-- Búsqueda rápida de cliente -->
+          <div class="card border-primary mb-4">
+            <div class="card-header bg-primary text-white py-2">
+              <i class="fas fa-search me-2"></i> Buscar cliente existente
             </div>
-            <div class="row">
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="paymentMethod">Método de Pago:</label>
-                  <select class="form-control" id="paymentMethod" name="paymentMethod" [(ngModel)]="order.paymentMethod"
-                    [ngClass]="{'is-invalid': order.paymentMethod === ''}">
-                    <option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="payment_date">Fecha de Pago:</label>
-                  <input type="date" class="form-control" id="payment_date" name="payment_date"
-                    [(ngModel)]="order.payment_date">
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="deliveryAddress">Dirección de Entrega:</label>
-                  <input type="text" class="form-control" id="deliveryAddress" name="deliveryAddress"
-                    [(ngModel)]="order.deliveryAddress" [ngClass]="{'is-invalid': order.deliveryAddress === ''}">
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="deliveryAddressDetails">Detalles de la Dirección de Entrega:</label>
-                  <input type="text" class="form-control" id="deliveryAddressDetails" name="deliveryAddressDetails"
-                    [(ngModel)]="order.deliveryAddressDetails">
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="status">Estado:</label>
-                  <select class="form-control" id="status" name="status" [(ngModel)]="order.status"
-                    [ngClass]="{'is-invalid': order.status === ''}">
-                    <option *ngFor="let statu of statusOrders" [value]="statu">{{ statu }}</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="status">Vendedor:</label>
-                  <select class="form-control" id="status" name="status" [(ngModel)]="order.seller_name"
-                    [ngClass]="{'is-invalid': order.seller_name === ''}">
-                    <option *ngFor="let sell of seller" [value]="sell">{{ sell }}</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="status">Fuente:</label>
-                  <select class="form-control" id="status" name="status" [(ngModel)]="order.source"
-                    [ngClass]="{'is-invalid': order.source === ''}">
-                    <option *ngFor="let fuente of source" [value]="fuente">{{ fuente }}</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label for="status">Conductor:</label>
-                  <select class="form-control" id="status" name="status" [(ngModel)]="order.driver_name"
-                    [ngClass]="{'is-invalid': order.driver_name === ''}">
-                    <option *ngFor="let conductor of driver" [value]="conductor">{{ conductor }}</option>
-                  </select>
-                </div>
-              </div>
+            <div class="card-body">
+              <ng-select [items]="customers" bindLabel="customLabel" bindValue="id" [searchable]="true"
+                placeholder="Escribe nombre o dirección para buscar..." [(ngModel)]="selectedCustomerId"
+                (change)="onCustomerSelect()">
+              </ng-select>
+              <small class="text-muted mt-1 d-block">
+                <i class="fas fa-info-circle me-1"></i>
+                Al seleccionar un cliente se autocompletarán los campos de abajo.
+              </small>
             </div>
           </div>
-          <br><br>
+
           <div class="row">
-            <div class="col-12">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th class="col-4">Producto</th>
-                    <th>sku</th>
-                    <th>Precio Venta</th>
-                    <th>Cantidad</th>
-                    <th>Decuento</th>
-                    <th>Subtotal</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let product of order.products">
-                    <ng-select [items]="products" bindLabel="name" bindValue="id" [searchable]="true"
-                      placeholder="{{product.name}}" [(ngModel)]="product.id" (change)="onProductSelect(product)">
-                    </ng-select>
-                    <td><input type="text" class="form-control" [(ngModel)]="product.sku"></td>
-                    <td>
-                      <input type="number" class="form-control" [(ngModel)]="product.price_sale"
-                        (input)="updated_order()">
-                    </td>
-                    <td><input type="number" class="form-control" [(ngModel)]="product.quantity"
-                        (input)="updated_order()"></td>
-                    <td><input type="number" class="form-control" [(ngModel)]="product.discount"
-                        (input)="updated_order()"></td>
-                    <td>
-                      <input type="text" class="form-control" [value]="product.subtotal | currency" disabled>
-                    </td>
-                    <td>
-                      <button type="button" class="btn btn-sm btn-danger" (click)="removeProduct(product)">
-                        <i class="fas fa-trash"></i> <!-- Icono de papelera -->
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <button type="button" class="btn btn-primary" (click)="addProduct()">Agregar Producto</button>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">
+                Email <span class="text-danger">*</span>
+              </label>
+              <input type="email" class="form-control" [(ngModel)]="order.customer_email"
+                placeholder="correo@ejemplo.com"
+                [ngClass]="{'is-invalid': !order.customer_email}">
+              <div class="invalid-feedback">Campo requerido</div>
             </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">
+                Nombre completo <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" [(ngModel)]="order.customer_name"
+                placeholder="Nombre y apellido"
+                [ngClass]="{'is-invalid': !order.customer_name}">
+              <div class="invalid-feedback">Campo requerido</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">Tipo de documento</label>
+              <select class="form-select" [(ngModel)]="order.customer_documentType">
+                <option value="">-- Selecciona --</option>
+                <option *ngFor="let type of documentTypes" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">Número de documento</label>
+              <input type="text" class="form-control" [(ngModel)]="order.customer_documentNumber"
+                placeholder="Ej: 10012345678">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">Teléfono</label>
+              <input type="text" class="form-control" [(ngModel)]="order.customer_phone"
+                placeholder="Ej: 3001234567">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-2">
+            <button class="btn btn-primary" (click)="activeTab = 'entrega'">
+              Siguiente: Entrega &amp; Pago <i class="fas fa-arrow-right ms-1"></i>
+            </button>
           </div>
         </div>
-      </div>
+
+        <!-- ==================== TAB 2: ENTREGA Y PAGO ==================== -->
+        <div *ngIf="activeTab === 'entrega'" class="p-4">
+
+          <!-- Sección: Entrega -->
+          <h6 class="section-title text-primary mb-3">
+            <i class="fas fa-map-marker-alt me-2"></i> Datos de entrega
+          </h6>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">
+                Fecha de entrega <span class="text-danger">*</span>
+              </label>
+              <input type="date" class="form-control" [(ngModel)]="order.delivery_date"
+                [ngClass]="{'is-invalid': !order.delivery_date}">
+              <div class="invalid-feedback">Campo requerido</div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">
+                Horario de entrega <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" [(ngModel)]="order.deliverySlot"
+                [ngClass]="{'is-invalid': !order.deliverySlot}">
+                <option value="">-- Selecciona horario --</option>
+                <option *ngFor="let slot of deliverySlots" [value]="slot">{{ slot }}</option>
+              </select>
+              <div class="invalid-feedback">Campo requerido</div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">Costo domicilio</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" [(ngModel)]="order.deliveryCost" min="0" placeholder="0">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-8 mb-3">
+              <label class="form-label fw-semibold">
+                Dirección de entrega <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" [(ngModel)]="order.deliveryAddress"
+                placeholder="Calle, carrera, barrio..."
+                [ngClass]="{'is-invalid': !order.deliveryAddress}">
+              <div class="invalid-feedback">Campo requerido</div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">Detalles de dirección</label>
+              <input type="text" class="form-control" [(ngModel)]="order.deliveryAddressDetails"
+                placeholder="Apto, torre, referencia...">
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- Sección: Pago -->
+          <h6 class="section-title text-primary mb-3">
+            <i class="fas fa-credit-card me-2"></i> Datos de pago
+          </h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">
+                Método de pago <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" [(ngModel)]="order.paymentMethod"
+                [ngClass]="{'is-invalid': !order.paymentMethod}">
+                <option value="">-- Selecciona método --</option>
+                <option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</option>
+              </select>
+              <div class="invalid-feedback">Campo requerido</div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Fecha de pago</label>
+              <input type="date" class="form-control" [(ngModel)]="order.payment_date">
+            </div>
+          </div>
+
+          <hr>
+
+          <!-- Sección: Gestión -->
+          <h6 class="section-title text-primary mb-3">
+            <i class="fas fa-cogs me-2"></i> Gestión del pedido
+          </h6>
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="form-label fw-semibold">
+                Estado <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" [(ngModel)]="order.status"
+                [ngClass]="{'is-invalid': !order.status}">
+                <option value="">-- Selecciona --</option>
+                <option *ngFor="let statu of statusOrders" [value]="statu">{{ statu }}</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label fw-semibold">
+                Vendedor <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" [(ngModel)]="order.seller_name"
+                [ngClass]="{'is-invalid': !order.seller_name}">
+                <option value="">-- Selecciona --</option>
+                <option *ngFor="let sell of seller" [value]="sell">{{ sell }}</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label fw-semibold">
+                Fuente <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" [(ngModel)]="order.source"
+                [ngClass]="{'is-invalid': !order.source}">
+                <option value="">-- Selecciona --</option>
+                <option *ngFor="let fuente of source" [value]="fuente">{{ fuente }}</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label fw-semibold">
+                Conductor <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" [(ngModel)]="order.driver_name"
+                [ngClass]="{'is-invalid': !order.driver_name}">
+                <option value="">-- Selecciona --</option>
+                <option *ngFor="let conductor of driver" [value]="conductor">{{ conductor }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">Número de orden</label>
+              <input type="text" class="form-control" [(ngModel)]="order.order_number">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mt-2">
+            <button class="btn btn-outline-secondary" (click)="activeTab = 'cliente'">
+              <i class="fas fa-arrow-left me-1"></i> Anterior
+            </button>
+            <button class="btn btn-primary" (click)="activeTab = 'productos'">
+              Siguiente: Productos <i class="fas fa-arrow-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 3: PRODUCTOS ==================== -->
+        <div *ngIf="activeTab === 'productos'" class="p-4">
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 text-primary">
+              <i class="fas fa-box me-2"></i> Productos del pedido
+            </h6>
+            <button type="button" class="btn btn-success btn-sm" (click)="addProduct()">
+              <i class="fas fa-plus me-1"></i> Agregar producto
+            </button>
+          </div>
+
+          <!-- Producto vacío -->
+          <div *ngIf="!order.products?.length" class="text-center text-muted py-5 border rounded bg-light">
+            <i class="fas fa-box-open fa-3x mb-3 d-block text-muted"></i>
+            <p class="mb-2">No hay productos en este pedido.</p>
+            <button type="button" class="btn btn-primary btn-sm" (click)="addProduct()">
+              <i class="fas fa-plus me-1"></i> Agregar primer producto
+            </button>
+          </div>
+
+          <!-- Filas de productos -->
+          <div *ngFor="let product of order.products; let i = index"
+            class="product-row card mb-2"
+            [ngClass]="{'border-warning': isProductAtypical(product)}">
+            <div class="card-body py-2 px-3">
+              <div class="row align-items-end g-2">
+
+                <!-- Producto selector -->
+                <div class="col-md-3">
+                  <label class="form-label form-label-sm text-muted mb-1">
+                    <i class="fas fa-search me-1"></i> Producto
+                  </label>
+                  <ng-select [items]="products" bindLabel="name" bindValue="id" [searchable]="true"
+                    placeholder="{{ product.name || 'Buscar...' }}" [(ngModel)]="product.id"
+                    (change)="onProductSelect(product)">
+                  </ng-select>
+                </div>
+
+                <!-- SKU -->
+                <div class="col-md-1">
+                  <label class="form-label form-label-sm text-muted mb-1">SKU</label>
+                  <input type="text" class="form-control form-control-sm" [(ngModel)]="product.sku" readonly
+                    tabindex="-1">
+                </div>
+
+                <!-- Precio -->
+                <div class="col-md-2">
+                  <label class="form-label form-label-sm mb-1"
+                    [ngClass]="{'text-warning fw-bold': product.price_sale > PRICE_HIGH_THRESHOLD || product.price_sale <= 0, 'text-muted': !(product.price_sale > PRICE_HIGH_THRESHOLD || product.price_sale <= 0)}">
+                    <i class="fas fa-exclamation-triangle me-1"
+                      *ngIf="product.price_sale > PRICE_HIGH_THRESHOLD || product.price_sale <= 0"></i>
+                    Precio venta
+                  </label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input type="number" class="form-control form-control-sm"
+                      [(ngModel)]="product.price_sale" (input)="updated_order()" min="0"
+                      [ngClass]="{'border-warning': product.price_sale > PRICE_HIGH_THRESHOLD || product.price_sale <= 0}">
+                  </div>
+                </div>
+
+                <!-- Cantidad -->
+                <div class="col-md-1">
+                  <label class="form-label form-label-sm mb-1"
+                    [ngClass]="{'text-warning fw-bold': product.quantity > QUANTITY_HIGH_THRESHOLD || product.quantity <= 0, 'text-muted': !(product.quantity > QUANTITY_HIGH_THRESHOLD || product.quantity <= 0)}">
+                    <i class="fas fa-exclamation-triangle me-1"
+                      *ngIf="product.quantity > QUANTITY_HIGH_THRESHOLD || product.quantity <= 0"></i>
+                    Cant.
+                  </label>
+                  <input type="number" class="form-control form-control-sm"
+                    [(ngModel)]="product.quantity" (input)="updated_order()" min="1"
+                    [ngClass]="{'border-warning': product.quantity > QUANTITY_HIGH_THRESHOLD || product.quantity <= 0}">
+                </div>
+
+                <!-- Descuento -->
+                <div class="col-md-1">
+                  <label class="form-label form-label-sm mb-1"
+                    [ngClass]="{'text-warning fw-bold': product.discount > 50, 'text-muted': !(product.discount > 50)}">
+                    <i class="fas fa-exclamation-triangle me-1" *ngIf="product.discount > 50"></i>
+                    Dto%
+                  </label>
+                  <input type="number" class="form-control form-control-sm"
+                    [(ngModel)]="product.discount" (input)="updated_order()" min="0" max="100"
+                    [ngClass]="{'border-warning': product.discount > 50}">
+                </div>
+
+                <!-- Subtotal -->
+                <div class="col-md-2">
+                  <label class="form-label form-label-sm text-muted mb-1">Subtotal</label>
+                  <div class="form-control form-control-sm bg-light text-end fw-semibold">
+                    {{ product.subtotal | currency:'COP':'$ ':'1.0-0' }}
+                  </div>
+                </div>
+
+                <!-- Eliminar -->
+                <div class="col-md-1 d-flex align-items-end">
+                  <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                    (click)="removeProduct(product)" title="Eliminar producto">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Avisos de valores atípicos por producto -->
+              <div *ngIf="isProductAtypical(product)" class="row mt-2">
+                <div class="col-12">
+                  <div class="alert alert-warning py-1 px-2 mb-0 small">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong>Valores atípicos:</strong>
+                    <span *ngIf="product.price_sale <= 0"> Precio inválido ($0 o negativo).</span>
+                    <span *ngIf="product.price_sale > PRICE_HIGH_THRESHOLD"> Precio alto
+                      (${{ product.price_sale | number:'1.0-0' }}).</span>
+                    <span *ngIf="product.quantity <= 0"> Cantidad inválida (0 o negativa).</span>
+                    <span *ngIf="product.quantity > QUANTITY_HIGH_THRESHOLD"> Cantidad alta
+                      ({{ product.quantity }} unidades).</span>
+                    <span *ngIf="product.discount > 50"> Descuento alto ({{ product.discount }}%).</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen de totales -->
+          <div class="card bg-light mt-4" *ngIf="order.products?.length">
+            <div class="card-body py-2">
+              <div class="row justify-content-end">
+                <div class="col-md-4">
+                  <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                      <td class="text-muted">Subtotal:</td>
+                      <td class="text-end fw-semibold">{{ order.subtotal | currency:'COP':'$ ':'1.0-0' }}</td>
+                    </tr>
+                    <tr *ngIf="order.discount > 0">
+                      <td class="text-muted">Descuento:</td>
+                      <td class="text-end text-danger">-{{ order.discount | currency:'COP':'$ ':'1.0-0' }}</td>
+                    </tr>
+                    <tr *ngIf="order.deliveryCost > 0">
+                      <td class="text-muted">Domicilio:</td>
+                      <td class="text-end">+{{ order.deliveryCost | currency:'COP':'$ ':'1.0-0' }}</td>
+                    </tr>
+                    <tr class="border-top">
+                      <td class="fw-bold">TOTAL:</td>
+                      <td class="text-end fw-bold text-primary fs-5">
+                        {{ order.total | currency:'COP':'$ ':'1.0-0' }}
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-start mt-3">
+            <button class="btn btn-outline-secondary" (click)="activeTab = 'entrega'">
+              <i class="fas fa-arrow-left me-1"></i> Anterior
+            </button>
+          </div>
+        </div>
+
+      </div><!-- fin modal-body -->
+
+      <!-- Footer -->
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" (click)="saveOrder()" [disabled]="!camposCompletos()">Guardar
-          Cambios</button>
+        <div class="me-auto" *ngIf="!camposCompletos()">
+          <small class="text-danger">
+            <i class="fas fa-exclamation-circle me-1"></i>
+            Completa todos los campos marcados con <strong>*</strong> antes de guardar.
+          </small>
+        </div>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i> Cerrar
+        </button>
+        <button type="button" class="btn btn-primary" (click)="saveOrder()"
+          [disabled]="!camposCompletos()">
+          <i class="fas fa-save me-1"></i> Guardar orden
+        </button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Modal: Confirmación de valores atípicos -->
+<div class="modal fade" id="atypicalConfirmModal" tabindex="-1" aria-labelledby="atypicalConfirmLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-warning">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="atypicalConfirmLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Valores atípicos detectados
+        </h5>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">
+          Se encontraron los siguientes valores inusuales en el pedido.
+          Por favor revisa antes de confirmar:
+        </p>
+        <ul class="list-group mb-3">
+          <li *ngFor="let alert of atypicalAlerts"
+            class="list-group-item list-group-item-warning d-flex align-items-start gap-2">
+            <i class="fas fa-exclamation-circle mt-1 flex-shrink-0"></i>
+            <span>{{ alert }}</span>
+          </li>
+        </ul>
+        <p class="mb-0 text-muted small">
+          ¿Deseas guardar el pedido con estos valores o regresar a corregirlos?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-arrow-left me-1"></i> Cancelar y revisar
+        </button>
+        <button type="button" class="btn btn-warning text-dark fw-semibold" (click)="confirmAndSave()">
+          <i class="fas fa-check me-1"></i> Confirmar y guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: PDF Remisión -->
 <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
@@ -408,6 +654,7 @@
   </div>
 </div>
 
+<!-- Modal: Factura -->
 <div class="modal fade" id="facturaModal" tabindex="-1" role="dialog" aria-labelledby="facturaLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
@@ -425,6 +672,7 @@
   </div>
 </div>
 
+<!-- Modal: Evidencia -->
 <div class="modal fade" id="evidenciaModal" tabindex="-1" role="dialog" aria-labelledby="evidenciaLabel"
   aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">

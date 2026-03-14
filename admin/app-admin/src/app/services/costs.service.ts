@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class CostsService {
-  private baseUrl = 'https://app.buyfrescapp.com:5000/';
-  //private baseUrl = 'http://localhost:5000/';
+  private baseUrl = environment.apiUrl;
   constructor(private http: HttpClient) { }
   getCostos():Observable<any> {
     return this.http.get<any[]>(this.baseUrl+'api/cost/cost');

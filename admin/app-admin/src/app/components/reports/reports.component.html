@@ -1,5 +1,57 @@
 <div class="container mt-5">
-  <div class="row">
+
+  <!-- Descarga de Reporte Excel -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-success">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-file-earmark-excel-fill text-success me-2"></i>
+            Descargar Reporte Mensual
+          </h5>
+          <p class="card-text text-muted">
+            Descarga un Excel con Pedidos, Compras, Costos y Unit Economics (mensual, semanal y diario) del mes seleccionado.
+          </p>
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div>
+              <label for="mesReporte" class="form-label fw-semibold mb-1">Seleccionar mes</label>
+              <input
+                type="month"
+                id="mesReporte"
+                class="form-control"
+                [(ngModel)]="selectedMonth"
+                style="width: 180px;"
+              />
+            </div>
+            <div class="align-self-end">
+              <button
+                class="btn btn-success"
+                (click)="downloadExcel()"
+                [disabled]="downloading || !selectedMonth"
+              >
+                <span *ngIf="!downloading">
+                  <i class="bi bi-download me-1"></i> Descargar Excel
+                </span>
+                <span *ngIf="downloading">
+                  <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                  Descargando...
+                </span>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="errorMsg" class="alert alert-danger mt-3 mb-0 py-2">
+            {{ errorMsg }}
+          </div>
+          <div class="mt-3 small text-muted">
+            El archivo incluye 6 pestañas: <strong>Pedidos</strong>, <strong>Compras</strong>, <strong>Costos</strong>, <strong>UE Mensual</strong>, <strong>UE Semanal</strong>, <strong>UE Diario</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboards existentes -->
+  <!-- <div class="row">
     <div class="col-md-3 mb-4">
       <div class="card">
         <div class="card-body">
@@ -44,6 +96,5 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 </div>
-

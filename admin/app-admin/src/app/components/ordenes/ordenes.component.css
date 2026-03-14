@@ -1,0 +1,54 @@
+.order-summary-bar {
+  background-color: #f8f9fa;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.tab-content-scroll {
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 6px;
+}
+
+.product-row {
+  transition: border-color 0.15s ease-in-out;
+}
+
+.product-row.border-warning {
+  border-left: 4px solid #ffc107 !important;
+}
+
+.product-row .card-body {
+  background-color: #fff;
+}
+
+.nav-tabs .nav-link {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.nav-tabs .nav-link.active {
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+.form-label-sm {
+  font-size: 0.78rem;
+}
+.modal-90 {
+    width: 90vw;
+    max-width: 90vw; /* Sobreescribe el límite de modal-xl */
+    height: 90vh;
+    margin: auto;
+}
+
+.modal-90 .modal-content {
+    height: 100%; /* Para que el contenido interno llene el 90vh */
+    border-radius: 0.5rem;
+}

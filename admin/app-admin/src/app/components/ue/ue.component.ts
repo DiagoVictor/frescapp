@@ -116,7 +116,8 @@ export class UeComponent implements OnInit {
       { key: 'logistics_cost', label: '4. Costo Logístico', esDinero: true },
       { key: 'perssonel', label: '5. Costo de Personal', esDinero: true },
       { key: 'cost_tech', label: '6. Costo de Tecnología', esDinero: true },
-      { key: 'cost_others', label: '7. Otros Costos', esDinero: true },
+      { key: 'warehouse', label: '7. Rentas de Almacén', esDinero: true },
+      { key: 'cost_others', label: '8. Otros Costos', esDinero: true },
       { key: 'total_orders', label: '9.1. Órdenes', esDinero: false },
       { key: 'total_lines', label: '9.2. Líneas', esDinero: false }
     ];
