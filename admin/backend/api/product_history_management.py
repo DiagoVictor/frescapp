@@ -19,31 +19,32 @@ def list_products_history(operation_date_start,operation_date_end):
     product_data = [
         {
             "id": str(product["_id"]), 
-            "operation_date": product["operation_date"],
-            "name": product["name"],
-            "unit": product["unit"],
-            "category": product["category"],
-            "sku": product["sku"],
-            "root": product["root"],
-            "child" : product["child"],
-            "step_unit" : product["step_unit"],
-            "step_unit_sipsa" : product["step_unit_sipsa"],
-            "margen" : product["margen"],
-            "last_price_purchased" : product["last_price_purchased"],
-            "minimoKg" : product["minimoKg"],
-            "maximoKg" : product["maximoKg"],
-            "promedioKg" : product["promedioKg"],
-            "price_sale" : product["price_sale"],
-            "price_purchase" : product["price_purchase"],
-            "last_price_purchase" : product["last_price_purchase"],
-            "last_price_sale" : product["last_price_sale"],
-            "factor_volumen" : product["factor_volumen"],
-            "sipsa_id" : product["sipsa_id"]
+            "operation_date": product.get("operation_date"),
+            "name": product.get("name"),
+            "unit": product.get("unit"),
+            "category": product.get("category"),
+            "sku": product.get("sku"),
+            "root": product.get("root"),
+            "child": product.get("child"),
+            "step_unit": product.get("step_unit"),
+            # Use .get() to avoid KeyError if the field is missing
+            "step_unit_sipsa": product.get("step_unit_sipsa"), 
+            "margen": product.get("margen"),
+            "last_price_purchased": product.get("last_price_purchased"),
+            "minimoKg": product.get("minimoKg"),
+            "maximoKg": product.get("maximoKg"),
+            "promedioKg": product.get("promedioKg"),
+            "price_sale": product.get("price_sale"),
+            "price_purchase": product.get("price_purchase"),
+            "last_price_purchase": product.get("last_price_purchase"),
+            "last_price_sale": product.get("last_price_sale"),
+            "factor_volumen": product.get("factor_volumen"),
+            "sipsa_id": product.get("sipsa_id")
         }
         for product in products_cursor
     ]
-    products_json = json.dumps(product_data)
-    return products_json, 200
+    
+    return jsonify(product_data), 200
 
 @product_history_api.route('/products_history_analytics', methods=['GET'])
 def products_history_analytics():
@@ -286,7 +287,7 @@ def products_history_new(operation_date):
                 None
             )
 
-            step_unit_sipsa = safe_float(producto.get("step_unit_sipsa"))
+            #step_unit_sipsa = safe_float(producto.get("step_unit_sipsa"))
             step_unit = float(producto.get("step_unit", 1))
             try:
                 factor_volumen = float(producto.get("factor_volumen") or 1)
@@ -294,9 +295,9 @@ def products_history_new(operation_date):
                 factor_volumen = 1
             margen = float(producto.get("margen", 0))
 
-            minimoKg = safe_round(float(equivalence_match["MINIMO"]) * step_unit_sipsa) if equivalence_match else 0
-            maximoKg = safe_round(float(equivalence_match["MAXIMO"]) * step_unit_sipsa) if equivalence_match else 0
-            promedioKg = safe_round(float(equivalence_match["PROMEDIO"]) * step_unit_sipsa) if equivalence_match else 0
+            minimoKg = safe_round(float(equivalence_match["MINIMO"]) ) if equivalence_match else 0
+            maximoKg = safe_round(float(equivalence_match["MAXIMO"]) ) if equivalence_match else 0
+            promedioKg = safe_round(float(equivalence_match["PROMEDIO"]) ) if equivalence_match else 0
             if producto.get("tipo_pricing") == "Auto":
                 if precio_compra_dia:
                     price_purchase = precio_compra_dia * step_unit
@@ -324,6 +325,7 @@ def products_history_new(operation_date):
 
             try:
                 db[coleccion_destino].insert_one(producto)
+                print(f"Producto con SKU {sku} insertado correctamente en {coleccion_destino}.")
             except Exception as e:
                 print(f"Error insertando producto con SKU {sku}: {e}")
 
