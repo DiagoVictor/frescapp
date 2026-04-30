@@ -12,30 +12,31 @@ from email.mime.multipart import MIMEMultipart
 from oauth2client import client, tools, file
 
 
-client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
-db = client['frescapp']
+mongo_client  = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp') 
+db = mongo_client['frescapp']
 config = db['orderConfig']  
 
-path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
+#path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
+path_file = 'C:/Users/Usuario/Documents/frescapp/admin/backend/utils/'
 # Alcance del acceso para enviar correos electrónicos
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']t
 
 def authenticate():
-    if os.name == 'posix':  # Linux o macOS
-        path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
-    if os.name == 'nt':  # Windows
-        path_file = 'C:/Users/USUARIO/Documents/frescapp/admin/backend/utils/'
+    creds_path = os.path.join(path_file, 'credentials.json')
 
-    # creates credentials with a refresh token
-    credential_path = os.path.join(path_file, 'credentials.json')
-    client_secret_path = os.path.join(path_file, 'client_secret.json')
-    store = file.Storage(credential_path)
-    creds = store.get()
-    if not creds or creds.invalid:
-        flow = client.flow_from_clientsecrets(client_secret_path, SCOPES)
-        creds = tools.run_flow(flow, store)
+    if not os.path.exists(creds_path):
+        raise Exception("No existe credentials.json")
+
+    creds = Credentials.from_authorized_user_file(creds_path, SCOPES)
+
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+
+        # guardar actualizado
+        with open(creds_path, 'w') as token:
+            token.write(creds.to_json())
+
     return creds
-
 # Autenticar y obtener las credenciales
 
 def create_message(sender, to, subject, html_body):
@@ -166,5 +167,4 @@ def send_restore_password(user_data):
 def send_new_account(subject, cuerpo, customer_email):
     message = create_message('Frescapp <fescapp@gmail.com>', customer_email, subject, cuerpo)
     send_message('me', message, 'New customer', customer_email, cuerpo)
-
 
