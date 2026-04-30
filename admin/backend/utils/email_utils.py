@@ -16,8 +16,8 @@ mongo_client  = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017
 db = mongo_client['frescapp']
 config = db['orderConfig']  
 
-#path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
-path_file = 'C:/Users/Usuario/Documents/frescapp/admin/backend/utils/'
+path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
+#path_file = 'C:/Users/Usuario/Documents/frescapp/admin/backend/utils/'
 # Alcance del acceso para enviar correos electrónicos
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
