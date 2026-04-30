@@ -19,7 +19,7 @@ config = db['orderConfig']
 #path_file = '/home/ubuntu/frescapp/admin/backend/utils/'
 path_file = 'C:/Users/Usuario/Documents/frescapp/admin/backend/utils/'
 # Alcance del acceso para enviar correos electrónicos
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']t
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 def authenticate():
     creds_path = os.path.join(path_file, 'credentials.json')
