@@ -110,7 +110,12 @@ def update_customer(customer_id):
 @customer_api.route('/customers', methods=['GET'])
 def list_customers():
     try:
-        customers = Customer.objects()
+        customers = Customer.objects({
+            "phone": 1, "name": 1, "document": 1, "document_type": 1,
+            "address": 1, "restaurant_name": 1, "email": 1, "status": 1,
+            "created_at": 1, "updated_at": 1, "category": 1, "list_products": 1,
+            "segmentation": 1, "role": 1
+        })
         customers_data = [
             {
                 "id": str(cust.get("_id", "")),

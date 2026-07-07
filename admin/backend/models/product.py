@@ -156,6 +156,18 @@ class Product:
         return doc
 
     @staticmethod
+    def find_by_skus(skus):
+        """Devuelve un dict {sku: doc} para resolver muchos SKUs en una sola query."""
+        skus = list({s for s in skus if s})
+        if not skus:
+            return {}
+        result = {}
+        for doc in products_collection.find({"sku": {"$in": skus}}):
+            doc["id"] = str(doc["_id"])
+            result[doc["sku"]] = doc
+        return result
+
+    @staticmethod
     def find_by_category(category):
         return list(products_collection.find({"category": category}))
 

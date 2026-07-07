@@ -209,9 +209,7 @@ def products_history_new(operation_date):
         records = filtered_data.to_dict(orient='records')
         return records
 
-    def precio_familia_compra(uri: str, db_name: str, sku: str, operation_date: str):
-        client = MongoClient(uri)
-        db = client[db_name]
+    def precio_familia_compra(sku: str, operation_date: str):
         exclusion = {"_id": 0, "image": 0, "description": 0}
         
         sku_padre = db["products"].find_one(
@@ -250,7 +248,6 @@ def products_history_new(operation_date):
                 
                 contador += 1
 
-        client.close()
         return total_precio / contador if contador > 0 else 0
 
     def safe_round(value):
@@ -259,10 +256,7 @@ def products_history_new(operation_date):
         except (TypeError, ValueError):
             return 0
 
-    def copiar_productos_activos_y_actualizar(uri: str, db_name: str, coleccion_origen: str, coleccion_destino: str, operation_date: str, equivalence_data: list):
-        client = MongoClient(uri)
-        db = client[db_name]
-
+    def copiar_productos_activos_y_actualizar(coleccion_origen: str, coleccion_destino: str, operation_date: str, equivalence_data: list):
         exclusion = {"_id": 0, "image": 0, "description": 0}
         productos_activos = db[coleccion_origen].find({"status": "active"}, exclusion)
         def safe_float(value, default=1.0):
@@ -276,7 +270,7 @@ def products_history_new(operation_date):
             producto.pop("_id", None)
 
             sku = producto.get("sku")
-            precio_compra_dia = precio_familia_compra(uri, db_name, sku, operation_date)
+            precio_compra_dia = precio_familia_compra(sku, operation_date)
 
             equivalence_match = next(
                 (
@@ -329,13 +323,9 @@ def products_history_new(operation_date):
             except Exception as e:
                 print(f"Error insertando producto con SKU {sku}: {e}")
 
-        client.close()
         print("Productos actualizados y copiados exitosamente.")
 
-    def actualizar_precios_en_products(uri: str, db_name: str, coleccion_origen: str, operation_date: str):
-        client = MongoClient(uri)
-        db = client[db_name]
-
+    def actualizar_precios_en_products(coleccion_origen: str, operation_date: str):
         # Obtiene los productos de products_history según la operation_date
         productos_history = db[coleccion_origen].find({"operation_date": operation_date})
         
@@ -354,23 +344,16 @@ def products_history_new(operation_date):
                 }}
             )
 
-        client.close()
         print("Precios actualizados en la colección 'products'.")
 
     def delete_product_history(operation_date:str):
-        uri = 'mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp'
-        client = MongoClient(uri)
-        db = client["frescapp"]
         coleccion_historial = db["products_history"]
         coleccion_historial.delete_many({"operation_date": operation_date})
-        client.close()
+
     def update_price_page():
         consumer_key = 'ck_203177d4d7a291000f60cd669ab7cb98976b3620'
         consumer_secret = 'cs_d660a52cd323666cad9b600a9d61ed6c577cd6f9'
         base_url = 'https://www.buyfrescapp.com/wp-json/wc/v3/products'
-        # Conexión a MongoDB
-        client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
-        db = client['frescapp']
         collection = db['products']
         woo_products = []
         for page in range(1, 5):  # Iterar tres páginas
@@ -422,22 +405,26 @@ def products_history_new(operation_date):
     fields = ['ARTICULO', 'PROMEDIO', 'MINIMO', 'MAXIMO', 'FECHA', 'FUENTE']
     filepath = os.path.join(os.path.dirname(__file__), f"sipsaexporta_{operation_date}.xls")
 
-
-    #sipsa = obtenerSipsa(operation_date,filepath)
-    sipsa = None
-    delete_product_history(operation_date)
-    print("Historial de productos eliminado.")
-    if sipsa:
-        data = extractDataFromExcel(filepath, operation_date)
-    else:
-        data = []
-    print("Datos extraídos de SIPSA.")
-    copiar_productos_activos_y_actualizar(uri, db_name, coleccion_origen, coleccion_destino, operation_date, data)
-    print("Productos copiados y actualizados en products_history.")
-    actualizar_precios_en_products(uri, db_name, coleccion_destino, operation_date)
-    print("Precios actualizados en products.")
-    update_price_page()
-    print("Precios actualizados en WooCommerce.")
+    client = MongoClient(uri)
+    db = client[db_name]
+    try:
+        #sipsa = obtenerSipsa(operation_date,filepath)
+        sipsa = None
+        delete_product_history(operation_date)
+        print("Historial de productos eliminado.")
+        if sipsa:
+            data = extractDataFromExcel(filepath, operation_date)
+        else:
+            data = []
+        print("Datos extraídos de SIPSA.")
+        copiar_productos_activos_y_actualizar(coleccion_origen, coleccion_destino, operation_date, data)
+        print("Productos copiados y actualizados en products_history.")
+        actualizar_precios_en_products(coleccion_destino, operation_date)
+        print("Precios actualizados en products.")
+        update_price_page()
+        print("Precios actualizados en WooCommerce.")
+    finally:
+        client.close()
     # if os.path.exists(filepath):
     #     os.remove(filepath)
     return jsonify({"message": "Productos actualizados."}),  200

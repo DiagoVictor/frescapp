@@ -8,14 +8,14 @@ from datetime import datetime, timedelta
 inventory_api = Blueprint('inventory', __name__)
 
 def func_create_inventory(close_date):
-    products_data = Product.objects("active")
+    products_data = list(Product.objects("active"))
     fecha_ayer = (datetime.strptime(close_date, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
     inventory_ayer = Inventory.get_by_date(fecha_ayer)
     inventory_hoy = Inventory.get_by_date(close_date)
     if inventory_hoy:
         return jsonify({"message": "Inventory already exists for today"}), 400
     compras_hoy = Purchase.get_by_date(close_date)
-    ventas_hoy = Order.find_by_date(close_date,close_date)
+    ventas_hoy = list(Order.find_by_date(close_date,close_date))
     sku_mapping = {}
     for product in products_data:
         sku = product.get("sku")
@@ -25,34 +25,37 @@ def func_create_inventory(close_date):
         }
     def search_sku_root(sku_child):
         return sku_mapping.get(sku_child, {"root": sku_child, "step_unit": 1})
-    products_data = Product.objects("active")
     filtered_products = [
         {
             "sku": product["sku"],
             "name": product["name"],
             "category": product["category"],
-            "quantity": 0,  
+            "quantity": 0,
             "quantity_auto": 0,
             "cost": product["price_purchase"]
         }
-        for product in products_data if product.get("root") == "1" 
+        for product in products_data if product.get("root") == "1"
     ]
     item = Inventory(
         close_date=close_date,
         products=filtered_products
-    ) 
+    )
+    ayer_by_sku = {}
+    if inventory_ayer:
+        for p in inventory_ayer.products:
+            ayer_by_sku.setdefault(p["sku"], p)
+    compras_by_sku = {}
+    if compras_hoy:
+        for c in compras_hoy.products:
+            compras_by_sku.setdefault(c["sku"], []).append(c)
     for product in filtered_products:
         sku = product["sku"]
-        if inventory_ayer:
-            producto_ayer = next((p for p in inventory_ayer.products if p["sku"] == sku), None)
-            if producto_ayer:
-                product["quantity_auto"] = round(producto_ayer["quantity"] or 0,1)
-        if compras_hoy:
-            compras_sku = [c for c in compras_hoy.products if c["sku"] == sku]
-            for compra in compras_sku:
-                product["quantity_auto"] += round(compra.get("total_quantity",0),1)
+        producto_ayer = ayer_by_sku.get(sku)
+        if producto_ayer:
+            product["quantity_auto"] = round(producto_ayer["quantity"] or 0,1)
+        for compra in compras_by_sku.get(sku, []):
+            product["quantity_auto"] += round(compra.get("total_quantity",0),1)
         if ventas_hoy:
-            ventas_hoy = Order.find_by_date(close_date,close_date)
             for orden in ventas_hoy:
                 for productOrder in orden.get("products", []):
                     sku_child = productOrder.get("sku")

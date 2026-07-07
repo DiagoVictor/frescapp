@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, send_from_directory
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import os, json
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne
 
 from ..models.route import Route
 from ..models.order import Order
@@ -127,14 +127,16 @@ def update_route():
     route_instance.update()
 
     # Actualizar órdenes relacionadas
-    for stop in route_instance.stops:
-        order_number = stop.get('order_number')
-        status = stop.get('status')
-        if order_number and status:
-            orders_collection.update_one(
-                {"order_number": order_number},
-                {"$set": {"status_payment": status, "totalPayment": stop.get("total_charged")}}
-            )
+    order_updates = [
+        UpdateOne(
+            {"order_number": stop.get('order_number')},
+            {"$set": {"status_payment": stop.get('status'), "totalPayment": stop.get("total_charged")}}
+        )
+        for stop in route_instance.stops
+        if stop.get('order_number') and stop.get('status')
+    ]
+    if order_updates:
+        orders_collection.bulk_write(order_updates)
 
     return jsonify({'message': 'Route updated successfully'}), 200
 

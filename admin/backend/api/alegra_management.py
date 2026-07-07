@@ -28,7 +28,7 @@ def get_all_clients():
     start = 0
     limit = 30
     while True:
-        response = requests.get(f"{url_clients}?start={start}&limit={limit}", headers=headers)
+        response = requests.get(f"{url_clients}?start={start}&limit={limit}", headers=headers, timeout=30)
         if response.status_code == 200:
             data = response.json()
             if not data:
@@ -46,7 +46,7 @@ def get_all_items():
     start = 0
     limit = 30
     while True:
-        response = requests.get(f"{url_items}?start={start}&limit={limit}", headers=headers)
+        response = requests.get(f"{url_items}?start={start}&limit={limit}", headers=headers, timeout=30)
         if response.status_code == 200:
             data = response.json()
             if not data:
@@ -94,9 +94,13 @@ def transform_and_send_invoice(order, client, items):
         "identificationObject": client["identificationObject"]
     }
 
+    items_by_ref = {}
+    for i in items:
+        items_by_ref.setdefault(i.get("reference"), i)
+
     items_data = []
     for product in sorted(list(order['products']), key=lambda x: x['name']):
-        item = find_item_by_reference(items, product["sku"])
+        item = items_by_ref.get(product["sku"])
         if item:
             items_data.append({
                 "id": item["id"],
@@ -185,14 +189,14 @@ def transform_and_send_invoice(order, client, items):
     }
     # URL y cabeceras para la API de Alegra
     url_invoice = "https://api.alegra.com/api/v1/invoices/"
-    response = requests.post(url_invoice, headers=headers, json=invoice_data)
+    response = requests.post(url_invoice, headers=headers, json=invoice_data, timeout=30)
     return response
 
 def get_all_suppliers():
     suppliers = []
     start, limit = 0, 30
     while True:
-        response = requests.get(f"{url_suppliers}?type=provider&start={start}&limit={limit}", headers=headers)
+        response = requests.get(f"{url_suppliers}?type=provider&start={start}&limit={limit}", headers=headers, timeout=30)
         if response.status_code == 200:
             data = response.json()
             if not data:
@@ -216,7 +220,7 @@ def get_and_increment_invoice_number():
     return invoice_data['last_invoice']
 
 
-def func_send_invoice(order_number):
+def func_send_invoice(order_number, clients=None, items=None):
     db = get_db()
     collection = db['orders']
 
@@ -224,8 +228,10 @@ def func_send_invoice(order_number):
     if not order:
         return jsonify({"message": f"No se encontró la orden {order_number}"}), 404
 
-    clients = get_all_clients()
-    items = get_all_items()
+    if clients is None:
+        clients = get_all_clients()
+    if items is None:
+        items = get_all_items()
 
     client = find_client_by_identification(clients, order["customer_documentNumber"].split("-")[0])
     if not client:
@@ -249,12 +255,19 @@ def func_send_purchase(fecha):
     suppliers = get_all_suppliers()
     items = get_all_items()
 
+    suppliers_by_nit = {}
+    for s in suppliers:
+        suppliers_by_nit.setdefault(str(s.get("identification")), s)
+    items_by_ref = {}
+    for i in items:
+        items_by_ref.setdefault(i.get("reference"), i)
+
     grouped_purchases = {}
     for producto in order['products']:
         proveedor_local = producto.get('proveedor')
         if isinstance(proveedor_local, dict) and proveedor_local.get('nit'):
-            proveedor_alegra = find_supplier_by_nit(suppliers, proveedor_local.get('nit'))
-            item_alegra = find_item_by_reference(items, producto['sku'])
+            proveedor_alegra = suppliers_by_nit.get(proveedor_local.get('nit'))
+            item_alegra = items_by_ref.get(producto['sku'])
 
             if proveedor_alegra and item_alegra and producto['final_price_purchase'] > 0 and producto['status'] == 'Registrado' and producto['proveedor']['typeSupport'] == 'Documento soporte':
                 subtotal = producto['final_price_purchase'] * producto['total_quantity']
@@ -290,7 +303,7 @@ def func_send_purchase(fecha):
             "payments": [{"account": {"id": 1}, "date": fecha, "amount": total, "paymentMethod": "cash"}]
         }
 
-        response = requests.post(url_doc_soportes, headers=headers, json=payload)
+        response = requests.post(url_doc_soportes, headers=headers, json=payload, timeout=30)
         if response.status_code == 201:
             purchases.update_many(
                 {"products.proveedor.nit": purchase['proveedor_nit'], "date": fecha},
@@ -305,7 +318,7 @@ def func_send_purchase(fecha):
 
 def emit_invoice(alegra_id):
     url = 'https://api.alegra.com/api/v1/invoices/stamp'
-    response = requests.post(url, headers=headers, json={'ids': [alegra_id]})
+    response = requests.post(url, headers=headers, json={'ids': [alegra_id]}, timeout=30)
     return response
 
 
@@ -322,7 +335,7 @@ def send_invoice(order_number):
 def get_invoice(order_number):
     orden = Order.find_by_order_number(order_number)
     url = f"https://api.alegra.com/api/v1/invoices/{orden.alegra_id}?fields=pdf"
-    response = requests.get(url, headers=headers, stream=True)
+    response = requests.get(url, headers=headers, stream=True, timeout=30)
     return jsonify(response.json().get('pdf'))
 
 

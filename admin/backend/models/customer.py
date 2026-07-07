@@ -85,8 +85,8 @@ class Customer:
     
 
     @staticmethod
-    def objects():
-        return customers_collection.find()
+    def objects(projection=None):
+        return customers_collection.find({}, projection)
     @staticmethod
     def object(id):
         data = customers_collection.find_one({"_id": ObjectId(id)})

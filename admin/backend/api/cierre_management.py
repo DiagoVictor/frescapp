@@ -205,7 +205,7 @@ def func_create_cierre(fecha_in):
     davivienda = 0
     bancolombia = 0
     cartera = 0
-    orders_with_cartera = Order.find_by_status("Pendiente de pago")
+    orders_with_cartera = Order.find_by_status("Pendiente de pago", {"total": 1})
     for order in orders_with_cartera:
         cartera_total += int(order.get("total"))
     ruta = Route.find_by_date(fecha_in)
@@ -305,11 +305,14 @@ def get_cierre(fecha):
 @cierres_api.route('/<fecha_in>', methods=['POST'])
 def create_cierre(fecha_in):
     # Paso 1: Generar facturas de pedidos del dia en curso
-    orders = Order.find_by_date(fecha_in,fecha_in)
-    for order in orders:
-        if order.get("alegra_id") == "000":
-            alegra_api.func_send_invoice(order["order_number"])
-            time.sleep(3)  
+    orders = list(Order.find_by_date(fecha_in,fecha_in))
+    orders_to_invoice = [order for order in orders if order.get("alegra_id") == "000"]
+    if orders_to_invoice:
+        alegra_clients = alegra_api.get_all_clients()
+        alegra_items = alegra_api.get_all_items()
+        for order in orders_to_invoice:
+            alegra_api.func_send_invoice(order["order_number"], alegra_clients, alegra_items)
+            time.sleep(3)
     orders = Order.find_by_date(fecha_in,fecha_in)
     print("Emitiendo facturas en Alegra...")
     for order in orders:
@@ -485,7 +488,7 @@ def validate_cierre(fecha):
                     })
 
     # === PRECIOS ===
-    products = Product.objects()
+    products = Product.objects("active")
     products_history = ProductHistory.objects(fecha_inicio=lunes_ocho_dias_atras, fecha_fin=lunes_ocho_dias_atras)
     hist_by_sku = {ph.get("sku"): ph for ph in products_history}
     for product in products:

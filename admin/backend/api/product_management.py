@@ -510,6 +510,15 @@ def list_product_institucion(email):
     ws.append(["Nombre", "Unidad", "Categoria", "Precio", "SKU"])
 
     if not email:
+        all_discounts = list(product_discounts.find({"active": True}))
+        sku_discounts = {}
+        category_discounts = {}
+        for d in all_discounts:
+            if d.get("product_sku"):
+                sku_discounts.setdefault(d["product_sku"], d)
+            if d.get("category"):
+                category_discounts.setdefault(d["category"], d)
+
         for p in Product.objects('active'):
             nombre = p.get("name", "Sin nombre")
             step = p.get("step_unit", 1)
@@ -518,7 +527,9 @@ def list_product_institucion(email):
             precio_base = p.get("price_sale", 0) * step
 
             # aplicar descuento si existe para mostrar precio con descuento en excel
-            discount_doc = get_active_discount_for_product(p)
+            discount_doc = sku_discounts.get(p.get("sku"))
+            if not (discount_doc and is_discount_active(discount_doc)):
+                discount_doc = category_discounts.get(p.get("category"))
             if discount_doc and is_discount_active(discount_doc):
                 final_price, _ = compute_final_price(precio_base, discount_doc)
             else:
@@ -550,7 +561,7 @@ def list_product_institucion(email):
                 })
                 sku_list.append(sku)
 
-        productos_encontrados = {p["sku"]: p for p in Product.find_by_skus(sku_list)}
+        productos_encontrados = Product.find_by_skus(sku_list)
 
         for item in match_catalogo:
             sku = item["sku"]
@@ -645,11 +656,12 @@ def list_discount_products():
     discounts = list(product_discounts.find({"active": True}))
     discounts = [d for d in discounts if ProductDiscount.is_active(d)]
 
+    products_by_sku = Product.find_by_skus([d["product_sku"] for d in discounts])
 
     result = []
 
     for d in discounts:
-        product = Product.find_by_sku(d["product_sku"])
+        product = products_by_sku.get(d["product_sku"])
         if not product:
             continue
 
@@ -692,18 +704,31 @@ def calculate_cart_total():
     total_final = 0
     detailed_items = []
 
+    products_by_sku = Product.find_by_skus([item["sku"] for item in items])
+
+    all_discounts = list(product_discounts.find({"active": True}))
+    sku_discounts = {}
+    category_discounts = {}
+    for d in all_discounts:
+        if d.get("product_sku"):
+            sku_discounts.setdefault(d["product_sku"], d)
+        if d.get("category"):
+            category_discounts.setdefault(d["category"], d)
+
     for item in items:
         sku = item["sku"]
         qty = item["quantity"]
 
-        product = Product.find_by_sku(sku)
+        product = products_by_sku.get(sku)
         if not product:
             continue
 
         price_original = float(product.get("price_sale", 0))
 
         # --- Usar lógica correcta (misma de home/descuentos) ---
-        discount_doc = get_active_discount_for_product(product)
+        discount_doc = sku_discounts.get(product.get("sku"))
+        if not (discount_doc and is_discount_active(discount_doc)):
+            discount_doc = category_discounts.get(product.get("category"))
 
         if discount_doc and is_discount_active(discount_doc):
             price_final, _ = compute_final_price(price_original, discount_doc)

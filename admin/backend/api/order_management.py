@@ -23,10 +23,20 @@ from ..models.product import Product
 from ..models.customer import Customer
 from ..models.route import Route
 import os,re
+import requests
 from .product_discount_management import _find_applicable_discount_for_product, compute_final_price
 
 
 order_api = Blueprint('order', __name__)
+
+_remote_image_cache = {}
+
+def _get_cached_image(url):
+    if url not in _remote_image_cache:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        _remote_image_cache[url] = response.content
+    return BytesIO(_remote_image_cache[url])
 
 
 @order_api.route('/order', methods=['POST'])
@@ -270,7 +280,7 @@ def generate_remision(id_order):
 
     styles = getSampleStyleSheet()
     image_path = 'https://buyfrescapp.com/images/banner1.png'
-    logo = Image(image_path, width=95, height=50)
+    logo = Image(_get_cached_image(image_path), width=95, height=50)
     pdf_content = []
     remision_number = order.order_number
     word_wrap_style = styles["Normal"]
@@ -334,7 +344,7 @@ def generate_remision(id_order):
     descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
     total_formatted = locale.format_string('%.2f', total, grouping=True)
     image_path_payment = 'https://buyfrescapp.com/images/medio_pago.png'  # URL o ruta local de la imagen del medio de pago
-    payment_image = Image(image_path_payment, width=290, height=100)  # Ajustar tamaño de la imagen
+    payment_image = Image(_get_cached_image(image_path_payment), width=290, height=100)  # Ajustar tamaño de la imagen
     costo_domicilio = locale.format_string('%.2f', order.deliveryCost, grouping=True)
     product_data.extend([[payment_image,'','','Costo domicilio', costo_domicilio],
         ['', '', '', 'Subtotal', subtotal_formatted],
@@ -636,7 +646,11 @@ def download_orders_csv():
         "Product Proveedor", "Product Step Unit"
     ])
 
-    for order in orders_cursor:
+    orders_list = list(orders_cursor)
+    all_skus = [product.get("sku", "") for order in orders_list for product in order["products"]]
+    products_by_sku = Product.find_by_skus(all_skus)
+
+    for order in orders_list:
         order_id = str(order["_id"])
         order_number = order.get("order_number") or order.get("orderNumber")
         customer_email = order.get("customer_email") or order.get("customerEmail")
@@ -661,7 +675,7 @@ def download_orders_csv():
             applied_discount = product.get('applied_discount', None)
 
             # Datos del producto desde la colección
-            product_data = Product.find_by_sku(sku=product_sku) or {}
+            product_data = products_by_sku.get(product_sku) or {}
             product_name = product_data.get("name", "Unknown")
             product_description = product_data.get("description", "Unknown")
             product_price_purchase = product_data.get("price_purchase", 0)
@@ -758,22 +772,25 @@ def update_order():
         stream = io.StringIO(file.stream.read().decode("utf-8"))
         reader = csv.DictReader(stream, delimiter=';')
 
-        productos = []
-        total = 0.0
-
+        rows = []
         for row in reader:
             sku = row.get('SKU').strip() if row.get('SKU') else ''
             quantity = limpiar_valor(row.get('CANTIDAD'))
             price = limpiar_valor(row.get('PRECIO'))
+            if sku:
+                rows.append((sku, quantity, price))
 
-            if not sku:
-                continue
+        products_by_sku = Product.find_by_skus([sku for sku, _, _ in rows])
 
-            product = Product.find_by_sku(sku=sku)
+        productos = []
+        total = 0.0
+
+        for sku, quantity, price in rows:
+            product = products_by_sku.get(sku)
             if not product:
                 continue
 
-            product_dict = product
+            product_dict = product.copy()
             product_dict['quantity'] = quantity
             product_dict['price_sale'] = price
             productos.append(product_dict)
@@ -847,22 +864,26 @@ def update_order_from_csv(order_number, filename='clinica_daniel.csv'):
         with open(file_path, 'r', encoding='utf-8') as csv_file:
             reader = csv.DictReader(csv_file, delimiter=';')
 
-            updated_products = []
-            total = 0.0
-
+            rows = []
             for row in reader:
                 sku = row.get('SKU').strip() if row.get('SKU') else ''
                 quantity = limpiar_valor(row.get('CANTIDAD'))
                 price = limpiar_valor(row.get('PRECIO'))
                 print(f"Processing SKU: {sku}, Quantity: {quantity}, Price: {price}")
-                if not sku:
-                    continue
+                if sku:
+                    rows.append((sku, quantity, price))
 
-                product = Product.find_by_sku(sku=sku)
+            products_by_sku = Product.find_by_skus([sku for sku, _, _ in rows])
+
+            updated_products = []
+            total = 0.0
+
+            for sku, quantity, price in rows:
+                product = products_by_sku.get(sku)
                 if not product:
                     continue
 
-                product_dict = product
+                product_dict = product.copy()
                 product_dict['quantity'] = quantity
                 product_dict['price_sale'] = price
                 updated_products.append(product_dict)

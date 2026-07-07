@@ -24,13 +24,23 @@ from ..models.customer import Customer
 from ..models.product import Product
 from ..models.inventory import Inventory
 from datetime import datetime, timedelta
+import requests
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 report_api = Blueprint('report', __name__)
 from ..db import get_db
 db = get_db()
-orders_collection = db['orders']  
-products_collection = db['orders']  
+orders_collection = db['orders']
+products_collection = db['orders']
+
+_remote_image_cache = {}
+
+def _get_cached_image(url):
+    if url not in _remote_image_cache:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        _remote_image_cache[url] = response.content
+    return BytesIO(_remote_image_cache[url])
 @report_api.route('/picking/<string:startDate>/<string:endDate>', methods=['GET'])
 def get_picking(startDate, endDate): 
     buffer = BytesIO()
@@ -45,10 +55,14 @@ def get_picking(startDate, endDate):
 
     styles = getSampleStyleSheet()
     image_path = 'https://buyfrescapp.com/images/banner1.png'
-    logo = Image(image_path, width=95, height=50)
+    logo = Image(_get_cached_image(image_path), width=95, height=50)
 
     pdf_content = []
-    orders = orders_collection.find({"delivery_date": {"$gte": startDate, "$lte": endDate }})
+    orders = orders_collection.find({"delivery_date": {"$gte": startDate, "$lte": endDate }}, {
+        "order_number": 1, "delivery_date": 1, "customer_name": 1, "customer_phone": 1,
+        "paymentMethod": 1, "deliverySlot": 1, "open_hour": 1, "deliveryAddress": 1,
+        "deliveryAddressDetails": 1, "products": 1, "deliveryCost": 1, "discount": 1
+    })
 
     for order in orders:
         if not order:
@@ -90,10 +104,11 @@ def get_picking(startDate, endDate):
         word_wrap_style = styles["Normal"]
         word_wrap_style.wordWrap = 'CJK'
 
+        products = list(order['products'])
         product_data = [
             ['SKU', 'Nombre', 'Cantidad', 'Precio Unitario', 'Total'],  # Encabezado
         ]
-        for product in sorted(list(order['products']), key=lambda x: x['name']):
+        for product in sorted(products, key=lambda x: x['name']):
             sku = product['sku']
             name = product['name']
             quantity = product['quantity']
@@ -103,14 +118,14 @@ def get_picking(startDate, endDate):
             product_row = [sku, name_paragraph, str(quantity)  + "  " + str(product.get('unit', '')), price_sale, total]
             product_data.append(product_row)
 
-        subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in list(order['products'])) +  order.get('deliveryCost', 0.0)
+        subtotal = sum(round(float(product['quantity']) * float(product['price_sale']),0) for product in products) +  order.get('deliveryCost', 0.0)
         descuentos = float(order.get('discount', 0))
         total = subtotal - descuentos
         subtotal_formatted = locale.format_string('%.2f', subtotal, grouping=True)
         descuentos_formatted = locale.format_string('%.2f', descuentos, grouping=True)
         total_formatted = locale.format_string('%.2f', total, grouping=True)
         image_path_payment = 'https://buyfrescapp.com/images/medio_pago.png'  # URL o ruta local de la imagen del medio de pago
-        payment_image = Image(image_path_payment, width=290, height=80)  # Ajustar tamaño de la imagen
+        payment_image = Image(_get_cached_image(image_path_payment), width=290, height=80)  # Ajustar tamaño de la imagen
         costo_domicilio = locale.format_string('%.2f', order.get('deliveryCost', 0.0), grouping=True)
         product_data.extend([[payment_image,'','','Costo domicilio', costo_domicilio],
             ['', '', '', 'Subtotal', subtotal_formatted],
@@ -123,7 +138,7 @@ def get_picking(startDate, endDate):
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),  # Añadir bordes internos a las celdas
             ('BOX', (0, 0), (-1, -1), 0.5, colors.black),
-            ('SPAN', (0, len(list(order['products']))+1), (2, len(list(order['products']))+4))
+            ('SPAN', (0, len(products)+1), (2, len(products)+4))
         ]))
         pdf_content.append(product_table)
         pdf_content.append(PageBreak())
@@ -192,7 +207,7 @@ def get_compras(date,supplier):
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     image_path = 'https://app.buyfrescapp.com:5000/api/shared/banner1.png'
-    logo = Image(image_path, width=200, height=70)
+    logo = Image(_get_cached_image(image_path), width=200, height=70)
     centered_style = ParagraphStyle(
             name='Centered',
             fontSize=16,  # Tamaño de la letra aumentado a 16
@@ -403,7 +418,9 @@ def get_ue_excel(startDate, endDate):
     daily_orders  = {}
     all_customers = set()
 
-    for orden in _orders.find({"delivery_date": {"$gte": startDate, "$lte": endDate}}):
+    for orden in _orders.find({"delivery_date": {"$gte": startDate, "$lte": endDate}}, {
+        "delivery_date": 1, "customer_email": 1, "products": 1
+    }):
         fecha = orden.get("delivery_date", "")
         if fecha not in daily_orders:
             daily_orders[fecha] = dict(orders=0, lines=0, gmv=0.0,
@@ -421,7 +438,9 @@ def get_ue_excel(startDate, endDate):
 
     # Métodos de pago y logística desde rutas
     logistics_by_date = {}
-    for ruta in _routes.find({"close_date": {"$gte": startDate, "$lte": endDate}}):
+    for ruta in _routes.find({"close_date": {"$gte": startDate, "$lte": endDate}}, {
+        "close_date": 1, "cost": 1, "stops": 1
+    }):
         fecha = ruta.get("close_date", "")
         logistics_by_date[fecha] = logistics_by_date.get(fecha, 0.0) + float(ruta.get("cost", 0))
         if fecha in daily_orders:
@@ -442,7 +461,9 @@ def get_ue_excel(startDate, endDate):
     # FETCH: COMPRAS  (detalle de productos)
     # ══════════════════════════════════════════════════════════════════════════
     compras_rows = []
-    for pur in _purchases.find({"date": {"$gte": startDate, "$lte": endDate}}):
+    for pur in _purchases.find({"date": {"$gte": startDate, "$lte": endDate}}, {
+        "date": 1, "purchase_number": 1, "proveedor": 1, "products": 1
+    }):
         fecha   = pur.get("date", "")
         pur_num = pur.get("purchase_number", "")
         for p in pur.get("products", []):
@@ -475,7 +496,9 @@ def get_ue_excel(startDate, endDate):
     q_diario  = {"typePeriod": "Diario",  "period": {"$gte": startDate, "$lte": endDate}}
     q_mensual = {"typePeriod": "Mensual", "period": {"$in": list(months_in_range)}}
 
-    for cost in _costs.find({"$or": [q_diario, q_mensual]}):
+    for cost in _costs.find({"$or": [q_diario, q_mensual]}, {
+        "typeCost": 1, "amount": 1, "detail": 1, "period": 1, "typePeriod": 1
+    }):
         tipo   = cost.get("typeCost", "")
         amount = float(cost.get("amount", 0))
         costs_detail.append({

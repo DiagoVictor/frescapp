@@ -39,8 +39,9 @@ def transform_order(order):
 
     # Procesar productos
     products = []
+    products_by_sku = Product.find_by_skus([item.get("sku") for item in order.get("line_items", [])])
     for item in order.get("line_items", []):
-        product_data = Product.find_by_sku(sku=item.get("sku"))
+        product_data = products_by_sku.get(item.get("sku"))
         unit = product_data.get("unit") if product_data else ""
         category = product_data.get("category") if product_data else ""
         products.append({
@@ -95,7 +96,7 @@ def fetch_and_save_order(order_number):
 
     url = f"https://www.buyfrescapp.com/wp-json/wc/v3/orders/{order_number}"
     params = {"consumer_key": CONSUMER_KEY, "consumer_secret": CONSUMER_SECRET}
-    response = requests.get(url, params=params)
+    response = requests.get(url, params=params, timeout=15)
 
     if response.status_code != 200:
         return {"message": f"Error al obtener la orden {order_number}: {response.status_code}"}, 400

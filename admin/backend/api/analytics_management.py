@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint, jsonify, current_app, Response
 from datetime import datetime, timedelta
 import json
 from bson import json_util
@@ -119,7 +119,7 @@ def get_cost():
             daily_summary[fecha]["cogs"] += item["cogs"]
 
         # ===== COSTOS LOGÍSTICOS =====
-        rutas = routes_collection.find({"close_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}})
+        rutas = routes_collection.find({"close_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}}, {"close_date": 1, "cost": 1})
         for ruta in rutas:
             fecha = ruta.get('close_date')
             if isinstance(fecha, str):
@@ -128,7 +128,7 @@ def get_cost():
             daily_summary[fecha]["logistics_cost"] += ruta.get('cost', 0)
 
         # ===== ORDENES Y GMV =====
-        ordenes = orders_collection.find({"delivery_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}})
+        ordenes = orders_collection.find({"delivery_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}}, {"delivery_date": 1, "products": 1})
         for orden in ordenes:
             fecha = orden.get('delivery_date')
             if isinstance(fecha, str):
@@ -140,7 +140,7 @@ def get_cost():
                 daily_summary[fecha]["gmv"] += producto.get('price_sale', 0) * producto.get('quantity', 0)
 
         # ===== COSTOS ADICIONALES =====
-        costs = costs_collection.find({"typePeriod": "Diario"})
+        costs = costs_collection.find({"typePeriod": "Diario"}, {"period": 1, "typeCost": 1, "amount": 1})
         for cost in costs:
             fecha = cost.get('period')
             if isinstance(fecha, str):
@@ -192,7 +192,7 @@ def get_orders():
         ]
 
         orders_data = list(orders_collection.aggregate(pipeline))
-        return jsonify(json.loads(json_util.dumps(orders_data))), 200
+        return Response(json_util.dumps(orders_data), mimetype='application/json'), 200
 
 @analytics_api.route('/ue_daily/', methods=['GET'])
 def ue_daily():
@@ -383,7 +383,7 @@ def ue_daily():
         daily_summary[fecha]["cogs"] += item["cogs"]
 
     # Procesar rutas para costos logísticos
-    rutas = db.routes.find({"close_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}})
+    rutas = db.routes.find({"close_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}}, {"close_date": 1, "cost": 1})
     for ruta in rutas:
         fecha = ruta.get('close_date')
         if isinstance(fecha, str):
@@ -393,7 +393,7 @@ def ue_daily():
         daily_summary[fecha]["logistics_cost"] += ruta.get('cost', 0)
 
     # Procesar órdenes para GMV, órdenes, líneas y clientes
-    ordenes = db.orders.find({"delivery_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}})
+    ordenes = db.orders.find({"delivery_date": {"$gte": fecha_inicio_str, "$lte": fecha_fin_str}}, {"delivery_date": 1, "products": 1})
     for orden in ordenes:
         fecha = orden.get('delivery_date')
         if isinstance(fecha, str):
@@ -407,7 +407,7 @@ def ue_daily():
             daily_summary[fecha]["total_lines"] += 1
             daily_summary[fecha]["gmv"] += producto.get('price_sale', 0) * producto.get('quantity', 0)
     # Procesar costos adicionales de la colección 'costs'
-    costs = db.costs.find({"typePeriod": "Diario",     "period": { "$gt": fecha_inicio_str }})
+    costs = db.costs.find({"typePeriod": "Diario",     "period": { "$gt": fecha_inicio_str }}, {"period": 1, "typeCost": 1, "amount": 1, "detail": 1})
     for cost in costs:
         fecha = cost.get('period')
         if isinstance(fecha, str):
@@ -646,5 +646,4 @@ def get_products_consolidated():
     }
 ]
     result = list(orders.aggregate(pipeline))
-    result_data_json = json.loads(json_util.dumps(result))
-    return jsonify(result_data_json)
+    return Response(json_util.dumps(result), mimetype='application/json')

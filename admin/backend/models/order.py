@@ -210,8 +210,8 @@ class Order:
     def find_by_status_payment(status):
         return orders_collection.find({"status_payment": status})
     @staticmethod
-    def find_by_status(status):
-        return orders_collection.find({"status": status})
+    def find_by_status(status, projection=None):
+        return orders_collection.find({"status": status}, projection)
     # ----------------------------------------------------
     # Normalizar campos antiguos → nuevos
     # ----------------------------------------------------

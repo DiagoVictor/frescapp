@@ -26,25 +26,28 @@ def debug_prod_admins():
             return {"error": "MONGO_URI_PROD no está configurado"}, 500
 
         client = MongoClient(prod_uri)
-        db_name = prod_uri.split('/')[-1].split('?')[0] or "frescapp"
-        db = client[db_name]
+        try:
+            db_name = prod_uri.split('/')[-1].split('?')[0] or "frescapp"
+            db = client[db_name]
 
-        users_collections = ['users', 'customers']
-        admins_list = []
+            users_collections = ['users', 'customers']
+            admins_list = []
 
-        for collection_name in users_collections:
-            col = db[collection_name]
-            admins = list(col.find(
-                {"category": {"$in": ["Restaurante Ejecutivo", "Admin", "Administrador"]}},
-                {"_id": 1, "name": 1, "user": 1, "email": 1, "category": 1}
-            ))
-            admins_list.extend(serialize_mongo(admins))
+            for collection_name in users_collections:
+                col = db[collection_name]
+                admins = list(col.find(
+                    {"category": {"$in": ["Restaurante Ejecutivo", "Admin", "Administrador"]}},
+                    {"_id": 1, "name": 1, "user": 1, "email": 1, "category": 1}
+                ))
+                admins_list.extend(serialize_mongo(admins))
 
-        return {
-            "status": "ok",
-            "possible_admins": admins_list,
-            "db_name": db_name
-        }
+            return {
+                "status": "ok",
+                "possible_admins": admins_list,
+                "db_name": db_name
+            }
+        finally:
+            client.close()
 
     except Exception as e:
         return {"error": str(e)}, 500
@@ -56,30 +59,32 @@ def debug_prod_db():
             return {"error": "MONGO_URI_PROD no está configurado"}, 500
 
         client = MongoClient(prod_uri)
+        try:
+            # Obtener nombre real de la base de datos desde la URI
+            db_name = prod_uri.split('/')[-1].split('?')[0] or "frescapp"
+            db = client[db_name]
 
-        # Obtener nombre real de la base de datos desde la URI
-        db_name = prod_uri.split('/')[-1].split('?')[0] or "frescapp"
-        db = client[db_name]
+            # Sanitizar URI para no mostrar contraseñas
+            sanitized_uri = prod_uri.split("://")[0] + "://<hidden>@" + prod_uri.split("@")[1]
 
-        # Sanitizar URI para no mostrar contraseñas
-        sanitized_uri = prod_uri.split("://")[0] + "://<hidden>@" + prod_uri.split("@")[1]
+            collections = db.list_collection_names()
 
-        collections = db.list_collection_names()
+            counts = {}
+            for col in collections:
+                try:
+                    counts[col] = db[col].count_documents({})
+                except:
+                    counts[col] = "error"
 
-        counts = {}
-        for col in collections:
-            try:
-                counts[col] = db[col].count_documents({})
-            except:
-                counts[col] = "error"
-
-        return {
-            "status": "ok",
-            "db_name": db_name,
-            "prod_db_uri": sanitized_uri,
-            "collections": collections,
-            "counts": counts
-        }
+            return {
+                "status": "ok",
+                "db_name": db_name,
+                "prod_db_uri": sanitized_uri,
+                "collections": collections,
+                "counts": counts
+            }
+        finally:
+            client.close()
 
     except Exception as e:
         return {"error": str(e)}, 500

@@ -58,7 +58,7 @@ def func_create_ue(fecha_in):
     gmv = 0
     total_ordenes = 0
     total_lineas = 0
-    ordenes = orders_collection.find({"delivery_date": fecha_in})
+    ordenes = orders_collection.find({"delivery_date": fecha_in}, {"customer_email": 1, "products": 1})
 
     for orden in ordenes:
         total_ordenes += 1
@@ -79,7 +79,7 @@ def func_create_ue(fecha_in):
     bancolombia = 0
     cartera = 0
 
-    orders_with_cartera = Order.find_by_status("Pendiente de pago")
+    orders_with_cartera = Order.find_by_status("Pendiente de pago", {"total": 1})
     for order in orders_with_cartera:
         cartera_total += float(order.get("total", 0))
 
@@ -176,7 +176,7 @@ def update_ue():
         gmv, cogs, total_ordenes, total_lineas, clientes = 0, 0, 0, 0, set()
         costo_logistico = 0
 
-        ordenes = orders_collection.find({"delivery_date": {"$gte": fecha_inicio, "$lte": fecha_fin}})
+        ordenes = orders_collection.find({"delivery_date": {"$gte": fecha_inicio, "$lte": fecha_fin}}, {"customer_email": 1, "products": 1})
         for orden in ordenes:
             total_ordenes += 1
             clientes.add(orden.get('customer_email', ''))
@@ -184,14 +184,14 @@ def update_ue():
                 gmv += float(producto.get('price_sale', 0)) * float(producto.get('quantity', 0))
                 total_lineas += 1
 
-        compras = purchases_collection.find({"date": {"$gte": fecha_inicio, "$lte": fecha_fin}})
+        compras = purchases_collection.find({"date": {"$gte": fecha_inicio, "$lte": fecha_fin}}, {"products": 1})
         for compra in compras:
             for producto in compra.get('products', []):
                 precio = float(producto.get('final_price_purchase', 0))
                 cantidad = float(producto.get('total_quantity_ordered', 0))
                 cogs += precio * cantidad
 
-        rutas = routes_collection.find({"close_date": {"$gte": fecha_inicio, "$lte": fecha_fin}})
+        rutas = routes_collection.find({"close_date": {"$gte": fecha_inicio, "$lte": fecha_fin}}, {"cost": 1})
         for ruta in rutas:
             costo_logistico += float(ruta.get('cost', 0))
 

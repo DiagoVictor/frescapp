@@ -631,8 +631,9 @@ def get_products_with_discounts():
     #    Si hay descuento por SKU, tomar solo ese producto.
 
     # A) Productos con descuento por SKU
+    products_by_sku = {p["sku"]: p for p in products.find({"sku": {"$in": list(sku_discounts.keys())}})}
     for sku, discount in sku_discounts.items():
-        prod = products.find_one({"sku": sku})
+        prod = products_by_sku.get(sku)
         if not prod:
             continue
 
@@ -659,12 +660,16 @@ def get_products_with_discounts():
         })
 
     # B) Productos con descuento por categoría
+    products_by_category = {}
+    for p in products.find({"category": {"$in": list(category_discounts.keys())}}):
+        products_by_category.setdefault(p.get("category"), []).append(p)
+
     for category, discount in category_discounts.items():
 
         if not is_discount_active(discount):
             continue
 
-        prods = list(products.find({"category": category}))
+        prods = products_by_category.get(category, [])
 
         for prod in prods:
             # Omitir si ya tiene descuento por SKU (prioridad)
