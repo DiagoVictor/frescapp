@@ -66,6 +66,37 @@ def find_client_by_identification(clients, identification):
     return None
 
 
+def create_client(order, identification):
+    document_type = order.get("customer_documentType") or "CC"
+    kind_of_person = "PERSON_ENTITY" if document_type == "NIT" else "PERSON_NATURAL"
+
+    client_payload = {
+        "name": order.get("customer_name") or identification,
+        "identification": identification,
+        "identificationObject": {
+            "type": document_type,
+            "number": identification
+        },
+        "type": ["client"],
+        "kindOfPerson": kind_of_person,
+        "regime": "SIMPLIFIED_REGIME",
+        "phonePrimary": order.get("customer_phone") or "",
+        "email": order.get("customer_email") or "",
+        "address": {
+            "address": order.get("deliveryAddress") or "",
+            "city": "Bogotá, D.C.",
+            "department": "Bogotá, D.C."
+        }
+    }
+
+    response = requests.post(url_clients, headers=headers, json=client_payload, timeout=30)
+    if response.status_code in (200, 201):
+        return response.json(), None
+    error_message = f"Error al crear el cliente {identification} en Alegra: {response.status_code} - {response.text}"
+    print(error_message)
+    return None, error_message
+
+
 def find_item_by_reference(items, reference):
     for item in items:
         if item.get("reference") == reference:
@@ -242,9 +273,13 @@ def func_send_invoice(order_number, clients=None, items=None):
     if items is None:
         items = get_all_items()
 
-    client = find_client_by_identification(clients, order["customer_documentNumber"].split("-")[0])
+    identification = order["customer_documentNumber"].split("-")[0]
+    client = find_client_by_identification(clients, identification)
     if not client:
-        return jsonify({"message": f"No se encontró el cliente {order['customer_documentNumber']}"}), 400
+        client, error_message = create_client(order, identification)
+        if not client:
+            return jsonify({"message": f"No se encontró y no se pudo crear el cliente {order['customer_documentNumber']} en Alegra: {error_message}"}), 400
+        clients.append(client)
 
     res = transform_and_send_invoice(order, client, items)
     print(res.text)
