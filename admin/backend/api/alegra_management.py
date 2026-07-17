@@ -16,7 +16,7 @@ url_doc_soportes = "https://api.alegra.com/api/v1/bills"
 url_suppliers = "https://api.alegra.com/api/v1/contacts"
 headers = {
     "accept": "application/json",
-    "authorization": "Basic dm1kaWFnb3ZAZ21haWwuY29tOjBmZmQ1YzdiM2NiMWI5OWVjNDA0"  # ⚠️ pon esto en variable de entorno luego
+    "authorization": "Basic ZmVzY2FwcEBnbWFpbC5jb206ZTMxNWIyOTQ2YjY4ZDk0NjExYjA="  # ⚠️ pon esto en variable de entorno luego
 }
 
 # ===============================================
@@ -115,6 +115,8 @@ def transform_and_send_invoice(order, client, items):
                 "total": product["price_sale"] * product["quantity"] * (1 - (product["discount"] / 100) if "discount" in product else 1)
             })
 
+    invoice_number = get_and_increment_sales_invoice_number()
+
     invoice_data = {
         "id": order["order_number"],  # Este campo debe ser único para cada factura
         "date": order["delivery_date"],
@@ -127,13 +129,13 @@ def transform_and_send_invoice(order, client, items):
         "client": client_data,
         "purchaseOrderNumber":  str(order["order_number"]),
         "numberTemplate": {
-            "id": "18",
-            "prefix": "FAPP",
-            "number": order["order_number"],
-            "text": "Autorización de numeración de facturación N° 18764097910620 de 2025-08-31 Modalidad Factura Electrónica Desde N° FAPP2000 hasta FAPP6000 con vigencia hasta 2027-08-31",
+            "id": "1",
+            "prefix": "FVE",
+            "number": invoice_number,
+            "text": "Autorización de numeración de facturación N°18764105685502 de 2026-02-09 Modalidad Factura Electrónica Desde N° FVE1 hasta FVE500 con vigencia hasta 2028-02-09",
             "documentType": "invoice",
-            "fullNumber": f"FAPP{order['order_number']}",
-            "formattedNumber": order["order_number"],
+            "fullNumber": f"FVE{invoice_number}",
+            "formattedNumber": invoice_number,
             "isElectronic": True
         },
         "subtotal": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
@@ -216,6 +218,13 @@ def find_supplier_by_nit(suppliers, nit):
 def get_and_increment_invoice_number():
     db = get_db()
     invoice_counter = db['invoice_counter']
+    invoice_data = invoice_counter.find_one_and_update({}, {"$inc": {"last_invoice": 1}}, upsert=True, return_document=True)
+    return invoice_data['last_invoice']
+
+
+def get_and_increment_sales_invoice_number():
+    db = get_db()
+    invoice_counter = db['sales_invoice_counter']
     invoice_data = invoice_counter.find_one_and_update({}, {"$inc": {"last_invoice": 1}}, upsert=True, return_document=True)
     return invoice_data['last_invoice']
 

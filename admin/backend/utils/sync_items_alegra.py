@@ -10,7 +10,7 @@ products_collection = db['products']  # Suponiendo que los productos están en e
 url_items = "https://api.alegra.com/api/v1/items"
 headers = {
     "accept": "application/json",
-    "authorization": "Basic dm1kaWFnb3ZAZ21haWwuY29tOjBmZmQ1YzdiM2NiMWI5OWVjNDA0",
+    "authorization": "Basic ZmVzY2FwcEBnbWFpbC5jb206ZTMxNWIyOTQ2YjY4ZDk0NjExYjA=",
     "content-type": "application/json"
 }
 
@@ -50,7 +50,7 @@ def create_item_in_alegra(product):
         "price": product["price_sale"],
         "inventory": {
             "unit": unidad,
-            "warehouses": [{"id": "1"}]
+            "warehouses": [{"id": "019e8675-7063-73bd-8c98-7e69cea7dab8"}]
         }
     }
 
