@@ -121,16 +121,19 @@ def serve_static(filename):
 if __name__ == '__main__':
     CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
     port = int(os.getenv("PORT", 5000))
-    debug = os.getenv("FLASK_DEBUG", "True").lower() == "true"
+    is_production = os.getenv("FLASK_ENV") == "production"
+    # En producción, el modo debug queda forzado a False sin importar FLASK_DEBUG:
+    # el reloader/debugger de Werkzeug no debe correr expuesto a internet.
+    debug = False if is_production else os.getenv("FLASK_DEBUG", "True").lower() == "true"
 
     print(f"🚀 Servidor iniciado en: http://127.0.0.1:{port}")
-    if os.getenv("FLASK_ENV") == "production":
+    if is_production:
         print("🔒 Modo producción: Usando SSL/TLS")
         context = (
             '/etc/letsencrypt/live/app.buyfrescapp.com/fullchain.pem',
             '/etc/letsencrypt/live/app.buyfrescapp.com/privkey.pem'
         )
-        app.run(host='0.0.0.0', port=port, ssl_context=context)
+        app.run(host='0.0.0.0', port=port, ssl_context=context, debug=debug, use_reloader=False)
     else:
         print("⚠️ Modo desarrollo: No se está usando SSL/TLS")
-        app.run(host='0.0.0.0', port=port)
+        app.run(host='0.0.0.0', port=port, debug=debug)

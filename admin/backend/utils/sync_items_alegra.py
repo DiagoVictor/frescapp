@@ -14,6 +14,9 @@ headers = {
     "content-type": "application/json"
 }
 
+# Bodega "Principal" de la cuenta Alegra actual (fescapp@gmail.com)
+ALEGRA_WAREHOUSE_ID = "019e8675-7063-73bd-8c98-7e69cea7dab8"
+
 # Función para obtener todos los productos de Alegra
 def get_all_items():
     items = []
@@ -34,55 +37,51 @@ def get_all_items():
 
 def find_item_by_reference(items, reference):
     return next((item for item in items if item.get("reference") == reference), None)
+
+def _map_unit(unit):
+    if unit == 'KG':
+        return 'kilogram'
+    elif unit == 'UND':
+        return 'unit'
+    return 'unit'  # Valor por defecto si no coincide
+
+def _build_inventory(product):
+    quantity = product.get("quantity") or 0
+    return {
+        "unit": _map_unit(product['unit']),
+        "unitCost": product.get("price_purchase") or 0,
+        "initialQuantity": quantity,
+        "warehouses": [{"id": ALEGRA_WAREHOUSE_ID, "initialQuantity": quantity}]
+    }
+
 # Función para crear un producto en la API de Alegra
 def create_item_in_alegra(product):
-    if product['unit'] == 'KG':
-        unidad = 'kilogram'
-    elif product['unit'] == 'UND':
-        unidad = 'unit'
-    else:
-        unidad = 'unit'  # Valor por defecto si no coincide
-
     payload = {
         "type": "product",
         "name": product["name"],
         "reference": product["sku"],
         "price": product["price_sale"],
-        "inventory": {
-            "unit": unidad,
-            "warehouses": [{"id": "019e8675-7063-73bd-8c98-7e69cea7dab8"}]
-        }
+        "inventory": _build_inventory(product)
     }
 
-    response = requests.post(url_items, headers=headers, json=payload)
+    response = requests.post(url_items, headers=headers, json=payload, timeout=30)
     if response.status_code == 201:
         print(f"Producto creado exitosamente: {response.json()}")
     else:
         print(f"Error al crear el producto: {response.status_code} - {response.text}")
-def update_item_alegra(product):
-    # Asignar la unidad según el valor de product['unit']
-    if product['unit'] == 'KG':
-        unidad = 'kilogram'
-    elif product['unit'] == 'UND':
-        unidad = 'unit'
-    else:
-        unidad = 'unit'  # Valor por defecto si no coincide
 
+def update_item_alegra(product):
     payload = {
         "type": "product",
         "name": product["name"],
         "reference": product["sku"],
         "price": product["price_sale"],
-        "inventory": {
-            "unit": unidad,
-
-            "warehouses": [{"id": "1"}]
-        }
+        "inventory": _build_inventory(product)
     }
 
-    response = requests.put(url_items + '/' + str(product["id"]), headers=headers, json=payload)
-    
-    if response.status_code == 201:
+    response = requests.put(url_items + '/' + str(product["id"]), headers=headers, json=payload, timeout=30)
+
+    if response.status_code == 200:
         print(f"Producto actualizado exitosamente: {response.json()}")
     else:
         print(f"Error al actualizar el producto: {response.status_code} - {response.text}")
@@ -99,10 +98,10 @@ def sync_products():
         if product["sku"] not in alegra_references:
             print(f"Creando producto: {product['name']} ({product['sku']})")
             create_item_in_alegra(product)
-        # else:
-        #     alegra_product = find_item_by_reference(alegra_items,product['sku'])
-        #     product["id"] = alegra_product["id"]
-        #     update_item_alegra(product)            
-        #     print(f"El producto {product['name']} ({product['sku']}) actualizado en Alegra")
+        else:
+            alegra_product = find_item_by_reference(alegra_items, product['sku'])
+            product["id"] = alegra_product["id"]
+            update_item_alegra(product)
+            print(f"El producto {product['name']} ({product['sku']}) actualizado en Alegra")
 
 sync_products()

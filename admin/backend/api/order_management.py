@@ -49,6 +49,8 @@ def create_order(order_number=None):
     # Información del cliente y orden
     id = data.get('id')
     order_number = data.get('order_number', order_number)
+    if not order_number or str(order_number).lower() == 'undefined':
+        return jsonify({'message': 'Missing or invalid order_number'}), 400
     customer_email = data.get('email') or data.get('customer_email') or ''
     customer_phone = data.get('phoneNumber') or data.get('customer_phone') or ''
     customer_documentNumber = data.get('documentNumber') or data.get('customer_documentNumber') or ''
@@ -71,7 +73,7 @@ def create_order(order_number=None):
     total = 0.0
     for product in products:
         discount, origin = _find_applicable_discount_for_product(product)
-        original_price = float(product.get('price_sale', 0))
+        original_price = float(product.get('price_sale') or 0)
         if discount:
             #final_price, _ = compute_final_price(original_price, discount)
             product['price_sale'] = original_price
@@ -83,7 +85,9 @@ def create_order(order_number=None):
             }
         else:
             product['applied_discount'] = None
-        quantity = float(product.get('quantity', 1))
+            product['price_sale'] = original_price
+        quantity = float(product.get('quantity') or 1)
+        product['quantity'] = quantity
         total += product['price_sale'] * quantity
 
     # Otros campos de la orden
@@ -135,6 +139,7 @@ def create_order(order_number=None):
     # Guardar o actualizar orden
     existing_order = Order.find_by_order_number(order_number)
     if existing_order:
+        order.id = existing_order.id
         order.updated()
     else:
         order.save()
@@ -143,21 +148,21 @@ def create_order(order_number=None):
     # Actualizar ruta si existe
     ruta = Route.find_by_date(delivery_date)
     if ruta:
-        for stop in ruta.get('stops', []):
+        for stop in ruta.stops:
             if stop["order_number"] == order_number:
-                stop["total_charged"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
-                stop["total_to_charge"] = sum(item['price_sale'] * item.get('quantity',1) for item in products)
+                stop["total_charged"] = sum(item['price_sale'] * item.get('quantity', 1) for item in products)
+                stop["total_to_charge"] = sum(item['price_sale'] * item.get('quantity', 1) for item in products)
                 stop["quantity_sku"] = len(products)
                 stop["payment_method"] = paymentMethod
                 stop["payment_date"] = payment_date
                 stop["address"] = deliveryAddress
                 stop["driver_name"] = driver_name
         route_exist = Route(
-            id=ruta['id'],
-            route_number=ruta.get('route_number'),
-            close_date=ruta.get('close_date'),
-            cost=ruta.get('cost'),
-            stops=ruta.get('stops')
+            id=ruta.id,
+            route_number=ruta.route_number,
+            close_date=ruta.close_date,
+            cost=ruta.cost,
+            stops=ruta.stops
         )
         route_exist.update()
 
