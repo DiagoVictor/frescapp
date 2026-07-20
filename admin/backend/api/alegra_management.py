@@ -195,7 +195,7 @@ def transform_and_send_invoice(order, client, items):
         ],
         "seller": None,
         "priceList": {
-            "id": 1,
+            "id": "019e8675-7060-7290-a5d6-43826285dfaa",
             "name": "General"
         },
         "stamp": {
