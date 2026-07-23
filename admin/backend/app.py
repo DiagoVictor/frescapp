@@ -133,7 +133,7 @@ if __name__ == '__main__':
             '/etc/letsencrypt/live/app.buyfrescapp.com/fullchain.pem',
             '/etc/letsencrypt/live/app.buyfrescapp.com/privkey.pem'
         )
-        app.run(host='0.0.0.0', port=port, ssl_context=context, debug=debug, use_reloader=False)
+        app.run(host='0.0.0.0', port=port, ssl_context=context, debug=debug, use_reloader=False, threaded=True)
     else:
         print("⚠️ Modo desarrollo: No se está usando SSL/TLS")
-        app.run(host='0.0.0.0', port=port, debug=debug)
+        app.run(host='0.0.0.0', port=port, debug=debug, threaded=True)

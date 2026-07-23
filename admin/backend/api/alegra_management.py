@@ -160,7 +160,7 @@ def transform_and_send_invoice(order, client, items):
         "client": client_data,
         "purchaseOrderNumber":  str(order["order_number"]),
         "numberTemplate": {
-            "id": "1",
+            "id": "15",
             "prefix": "FVE",
             "number": invoice_number,
             "text": "Autorización de numeración de facturación N°18764105685502 de 2026-02-09 Modalidad Factura Electrónica Desde N° FVE1 hasta FVE500 con vigencia hasta 2028-02-09",
