@@ -110,7 +110,9 @@ def find_item_by_reference(items, reference):
 # ========== FUNCIONES DE FACTURACIÓN ============
 # ===============================================
 
-def transform_and_send_invoice(order, client, items, resolution, invoice_number):
+def transform_and_send_invoice(order, client, items, resolution, invoice_number, invoice_date=None):
+    # Fecha de la factura: la de entrega salvo que se indique otra (ej. emisión de pendientes con la fecha actual)
+    invoice_date = invoice_date or order["delivery_date"]
     client_data = {
         "id": client["id"],  
         "name": client["name"],
@@ -150,8 +152,8 @@ def transform_and_send_invoice(order, client, items, resolution, invoice_number)
 
     invoice_data = {
         "id": order["order_number"],  # Este campo debe ser único para cada factura
-        "date": order["delivery_date"],
-        "dueDate": order["delivery_date"],
+        "date": invoice_date,
+        "dueDate": invoice_date,
         "datetime": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         "observations": order["deliveryAddress"],
         "anotation": order["deliveryAddress"],
@@ -190,7 +192,7 @@ def transform_and_send_invoice(order, client, items, resolution, invoice_number)
         {
             "amount": sum(item["price_sale"] * item["quantity"] * (1 - (item["discount"] / 100) if "discount" in item else 1) for item in order["products"]),
             "paymentMethod": "cash",
-            "date": order["delivery_date"],
+            "date": invoice_date,
             "account": { "id": 1 },
         }
         ],
@@ -240,7 +242,41 @@ def get_and_increment_invoice_number():
     return invoice_data['last_invoice']
 
 
-def send_order_invoice(order_number, clients=None, items=None):
+# Resolución DIAN FVF (formulario 18764116141708) habilitada en Alegra en septiembre de 2026.
+DEFAULT_RESOLUTION = {
+    "prefix": "FVF",
+    "from_number": 1,
+    "to_number": 5000,
+    "resolution_number": "18764116141708",
+    "resolution_date": "2026-09-24",
+    "valid_until": "2028-09-24",
+    "document_type": "invoice",
+}
+
+
+def ensure_default_resolution():
+    """Registra y activa la resolución FVF si aún no existe en la base de datos."""
+    if InvoiceResolution.exists(DEFAULT_RESOLUTION["prefix"]):
+        return
+    response = requests.get("https://api.alegra.com/api/v1/number-templates", headers=headers, timeout=30)
+    if response.status_code != 200:
+        print(f"No se pudo consultar las numeraciones de Alegra: {response.status_code} - {response.text}")
+        return
+    template = next((t for t in response.json()
+                     if str(t.get("prefix", "")).upper() == DEFAULT_RESOLUTION["prefix"]
+                     and t.get("documentType", "invoice") == "invoice"), None)
+    if not template:
+        print(f"No se encontró la numeración {DEFAULT_RESOLUTION['prefix']} en Alegra")
+        return
+    InvoiceResolution.create({**DEFAULT_RESOLUTION, "alegra_template_id": template["id"], "active": True})
+
+
+def get_active_resolution():
+    ensure_default_resolution()
+    return InvoiceResolution.get_active()
+
+
+def send_order_invoice(order_number, clients=None, items=None, invoice_date=None):
     """Crea la factura de un pedido en Alegra con la resolución activa. Devuelve (mensaje, status_code)."""
     db = get_db()
     collection = db['orders']
@@ -251,7 +287,7 @@ def send_order_invoice(order_number, clients=None, items=None):
     if order.get("alegra_id") not in (None, "", "000"):
         return f"La orden {order_number} ya tiene factura en Alegra ({order.get('invoice_number', order['alegra_id'])})", 409
 
-    resolution = InvoiceResolution.get_active()
+    resolution = get_active_resolution()
     error = InvoiceResolution.check_usable(resolution)
     if error:
         return error, 400
@@ -282,7 +318,7 @@ def send_order_invoice(order_number, clients=None, items=None):
             "invoice_resolution_id": resolution["id"],
         }})
 
-    res = transform_and_send_invoice(order, client, items, resolution, invoice_number)
+    res = transform_and_send_invoice(order, client, items, resolution, invoice_number, invoice_date)
     print(res.text)
     if res.status_code == 201:
         collection.update_one({"order_number": order_number}, {"$set": {
@@ -423,7 +459,7 @@ def list_resolutions():
 
 @alegra_api.route('/resolutions/active', methods=['GET'])
 def active_resolution():
-    resolution = InvoiceResolution.get_active()
+    resolution = get_active_resolution()
     return jsonify({"resolution": resolution, "error": InvoiceResolution.check_usable(resolution)}), 200
 
 @alegra_api.route('/resolutions', methods=['POST'])
@@ -475,17 +511,18 @@ def list_pending_invoices():
 def send_pending_invoices():
     """Crea en Alegra y emite ante la DIAN las facturas pendientes de los últimos `days` días."""
     days = int((request.get_json(silent=True) or {}).get('days', request.args.get('days', 7)))
-    resolution = InvoiceResolution.get_active()
+    resolution = get_active_resolution()
     error = InvoiceResolution.check_usable(resolution)
     if error:
         return jsonify({"message": error}), 400
 
     start, end, orders = pending_invoice_orders(days)
+    today = datetime.now().strftime('%Y-%m-%d')
     clients = get_all_clients()
     items = get_all_items()
     enviadas, errores = [], []
     for o in orders:
-        message, status_code = send_order_invoice(o["order_number"], clients, items)
+        message, status_code = send_order_invoice(o["order_number"], clients, items, invoice_date=today)
         if str(status_code) != '201':
             errores.append({"order_number": o["order_number"], "error": message})
             continue
