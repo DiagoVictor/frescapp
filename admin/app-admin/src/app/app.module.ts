@@ -40,6 +40,7 @@ import { UeComponent } from './components/ue/ue.component'; // Importa el compon
 import { PedidosReportComponent } from './components/pedidos-report/pedidos-report.component'; // Importa el componente de reportes de pedidos
 import { OrdenComponent } from './components/ordenes/orden/orden.component';
 import { InstitucionalComponent } from './components/institucional/institucional.component';
+import { FacturacionComponent } from './components/facturacion/facturacion.component';
 import { NewPedidoComponent } from "./components/institucional/new-pedido/new-pedido.component"; // Importa el componente institucional
 @NgModule({
   declarations: [
@@ -75,6 +76,7 @@ import { NewPedidoComponent } from "./components/institucional/new-pedido/new-pe
     UeComponent,
     PedidosReportComponent,
     OrdenComponent,
+    FacturacionComponent,
     InstitucionalComponent, // Asegúrate de declarar el componente institucional aquí
   ],
   bootstrap: [AppComponent],

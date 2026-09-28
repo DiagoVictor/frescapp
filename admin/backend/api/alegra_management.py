@@ -2,11 +2,12 @@ from flask import Blueprint, jsonify, request
 from models.customer import Customer
 import json, dump
 from flask_bcrypt import Bcrypt
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
-from datetime import datetime
+import time
 from pymongo import MongoClient
 from models.order import Order
+from models.invoice_resolution import InvoiceResolution
 
 alegra_api = Blueprint('alegra', __name__)
 client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
@@ -74,7 +75,7 @@ def find_item_by_reference(items, reference):
     return None
 
 # Función para transformar y enviar la factura
-def transform_and_send_invoice(order, client, items):
+def transform_and_send_invoice(order, client, items, resolution):
     client_data = {
         "id": client["id"],  
         "name": client["name"],
@@ -119,14 +120,12 @@ def transform_and_send_invoice(order, client, items):
         "status": "open",
         "client": client_data,
         "purchaseOrderNumber":  str(order["order_number"]),
+        # Alegra asigna el consecutivo de la resolución activa (ver admin > Resoluciones)
         "numberTemplate": {
-            "id": "18",
-            "prefix": "FAPP",
-            "number": order["order_number"],
-            "text": "Autorización de numeración de facturación N° 18764097910620 de 2025-08-31 Modalidad Factura Electrónica Desde N° FAPP2000 hasta FAPP6000 con vigencia hasta 2027-08-31",
+            "id": resolution["alegra_template_id"],
+            "prefix": resolution["prefix"],
+            "text": resolution["text"],
             "documentType": "invoice",
-            "fullNumber": f"FAPP{order['order_number']}",
-            "formattedNumber": order["order_number"],
             "isElectronic": True
         },
         "subtotal": sum(item["price_sale"] * item["quantity"] for item in order["products"]),
@@ -158,20 +157,6 @@ def transform_and_send_invoice(order, client, items):
             "id": 1,
             "name": "General"
         },
-        "stamp": {
-            "legalStatus": "PENDING",
-            "cufe": "216598b481686b59cc4681f36faeb20228f1f53521c1c605b98722abee530405264984a51544241708d8bf4de7ef3bee",
-            "barCodeContent": "NumFac: FRES1281\nFecFac: 2024-07-10\nHorFac: 21:29:49-05:00\nNitFac: 901387528\nDocAdq: 1020808385\nValFac: 165000.00\nValIva: 0.00\nValOtroIm: 0.00\nValTolFac: 165000.00\nCUFE: 216598b481686b59cc4681f36faeb20228f1f53521c1c605b98722abee530405264984a51544241708d8bf4de7ef3bee\nQRCode: https:\/\/catalogo-vpfe.dian.gov.co\/document\/searchqr?documentkey=216598b481686b59cc4681f36faeb20228f1f53521c1c605b98722abee530405264984a51544241708d8bf4de7ef3bee\n",
-            "date": "2024-07-10 21:30:52",
-            "warnings": [
-                "Regla: FAZ09, Notificación: Debe existir el grupo de información de identificación del bien o servicio",
-                "Regla: FAJ43b, Notificación: Nombre informado No corresponde al registrado en el RUT con respecto al Nit suministrado.",
-                "Regla: FAJ43b, Notificación: Nombre informado No corresponde al registrado en el RUT con respecto al Nit suministrado.",
-                "Regla: RUT01, Notificación: La validación del estado del RUT próximamente estará disponible.",
-                "Regla: RUT01, Notificación: La validación del estado del RUT próximamente estará disponible."
-            ]
-        },
-
         "items": items_data,
         "costCenter": None,
         "printingTemplate": {
@@ -211,27 +196,54 @@ def get_and_increment_invoice_number():
     invoice_data = invoice_counter.find_one_and_update({}, {"$inc": {"last_invoice": 1}}, upsert=True, return_document=True)
     return invoice_data['last_invoice']
 
-def func_send_invoice(order_number):
+def send_order_invoice(order_number, clients=None, items=None):
+    """Crea la factura de un pedido en Alegra con la resolución activa. Devuelve (mensaje, status_code)."""
     order = collection.find_one({"order_number": order_number})
-    if order:
-        clients = get_all_clients()
-        items = get_all_items()
-        client = find_client_by_identification(clients,order["customer_documentNumber"].split("-")[0])        
-        if client:
-            res = transform_and_send_invoice(order, client, items)
-            if str(res.status_code) == '201':
-                collection.update_one(
-                    {"order_number": order_number},
-                    {"$set": {"alegra_id":res.json().get("id")}}
-                )
-                return jsonify({"message": res.text}), res.status_code
-            else:
-                return jsonify({"message": res.text}), res.status_code
-        else:
-            return jsonify({"message": f"No se encontró un cliente con identificación {order['customer_documentNumber']}"}), 400
+    if not order:
+        return f"No se encontró la orden con número {order_number}", 400
+    if order.get("alegra_id") not in (None, "", "000"):
+        return f"La orden {order_number} ya tiene factura en Alegra ({order.get('invoice_number', order['alegra_id'])})", 409
+    resolution = InvoiceResolution.get_active()
+    error = InvoiceResolution.check_usable(resolution)
+    if error:
+        return error, 400
+    clients = clients if clients is not None else get_all_clients()
+    items = items if items is not None else get_all_items()
+    client = find_client_by_identification(clients, order["customer_documentNumber"].split("-")[0])
+    if not client:
+        return f"No se encontró un cliente con identificación {order['customer_documentNumber']}", 400
+    res = transform_and_send_invoice(order, client, items, resolution)
+    if str(res.status_code) != '201':
+        return res.text, res.status_code
+    invoice = res.json()
+    number_template = invoice.get("numberTemplate") or {}
+    update = {"alegra_id": invoice.get("id"), "invoice_resolution_id": resolution["id"]}
+    if number_template.get("fullNumber"):
+        update["invoice_number"] = number_template["fullNumber"]
+    collection.update_one({"order_number": order_number}, {"$set": update})
+    if str(number_template.get("number", "")).isdigit():
+        InvoiceResolution.register_used_number(resolution["id"], number_template["number"])
+    return res.text, res.status_code
 
-    else:
-        return jsonify({"message": f"No se encontró la orden con número {order_number}"}), 400
+def func_send_invoice(order_number):
+    message, status_code = send_order_invoice(order_number)
+    return jsonify({"message": message}), status_code
+
+def pending_invoice_orders(days):
+    """Pedidos entregados en los últimos `days` días que no tienen factura en Alegra."""
+    end = datetime.now().strftime('%Y-%m-%d')
+    start = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
+    orders = collection.find({
+        "delivery_date": {"$gte": start, "$lte": end},
+        "$or": [{"alegra_id": "000"}, {"alegra_id": {"$exists": False}}, {"alegra_id": None}]
+    }).sort("delivery_date", 1)
+    return start, end, [{
+        "order_number": o["order_number"],
+        "delivery_date": o.get("delivery_date"),
+        "customer_name": o.get("customer_name"),
+        "customer_documentNumber": o.get("customer_documentNumber"),
+        "total": o.get("total"),
+    } for o in orders]
 
 def func_send_purchase(fecha):
     order = purchases.find_one({"date": fecha})
@@ -342,15 +354,10 @@ def func_send_purchase(fecha):
     }), 200 
 
 def emit_invoice(alegra_id):
-    url = 'https://api.alegra.com/api/v1/invoices/stamp' 
-
-    # Encabezados de la petición
-    headers = {
-        "authorization": "Basic dm1kaWFnb3ZAZ21haWwuY29tOjBmZmQ1YzdiM2NiMWI5OWVjNDA0"
-    }
-    payload = {'ids': [alegra_id]}  # Reemplaza con los IDs de las facturas que deseas timbrar
-    # Realizar la solicitud GET
-    response = requests.post(url, headers=headers, json=payload)
+    """Timbra (emite ante la DIAN) una factura ya creada en Alegra."""
+    url = 'https://api.alegra.com/api/v1/invoices/stamp'
+    payload = {'ids': [alegra_id]}
+    return requests.post(url, headers=headers, json=payload)
 
 @alegra_api.route('/send_invoice/<string:order_number>', methods=['GET'])
 def send_invoice(order_number):
@@ -368,3 +375,90 @@ def get_invoice(order_number):
 @alegra_api.route('/send_purchase/<string:fecha>', methods=['GET'])
 def send_purchase(fecha):
     return func_send_purchase(fecha)
+
+# ---------------- Resoluciones de facturación ----------------
+
+@alegra_api.route('/resolutions', methods=['GET'])
+def list_resolutions():
+    return jsonify(InvoiceResolution.get_all()), 200
+
+@alegra_api.route('/resolutions/active', methods=['GET'])
+def active_resolution():
+    resolution = InvoiceResolution.get_active()
+    return jsonify({"resolution": resolution, "error": InvoiceResolution.check_usable(resolution)}), 200
+
+@alegra_api.route('/resolutions', methods=['POST'])
+def create_resolution():
+    data = request.get_json() or {}
+    missing = [f for f in ("alegra_template_id", "prefix", "from_number", "to_number", "resolution_number", "resolution_date", "valid_until") if not data.get(f)]
+    if missing:
+        return jsonify({"message": f"Faltan campos: {', '.join(missing)}"}), 400
+    return jsonify(InvoiceResolution.create(data)), 201
+
+@alegra_api.route('/resolutions/<string:resolution_id>', methods=['PUT'])
+def update_resolution(resolution_id):
+    resolution = InvoiceResolution.update(resolution_id, request.get_json() or {})
+    if not resolution:
+        return jsonify({"message": "Resolución no encontrada"}), 404
+    return jsonify(resolution), 200
+
+@alegra_api.route('/resolutions/<string:resolution_id>/activate', methods=['POST'])
+def activate_resolution(resolution_id):
+    resolution = InvoiceResolution.activate(resolution_id)
+    if not resolution:
+        return jsonify({"message": "Resolución no encontrada"}), 404
+    return jsonify(resolution), 200
+
+@alegra_api.route('/resolutions/<string:resolution_id>', methods=['DELETE'])
+def delete_resolution(resolution_id):
+    if not InvoiceResolution.delete(resolution_id):
+        return jsonify({"message": "No se puede eliminar la resolución activa"}), 400
+    return jsonify({"message": "Resolución eliminada"}), 200
+
+@alegra_api.route('/number_templates', methods=['GET'])
+def list_number_templates():
+    """Numeraciones configuradas en Alegra, para escoger el id de la resolución."""
+    response = requests.get("https://api.alegra.com/api/v1/number-templates", headers=headers)
+    if response.status_code != 200:
+        return jsonify({"message": response.text}), response.status_code
+    templates = [t for t in response.json() if t.get("documentType") == "invoice"]
+    return jsonify(templates), 200
+
+# ---------------- Facturas pendientes por emitir ----------------
+
+@alegra_api.route('/pending_invoices', methods=['GET'])
+def list_pending_invoices():
+    days = int(request.args.get('days', 7))
+    start, end, orders = pending_invoice_orders(days)
+    return jsonify({"start": start, "end": end, "orders": orders}), 200
+
+@alegra_api.route('/pending_invoices', methods=['POST'])
+def send_pending_invoices():
+    """Crea en Alegra y emite ante la DIAN las facturas pendientes de los últimos `days` días."""
+    days = int((request.get_json(silent=True) or {}).get('days', request.args.get('days', 7)))
+    resolution = InvoiceResolution.get_active()
+    error = InvoiceResolution.check_usable(resolution)
+    if error:
+        return jsonify({"message": error}), 400
+
+    start, end, orders = pending_invoice_orders(days)
+    clients = get_all_clients()
+    items = get_all_items()
+    enviadas, errores = [], []
+    for o in orders:
+        message, status_code = send_order_invoice(o["order_number"], clients, items)
+        if str(status_code) != '201':
+            errores.append({"order_number": o["order_number"], "error": message})
+            continue
+        order = collection.find_one({"order_number": o["order_number"]})
+        time.sleep(3)
+        stamp = emit_invoice(order["alegra_id"])
+        enviadas.append({
+            "order_number": o["order_number"],
+            "invoice_number": order.get("invoice_number"),
+            "alegra_id": order["alegra_id"],
+            "emitida": stamp.status_code in (200, 201),
+            "stamp_response": None if stamp.status_code in (200, 201) else stamp.text,
+        })
+        time.sleep(3)
+    return jsonify({"start": start, "end": end, "enviadas": enviadas, "errores": errores}), 200

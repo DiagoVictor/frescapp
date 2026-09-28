@@ -1,0 +1,181 @@
+<div class="container mt-4">
+
+  <div *ngIf="message" class="alert alert-{{ messageType }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" (click)="message = ''"></button>
+  </div>
+
+  <!-- Resolución activa -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Resolución activa</h5>
+      <div *ngIf="activeResolution; else sinResolucion">
+        <p class="mb-1">
+          <strong>{{ activeResolution.prefix }}{{ activeResolution.from_number }} a {{ activeResolution.prefix }}{{ activeResolution.to_number }}</strong>
+          · Formulario DIAN {{ activeResolution.resolution_number }}
+          · Vigente hasta {{ activeResolution.valid_until }}
+          · Numeración Alegra #{{ activeResolution.alegra_template_id }}
+        </p>
+        <p class="mb-1">
+          Último número usado: {{ activeResolution.last_number }} · Disponibles: {{ activeResolution.remaining }}
+        </p>
+        <small class="text-muted">{{ activeResolution.text }}</small>
+        <div *ngIf="isExpiringSoon(activeResolution)" class="alert alert-warning mt-2 mb-0">
+          La resolución está por vencer o por agotar su rango. Solicita una nueva a la DIAN.
+        </div>
+      </div>
+      <ng-template #sinResolucion>
+        <p class="text-danger mb-0">No hay resolución activa: no se pueden generar facturas.</p>
+      </ng-template>
+      <div *ngIf="activeError && activeResolution" class="alert alert-danger mt-2 mb-0">{{ activeError }}</div>
+    </div>
+  </div>
+
+  <!-- Resoluciones -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Resoluciones de facturación</h5>
+    <button class="btn btn-primary" (click)="newResolution()">Nueva resolución</button>
+  </div>
+
+  <div class="card mb-3" *ngIf="showForm">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Numeración en Alegra</label>
+          <select *ngIf="numberTemplates.length" class="form-select" [(ngModel)]="form.alegra_template_id" (ngModelChange)="onTemplateChange()">
+            <option value="">Selecciona...</option>
+            <option *ngFor="let t of numberTemplates" [value]="t.id">#{{ t.id }} · {{ t.name || t.prefix }}</option>
+          </select>
+          <input *ngIf="!numberTemplates.length" class="form-control" [(ngModel)]="form.alegra_template_id" placeholder="Id de la numeración en Alegra" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Prefijo</label>
+          <input class="form-control" [(ngModel)]="form.prefix" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Desde el número</label>
+          <input type="number" class="form-control" [(ngModel)]="form.from_number" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Hasta el número</label>
+          <input type="number" class="form-control" [(ngModel)]="form.to_number" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Número de formulario DIAN</label>
+          <input class="form-control" [(ngModel)]="form.resolution_number" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Fecha de formalización</label>
+          <input type="date" class="form-control" [(ngModel)]="form.resolution_date" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Vigente hasta</label>
+          <input type="date" class="form-control" [(ngModel)]="form.valid_until" />
+        </div>
+        <div class="col-12 form-check ms-2" *ngIf="!editingId">
+          <input type="checkbox" class="form-check-input" id="activeCheck" [(ngModel)]="form.active" />
+          <label class="form-check-label" for="activeCheck">Usar esta resolución para las nuevas facturas</label>
+        </div>
+      </div>
+      <div class="mt-3">
+        <button class="btn btn-success me-2" (click)="save()">Guardar</button>
+        <button class="btn btn-secondary" (click)="showForm = false">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <table class="table table-hover mb-5">
+    <thead>
+      <tr>
+        <th>Prefijo</th>
+        <th>Rango</th>
+        <th>Formulario DIAN</th>
+        <th>Formalización</th>
+        <th>Vigencia</th>
+        <th>Último usado</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let r of resolutions">
+        <td>{{ r.prefix }}</td>
+        <td>{{ r.from_number }} - {{ r.to_number }}</td>
+        <td>{{ r.resolution_number }}</td>
+        <td>{{ r.resolution_date }}</td>
+        <td>{{ r.valid_until }}</td>
+        <td>{{ r.last_number }}</td>
+        <td>
+          <span class="badge" [ngClass]="r.active ? 'bg-success' : 'bg-secondary'">{{ r.active ? 'Activa' : 'Inactiva' }}</span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-secondary me-2" (click)="edit(r)">Editar</button>
+          <button class="btn btn-sm btn-primary me-2" *ngIf="!r.active" (click)="activate(r)">Activar</button>
+          <button class="btn btn-sm btn-danger" *ngIf="!r.active" (click)="remove(r)">Eliminar</button>
+        </td>
+      </tr>
+      <tr *ngIf="!resolutions.length">
+        <td colspan="8" class="text-muted">No hay resoluciones registradas.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Facturas pendientes -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Facturas pendientes por emitir</h5>
+    <div class="d-flex align-items-center">
+      <label class="me-2">Últimos</label>
+      <input type="number" min="1" class="form-control me-2" style="width: 80px;" [(ngModel)]="days" (change)="loadPending()" />
+      <span class="me-3">días</span>
+      <button class="btn btn-success" [disabled]="sending || !pending?.orders?.length || !activeResolution || activeError"
+        (click)="sendPending()">
+        {{ sending ? 'Enviando...' : 'Enviar y emitir pendientes' }}
+      </button>
+    </div>
+  </div>
+  <p class="text-muted" *ngIf="pending">Pedidos entregados del {{ pending.start }} al {{ pending.end }} sin factura en Alegra: {{ pending.orders.length }}</p>
+
+  <table class="table table-sm table-hover" *ngIf="pending?.orders?.length">
+    <thead>
+      <tr>
+        <th>Pedido</th>
+        <th>Entrega</th>
+        <th>Cliente</th>
+        <th>Documento</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let o of pending.orders">
+        <td>{{ o.order_number }}</td>
+        <td>{{ o.delivery_date }}</td>
+        <td>{{ o.customer_name }}</td>
+        <td>{{ o.customer_documentNumber }}</td>
+        <td>{{ o.total | moneyFormat }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="sendResult" class="mb-5">
+    <h6>Resultado del envío</h6>
+    <table class="table table-sm">
+      <thead>
+        <tr><th>Pedido</th><th>Factura</th><th>Emitida DIAN</th><th>Detalle</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of sendResult.enviadas">
+          <td>{{ e.order_number }}</td>
+          <td>{{ e.invoice_number }}</td>
+          <td>{{ e.emitida ? 'Sí' : 'No' }}</td>
+          <td class="small">{{ e.stamp_response }}</td>
+        </tr>
+        <tr *ngFor="let e of sendResult.errores" class="table-danger">
+          <td>{{ e.order_number }}</td>
+          <td>-</td>
+          <td>No</td>
+          <td class="small">{{ e.error }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -39,6 +39,9 @@
         <a class="nav-link" routerLink="/cierres" routerLinkActive="active">Cierres</a>
       </li>
       <li class="nav-item" *ngIf="hasRole(['administrador'])">
+        <a class="nav-link" routerLink="/facturacion" routerLinkActive="active">Facturación</a>
+      </li>
+      <li class="nav-item" *ngIf="hasRole(['administrador'])">
         <a class="nav-link" routerLink="/strikes" routerLinkActive="active">Strikes</a>
       </li>
       <li class="nav-item" *ngIf="hasRole(['administrador', 'comprador', 'auxiliar'])">
