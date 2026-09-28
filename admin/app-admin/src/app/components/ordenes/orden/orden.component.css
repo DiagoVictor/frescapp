@@ -1,0 +1,11 @@
+.modal-90 {
+    width: 90vw;
+    max-width: 90vw; /* Sobreescribe el límite de modal-xl */
+    height: 90vh;
+    margin: auto;
+}
+
+.modal-90 .modal-content {
+    height: 100%; /* Para que el contenido interno llene el 90vh */
+    border-radius: 0.5rem;
+}

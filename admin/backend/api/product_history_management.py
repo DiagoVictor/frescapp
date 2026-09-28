@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from models.product_history import ProductHistory
+from ..models.product_history import ProductHistory
 import json, dump
 from flask_bcrypt import Bcrypt
 from datetime import datetime
@@ -19,31 +19,32 @@ def list_products_history(operation_date_start,operation_date_end):
     product_data = [
         {
             "id": str(product["_id"]), 
-            "operation_date": product["operation_date"],
-            "name": product["name"],
-            "unit": product["unit"],
-            "category": product["category"],
-            "sku": product["sku"],
-            "root": product["root"],
-            "child" : product["child"],
-            "step_unit" : product["step_unit"],
-            "step_unit_sipsa" : product["step_unit_sipsa"],
-            "margen" : product["margen"],
-            "last_price_purchased" : product["last_price_purchased"],
-            "minimoKg" : product["minimoKg"],
-            "maximoKg" : product["maximoKg"],
-            "promedioKg" : product["promedioKg"],
-            "price_sale" : product["price_sale"],
-            "price_purchase" : product["price_purchase"],
-            "last_price_purchase" : product["last_price_purchase"],
-            "last_price_sale" : product["last_price_sale"],
-            "factor_volumen" : product["factor_volumen"],
-            "sipsa_id" : product["sipsa_id"]
+            "operation_date": product.get("operation_date"),
+            "name": product.get("name"),
+            "unit": product.get("unit"),
+            "category": product.get("category"),
+            "sku": product.get("sku"),
+            "root": product.get("root"),
+            "child": product.get("child"),
+            "step_unit": product.get("step_unit"),
+            # Use .get() to avoid KeyError if the field is missing
+            "step_unit_sipsa": product.get("step_unit_sipsa"), 
+            "margen": product.get("margen"),
+            "last_price_purchased": product.get("last_price_purchased"),
+            "minimoKg": product.get("minimoKg"),
+            "maximoKg": product.get("maximoKg"),
+            "promedioKg": product.get("promedioKg"),
+            "price_sale": product.get("price_sale"),
+            "price_purchase": product.get("price_purchase"),
+            "last_price_purchase": product.get("last_price_purchase"),
+            "last_price_sale": product.get("last_price_sale"),
+            "factor_volumen": product.get("factor_volumen"),
+            "sipsa_id": product.get("sipsa_id")
         }
         for product in products_cursor
     ]
-    products_json = json.dumps(product_data)
-    return products_json, 200
+    
+    return jsonify(product_data), 200
 
 @product_history_api.route('/products_history_analytics', methods=['GET'])
 def products_history_analytics():
@@ -208,9 +209,7 @@ def products_history_new(operation_date):
         records = filtered_data.to_dict(orient='records')
         return records
 
-    def precio_familia_compra(uri: str, db_name: str, sku: str, operation_date: str):
-        client = MongoClient(uri)
-        db = client[db_name]
+    def precio_familia_compra(sku: str, operation_date: str):
         exclusion = {"_id": 0, "image": 0, "description": 0}
         
         sku_padre = db["products"].find_one(
@@ -249,7 +248,6 @@ def products_history_new(operation_date):
                 
                 contador += 1
 
-        client.close()
         return total_precio / contador if contador > 0 else 0
 
     def safe_round(value):
@@ -258,10 +256,7 @@ def products_history_new(operation_date):
         except (TypeError, ValueError):
             return 0
 
-    def copiar_productos_activos_y_actualizar(uri: str, db_name: str, coleccion_origen: str, coleccion_destino: str, operation_date: str, equivalence_data: list):
-        client = MongoClient(uri)
-        db = client[db_name]
-
+    def copiar_productos_activos_y_actualizar(coleccion_origen: str, coleccion_destino: str, operation_date: str, equivalence_data: list):
         exclusion = {"_id": 0, "image": 0, "description": 0}
         productos_activos = db[coleccion_origen].find({"status": "active"}, exclusion)
         def safe_float(value, default=1.0):
@@ -275,7 +270,7 @@ def products_history_new(operation_date):
             producto.pop("_id", None)
 
             sku = producto.get("sku")
-            precio_compra_dia = precio_familia_compra(uri, db_name, sku, operation_date)
+            precio_compra_dia = precio_familia_compra(sku, operation_date)
 
             equivalence_match = next(
                 (
@@ -286,7 +281,7 @@ def products_history_new(operation_date):
                 None
             )
 
-            step_unit_sipsa = safe_float(producto.get("step_unit_sipsa"))
+            #step_unit_sipsa = safe_float(producto.get("step_unit_sipsa"))
             step_unit = float(producto.get("step_unit", 1))
             try:
                 factor_volumen = float(producto.get("factor_volumen") or 1)
@@ -294,9 +289,9 @@ def products_history_new(operation_date):
                 factor_volumen = 1
             margen = float(producto.get("margen", 0))
 
-            minimoKg = safe_round(float(equivalence_match["MINIMO"]) * step_unit_sipsa) if equivalence_match else 0
-            maximoKg = safe_round(float(equivalence_match["MAXIMO"]) * step_unit_sipsa) if equivalence_match else 0
-            promedioKg = safe_round(float(equivalence_match["PROMEDIO"]) * step_unit_sipsa) if equivalence_match else 0
+            minimoKg = safe_round(float(equivalence_match["MINIMO"]) ) if equivalence_match else 0
+            maximoKg = safe_round(float(equivalence_match["MAXIMO"]) ) if equivalence_match else 0
+            promedioKg = safe_round(float(equivalence_match["PROMEDIO"]) ) if equivalence_match else 0
             if producto.get("tipo_pricing") == "Auto":
                 if precio_compra_dia:
                     price_purchase = precio_compra_dia * step_unit
@@ -324,16 +319,13 @@ def products_history_new(operation_date):
 
             try:
                 db[coleccion_destino].insert_one(producto)
+                print(f"Producto con SKU {sku} insertado correctamente en {coleccion_destino}.")
             except Exception as e:
                 print(f"Error insertando producto con SKU {sku}: {e}")
 
-        client.close()
         print("Productos actualizados y copiados exitosamente.")
 
-    def actualizar_precios_en_products(uri: str, db_name: str, coleccion_origen: str, operation_date: str):
-        client = MongoClient(uri)
-        db = client[db_name]
-
+    def actualizar_precios_en_products(coleccion_origen: str, operation_date: str):
         # Obtiene los productos de products_history según la operation_date
         productos_history = db[coleccion_origen].find({"operation_date": operation_date})
         
@@ -352,23 +344,16 @@ def products_history_new(operation_date):
                 }}
             )
 
-        client.close()
         print("Precios actualizados en la colección 'products'.")
 
     def delete_product_history(operation_date:str):
-        uri = 'mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp'
-        client = MongoClient(uri)
-        db = client["frescapp"]
         coleccion_historial = db["products_history"]
         coleccion_historial.delete_many({"operation_date": operation_date})
-        client.close()
+
     def update_price_page():
         consumer_key = 'ck_203177d4d7a291000f60cd669ab7cb98976b3620'
         consumer_secret = 'cs_d660a52cd323666cad9b600a9d61ed6c577cd6f9'
         base_url = 'https://www.buyfrescapp.com/wp-json/wc/v3/products'
-        # Conexión a MongoDB
-        client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
-        db = client['frescapp']
         collection = db['products']
         woo_products = []
         for page in range(1, 5):  # Iterar tres páginas
@@ -420,22 +405,26 @@ def products_history_new(operation_date):
     fields = ['ARTICULO', 'PROMEDIO', 'MINIMO', 'MAXIMO', 'FECHA', 'FUENTE']
     filepath = os.path.join(os.path.dirname(__file__), f"sipsaexporta_{operation_date}.xls")
 
-
-    #sipsa = obtenerSipsa(operation_date,filepath)
-    sipsa = None
-    delete_product_history(operation_date)
-    print("Historial de productos eliminado.")
-    if sipsa:
-        data = extractDataFromExcel(filepath, operation_date)
-    else:
-        data = []
-    print("Datos extraídos de SIPSA.")
-    copiar_productos_activos_y_actualizar(uri, db_name, coleccion_origen, coleccion_destino, operation_date, data)
-    print("Productos copiados y actualizados en products_history.")
-    actualizar_precios_en_products(uri, db_name, coleccion_destino, operation_date)
-    print("Precios actualizados en products.")
-    update_price_page()
-    print("Precios actualizados en WooCommerce.")
+    client = MongoClient(uri)
+    db = client[db_name]
+    try:
+        #sipsa = obtenerSipsa(operation_date,filepath)
+        sipsa = None
+        delete_product_history(operation_date)
+        print("Historial de productos eliminado.")
+        if sipsa:
+            data = extractDataFromExcel(filepath, operation_date)
+        else:
+            data = []
+        print("Datos extraídos de SIPSA.")
+        copiar_productos_activos_y_actualizar(coleccion_origen, coleccion_destino, operation_date, data)
+        print("Productos copiados y actualizados en products_history.")
+        actualizar_precios_en_products(coleccion_destino, operation_date)
+        print("Precios actualizados en products.")
+        update_price_page()
+        print("Precios actualizados en WooCommerce.")
+    finally:
+        client.close()
     # if os.path.exists(filepath):
     #     os.remove(filepath)
     return jsonify({"message": "Productos actualizados."}),  200

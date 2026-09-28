@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ActionService {
-   private baseUrl = 'https://app.buyfrescapp.com:5000/';
-   //private baseUrl = 'http://127.0.0.1:5000/';
+   private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 

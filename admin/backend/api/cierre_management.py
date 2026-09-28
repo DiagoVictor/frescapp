@@ -1,27 +1,31 @@
-from flask import Blueprint, jsonify, request
-from models.cierre import Cierre  # Importa la clase Cierre desde el archivo de modelos
-from pymongo import MongoClient
-from datetime import datetime
-from bson import json_util, ObjectId
-from models.route import Route
-from models.inventory import Inventory
-from models.purchase import Purchase
-from models.cost import Cost
-from models.order import Order
+from flask import Blueprint, jsonify, request, current_app
 from datetime import datetime, timedelta
-import api.alegra_management as alegra_api
-import api.route_management as route_api
-import api.purchase_management as purchase_api
-import api.inventory_management as inventory_api
-import api.ue_management as ue_api
 import time
-from models.product import Product
-from models.product_history import ProductHistory
+from bson import json_util
+
+# Modelos
+from ..models.cierre import Cierre
+from ..models.route import Route
+from ..models.inventory import Inventory
+from ..models.purchase import Purchase
+from ..models.cost import Cost
+from ..models.order import Order
+from ..models.product import Product
+from ..models.product_history import ProductHistory
+from . import alegra_management as alegra_api
+from . import route_management as route_api
+from . import purchase_management as purchase_api
+from . import inventory_management as inventory_api
+from . import ue_management as ue_api
+
+# APIs relacionadas (se importan dentro de las funciones para evitar ciclos)
+# from . import alegra_management, route_management, purchase_management, inventory_management
 
 # Configuración de Flask Blueprint
+# Configuración de Flask Blueprint
 cierres_api = Blueprint('cierres', __name__)
-client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
-db = client['frescapp']
+from ..db import get_db
+db = get_db()
 orders_collection = db['orders']
 purchases_collection = db['purchases']
 routes_collection = db['routes']
@@ -201,7 +205,7 @@ def func_create_cierre(fecha_in):
     davivienda = 0
     bancolombia = 0
     cartera = 0
-    orders_with_cartera = Order.find_by_status("Pendiente de pago")
+    orders_with_cartera = Order.find_by_status("Pendiente de pago", {"total": 1})
     for order in orders_with_cartera:
         cartera_total += int(order.get("total"))
     ruta = Route.find_by_date(fecha_in)
@@ -301,12 +305,16 @@ def get_cierre(fecha):
 @cierres_api.route('/<fecha_in>', methods=['POST'])
 def create_cierre(fecha_in):
     # Paso 1: Generar facturas de pedidos del dia en curso
+    orders = list(Order.find_by_date(fecha_in,fecha_in))
+    orders_to_invoice = [order for order in orders if order.get("alegra_id") == "000"]
+    if orders_to_invoice:
+        alegra_clients = alegra_api.get_all_clients()
+        alegra_items = alegra_api.get_all_items()
+        for order in orders_to_invoice:
+            alegra_api.func_send_invoice(order["order_number"], alegra_clients, alegra_items)
+            time.sleep(3)
     orders = Order.find_by_date(fecha_in,fecha_in)
-    for order in orders:
-        if order.get("alegra_id") == "000":
-            alegra_api.func_send_invoice(order["order_number"])
-            time.sleep(3)  
-    orders = Order.find_by_date(fecha_in,fecha_in)
+    print("Emitiendo facturas en Alegra...")
     for order in orders:
         if order.get("alegra_id") != "000":
             alegra_api.emit_invoice(order["alegra_id"])
@@ -326,7 +334,7 @@ def create_cierre(fecha_in):
     # rutas = Route.find_by_date(fecha_in)
     # for ruta in rutas:
     #     ruta.close_route()
-    
+    print(f"Ruta del {fecha_in} cerrada.")
     # Paso 4: Crear la ruta del dia siguiente
     fecha_siguiente = (datetime.strptime(fecha_in, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
     ruta = Route.find_by_date(fecha_siguiente)
@@ -339,18 +347,18 @@ def create_cierre(fecha_in):
         if order_to_update:
             order_to_update.status = "Ruteada"
             order_to_update.updated()
-    
+    print(f"Ruta del {fecha_siguiente} creada.")
     # Paso 5: Crear la OC del dia siguiente
     purchase = Purchase.get_by_date(fecha_siguiente)
     if purchase:
         purchase.delete()
     purchase_api.func_create_purchase(fecha_siguiente)
-
+    print(f"Orden de compra del {fecha_siguiente} creada.")
     # Paso 6: Crear el inventario del dia siguiente
     inventory = Inventory.get_by_date(fecha_siguiente)
     if inventory:
         inventory.delete()
-
+    print(f"Inventario del {fecha_siguiente} creado.")
     # Si es domingo, duplicar inventario del sábado
     fecha_obj = datetime.strptime(fecha_siguiente, "%Y-%m-%d")
     if fecha_obj.weekday() == 6:  # 6 = domingo
@@ -480,7 +488,7 @@ def validate_cierre(fecha):
                     })
 
     # === PRECIOS ===
-    products = Product.objects()
+    products = Product.objects("active")
     products_history = ProductHistory.objects(fecha_inicio=lunes_ocho_dias_atras, fecha_fin=lunes_ocho_dias_atras)
     hist_by_sku = {ph.get("sku"): ph for ph in products_history}
     for product in products:
@@ -513,4 +521,3 @@ def validate_cierre(fecha):
         "fecha": fecha,
         "errores": errores or [{"tipo": "bajo", "clasificacion": "general", "mensaje": "Todo OK 😎"}]
     })
-

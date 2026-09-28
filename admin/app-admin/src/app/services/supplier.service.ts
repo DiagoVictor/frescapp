@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SupplierService {
-  private baseUrl = 'https://app.buyfrescapp.com:5000/';
-  //private baseUrl = 'http://localhost:5000/';
+  private baseUrl = environment.apiUrl;
   constructor(private http: HttpClient) { }
   getSuppliers():Observable<any> {
     return this.http.get(`${this.baseUrl}api/supplier/suppliers`);
