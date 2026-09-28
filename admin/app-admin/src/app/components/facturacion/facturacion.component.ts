@@ -122,7 +122,7 @@ export class FacturacionComponent implements OnInit {
   sendPending(): void {
     const total = this.pending?.orders?.length || 0;
     if (!total) return;
-    if (!confirm(`Se crearán y emitirán ante la DIAN ${total} facturas con la resolución ${this.activeResolution?.prefix}. ¿Continuar?`)) return;
+    if (!confirm(`Se crearán y emitirán ante la DIAN ${total} facturas con la resolución ${this.activeResolution?.prefix} y fecha de hoy. ¿Continuar?`)) return;
     this.sending = true;
     this.sendResult = null;
     this.alegraService.send_pending_invoices(this.days).subscribe({

@@ -63,6 +63,10 @@ class InvoiceResolution:
         return InvoiceResolution._serialize(resolutions_collection.find_one({"_id": ObjectId(resolution_id)}))
 
     @staticmethod
+    def exists(prefix, document_type="invoice"):
+        return resolutions_collection.count_documents({"prefix": prefix, "document_type": document_type}) > 0
+
+    @staticmethod
     def get_active(document_type="invoice"):
         return InvoiceResolution._serialize(
             resolutions_collection.find_one({"active": True, "document_type": document_type})
