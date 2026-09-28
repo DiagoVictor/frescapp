@@ -1,33 +1,43 @@
-from flask import Blueprint, jsonify, request
+from urllib import response
+from flask import Blueprint, jsonify, request, Response, current_app
 from pymongo import MongoClient
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.styles import ParagraphStyle
+from reportlab.platypus import (
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Image, PageBreak
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
-import locale
-from flask import Response
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
-from io import BytesIO
-from pymongo import MongoClient
 from reportlab.lib.units import inch
-from reportlab.platypus import PageBreak
-import locale
+from io import BytesIO
+from datetime import datetime, timedelta
+from collections import OrderedDict
 import certifi
 import urllib.request
-from datetime import datetime, timedelta
-from models.purchase import Purchase
-from collections import OrderedDict
+import locale
 
+from ..models.purchase import Purchase
+from ..db import get_db
 
 purchase_api = Blueprint('purchase', __name__)
-client = MongoClient('mongodb://admin:Caremonda@app.buyfrescapp.com:27017/frescapp')
-db = client['frescapp']
+
+_remote_image_cache = {}
+
+def _get_cached_image_stream(url):
+    if url not in _remote_image_cache:
+        context = urllib.request.ssl.create_default_context(cafile=certifi.where())
+        with urllib.request.urlopen(url, context=context, timeout=10) as response:
+            _remote_image_cache[url] = response.read()
+    return BytesIO(_remote_image_cache[url])
+
+# ======================================================
+# 🔗 Conexión base de datos
+# ======================================================
+db = get_db()
 orders_collection = db['orders']
 purchase_collection = db['purchases']
+counters_collection = db['counters']
+
 
 def func_create_purchase(date,efectivo=0):
     date_object = datetime.strptime(date, "%Y-%m-%d")
@@ -220,11 +230,11 @@ def func_create_purchase(date,efectivo=0):
         return jsonify({"status": "failure", "message": "No products found for the given date."}), 404
 @purchase_api.route('/create/', methods=['POST'])
 def create_purchase():
-    data = request.json
-    date = data.get("date")
-    efectivo = data.get("efectivoEntreado")
-    return func_create_purchase(date,efectivo)
-
+    data = request.get_json()
+    return func_create_purchase(data.get("date"), data.get("efectivoEntregado", 0))
+@purchase_api.route('/create/<string:date>', methods=['GET'])
+def create_purchase2(date):
+    return func_create_purchase(date, 0)
 @purchase_api.route('/purchases/', methods=['GET'])
 def list_purchases():
     purchases = list(
@@ -270,32 +280,29 @@ def update_price():
     new_proveedor = data.get("proveedor")
     forecast = data.get("forecast")
     total_quantity = data.get("total_quantity")
-    purchase = purchase_collection.find_one({"purchase_number": purchase_number})
     status = data.get("status")
-    if purchase:
-        updated = False
-        for product in purchase['products']:
-            if product['sku'] == sku:
-                # Actualiza el precio del producto
-                product['final_price_purchase'] = new_price
-                product['proveedor'] = new_proveedor
-                product['type_transaction'] = type_transaction
-                product['status'] = status
-                product['forecast'] = forecast
-                product['total_quantity'] = total_quantity
-                updated = True
-                break
+    match = purchase_collection.find_one(
+        {"purchase_number": purchase_number, "products.sku": sku},
+        {"_id": 1}
+    )
+    if match:
+        purchase_collection.update_one(
+            {"purchase_number": purchase_number, "products.sku": sku},
+            {"$set": {
+                "products.$.final_price_purchase": new_price,
+                "products.$.proveedor": new_proveedor,
+                "products.$.type_transaction": type_transaction,
+                "products.$.status": status,
+                "products.$.forecast": forecast,
+                "products.$.total_quantity": total_quantity,
+            }}
+        )
+        return jsonify({"status": "success", "message": "Price updated successfully."}), 200
 
-        if updated:
-            purchase_collection.update_one(
-                {"purchase_number": purchase_number},
-                {"$set": {"products": purchase['products']}}
-            )
-            return jsonify({"status": "success", "message": "Price updated successfully."}), 200
-        else:
-            return jsonify({"status": "failure", "message": "SKU not found."}), 404
-    else:
-        return jsonify({"status": "failure", "message": "Purchase not found."}), 404
+    purchase = purchase_collection.find_one({"purchase_number": purchase_number}, {"_id": 1})
+    if purchase:
+        return jsonify({"status": "failure", "message": "SKU not found."}), 404
+    return jsonify({"status": "failure", "message": "Purchase not found."}), 404
 
 @purchase_api.route('/purchase/report/<string:purchase_number>', methods=['GET'])
 def get_report_purchase(purchase_number):
@@ -384,11 +391,7 @@ def get_report_purchase(purchase_number):
     pdf = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     image_url = 'https://buyfrescapp.com/images/banner1.png'
-    context = urllib.request.ssl.create_default_context(cafile=certifi.where())
-    with urllib.request.urlopen(image_url, context=context) as response:
-        image_data = response.read()
-    image_stream = BytesIO(image_data)
-    logo = Image(image_stream, width=200, height=70)
+    logo = Image(_get_cached_image_stream(image_url), width=200, height=70)
     centered_style = ParagraphStyle(
         name='Centered',
         fontSize=16,

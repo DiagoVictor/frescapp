@@ -1,6 +1,9 @@
 from bson import ObjectId
 from datetime import datetime
-from models.order import db
+from pymongo import ReturnDocument
+from ..db import get_db
+
+db = get_db()
 
 resolutions_collection = db['invoice_resolutions']
 
@@ -103,12 +106,17 @@ class InvoiceResolution:
         return resolutions_collection.delete_one({"_id": ObjectId(resolution_id), "active": {"$ne": True}}).deleted_count
 
     @staticmethod
-    def register_used_number(resolution_id, number):
-        """Guarda el último número que Alegra asignó con esta resolución."""
-        resolutions_collection.update_one(
-            {"_id": ObjectId(resolution_id), "last_number": {"$lt": int(number)}},
-            {"$set": {"last_number": int(number)}}
+    def next_number(resolution_id):
+        """Reserva de forma atómica el siguiente consecutivo de la resolución. None si se agotó."""
+        res = resolutions_collection.find_one({"_id": ObjectId(resolution_id)})
+        if not res:
+            return None
+        updated = resolutions_collection.find_one_and_update(
+            {"_id": res["_id"], "last_number": {"$lt": int(res["to_number"])}},
+            {"$inc": {"last_number": 1}},
+            return_document=ReturnDocument.AFTER
         )
+        return updated["last_number"] if updated else None
 
     @staticmethod
     def check_usable(res):
