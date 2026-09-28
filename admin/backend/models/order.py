@@ -35,7 +35,9 @@ class Order:
                  seller_name=None,
                  source=None,
                  totalPayment=None
-                 ,status_payment='Pendiente de pago'):
+                 ,status_payment='Pendiente de pago'
+                 ,invoice_number=None
+                 ,invoice_resolution_id=None):
         self.id = id
         self.order_number = order_number
         self.customer_email = customer_email
@@ -56,6 +58,8 @@ class Order:
         self.discount = discount  # Default value is 0
         self.deliveryCost = deliveryCost if deliveryCost is not None else 0
         self.alegra_id = alegra_id if alegra_id is not None else "000"
+        self.invoice_number = invoice_number
+        self.invoice_resolution_id = invoice_resolution_id
         self.open_hour = open_hour if open_hour is not None else ""
         self.payment_date = payment_date if payment_date is not None else delivery_date
         self.driver_name = driver_name if driver_name is not None else ''

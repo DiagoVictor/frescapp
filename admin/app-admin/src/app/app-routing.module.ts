@@ -32,6 +32,7 @@ import { UeComponent } from './components/ue/ue.component';
 import { PedidosReportComponent } from './components/pedidos-report/pedidos-report.component';
 import { OrdenComponent } from './components/ordenes/orden/orden.component';
 import { InstitucionalComponent } from './components/institucional/institucional.component';
+import { FacturacionComponent } from './components/facturacion/facturacion.component';
 const routes: Routes = [
   { path: 'productos', component: ProductsComponent, canActivate: [AuthGuard] },
   { path: 'clientes', component: ClientesComponent, canActivate: [AuthGuard] },
@@ -61,6 +62,7 @@ const routes: Routes = [
   { path: 'pedidos-report', component: PedidosReportComponent, canActivate: [AuthGuard] },
   { path: 'orden/:id', component: OrdenComponent, canActivate: [AuthGuard] },
   { path: 'institucional', component: InstitucionalComponent, canActivate: [AuthGuard] },
+  { path: 'facturacion', component: FacturacionComponent, canActivate: [AuthGuard] },
 
   // públicas
   { path: 'login', component: LoginComponent },
